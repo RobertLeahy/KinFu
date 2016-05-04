@@ -7,6 +7,10 @@ This repository serves as the home for the course [SENG 499](http://www.ece.uvic
 * [KinectFusion: Real-Time Dense Surface Mapping and Tracking](http://homes.cs.washington.edu/~newcombe/papers/newcombe_etal_ismar2011.pdf)
 * [DynamicFusion: Reconstruction and Tracking of Non-rigid Scenes in Real-Time](http://grail.cs.washington.edu/projects/dynamicfusion/papers/DynamicFusion.pdf)
 
+## Links
+* Project Management - [waffle.io](https://waffle.io/RobertLeahy/SENG499)
+* Continuous Integration - [travis-ci](https://travis-ci.org/RobertLeahy/SENG499/)
+
 ## Contributing
 Currently, no outside contributions are being accepted as the coursework is required to be our own.
 
