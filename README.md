@@ -1,5 +1,6 @@
 # SENG 499 Summer 2016
 [![Stories in Ready](https://badge.waffle.io/RobertLeahy/SENG499.png?label=ready&title=Ready)](http://waffle.io/RobertLeahy/SENG499)
+[![Build Status](https://travis-ci.org/RobertLeahy/SENG499.svg?branch=master)](https://travis-ci.org/RobertLeahy/SENG499)
 
 ## Introduction
 This repository serves as the home for the course [SENG 499](http://www.ece.uvic.ca/~elec499/) offered at the University of Victoria in the Summer of 2016. The proposed project is to implement a system capabale of generating and continuously updating triangular meshes through the use of a RGBD camera, such as the Microsoft Kinect. Similar work has been done in the following papers.
