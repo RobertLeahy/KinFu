@@ -7,6 +7,40 @@ This repository serves as the home for the course [SENG 499](http://www.ece.uvic
 * [KinectFusion: Real-Time Dense Surface Mapping and Tracking](http://homes.cs.washington.edu/~newcombe/papers/newcombe_etal_ismar2011.pdf)
 * [DynamicFusion: Reconstruction and Tracking of Non-rigid Scenes in Real-Time](http://grail.cs.washington.edu/projects/dynamicfusion/papers/DynamicFusion.pdf)
 
+## Building
+
+### Platforms
+Tested on
+* Windows 10 (MinGW64)
+* Ubuntu 14.04 and 16.04
+
+May Work on
+* OS/X
+
+### Dependencies
+* Get the header-only [Catch](https://github.com/philsquared/Catch) by copying [catch.hpp](https://raw.githubusercontent.com/philsquared/Catch/master/single_include/catch.hpp) to SENG499/include/catch.hpp
+```
+# Directions for Linux
+
+cd SENG499
+mkdir -p include
+wget -O include/catch.hpp https://raw.githubusercontent.com/philsquared/Catch/master/single_include/catch.hpp
+```
+* Requires g++-5
+```
+# Included on Ubuntu 16.04 (?)
+# Directions for Linux
+
+sudo apt-get install g++-5
+```
+
+### Compile
+Once the dependencies are satisfied...
+```
+cd SENG499
+make
+```
+
 ## Links
 * Project Management - [waffle.io](https://waffle.io/RobertLeahy/SENG499)
 * Continuous Integration - [travis-ci](https://travis-ci.org/RobertLeahy/SENG499/)
