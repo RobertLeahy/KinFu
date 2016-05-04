@@ -2,3 +2,6 @@ include/catch.hpp
 *.bat
 !mkdir.bat
 !rmdir.bat
+makefiles/*
+obj/*
+bin/*
