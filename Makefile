@@ -11,14 +11,14 @@ endif
 ifeq ($(RELEASE),YES)
 	OPTIMIZATION:=-O2
 else
-	OPTIMIZATION:=-O0 -g -fno-inline -fno-omit-frame-pointer -Wall -Wpedantic -Wextra -Werror
+	OPTIMIZATION:=-O0 -g -fno-inline -fno-omit-frame-pointer -Wall -Wpedantic -Wextra -Werror -Wno-deprecated-declarations
 	ifneq ($(OS),Windows_NT)
 		OPTIMIZATION:=$(OPTIMIZATION) -fsanitize=address
 	endif
 endif
 
 
-OPTS_SHARED:=-I ./include -std=c++1z
+OPTS_SHARED:=-I /usr/include/eigen3 -I ./include -std=c++1z
 
 
 ifeq ($(OS),Windows_NT)
