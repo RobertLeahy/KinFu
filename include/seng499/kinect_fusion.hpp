@@ -6,6 +6,7 @@
 #pragma once
 
 
+#include <seng499/depth_device.hpp>
 #include <seng499/measurement_pipeline_block.hpp>
 #include <seng499/pose_estimation_pipeline_block.hpp>
 #include <seng499/surface_prediction_pipeline_block.hpp>
@@ -26,6 +27,7 @@ namespace seng499 {
 		private:
 		
 		
+			const depth_device * dd_;
 			const measurement_pipeline_block * mpb_;
 			const pose_estimation_pipeline_block * pepb_;
 			const surface_prediction_pipeline_block * sppb_;

@@ -83,6 +83,7 @@ obj/%.o:
 
 	
 OBJS:=\
+obj/depth_device.o \
 obj/measurement_pipeline_block.o \
 obj/kinect_fusion.o \
 obj/pose_estimation_pipeline_block.o \

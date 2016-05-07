@@ -4,7 +4,7 @@
 namespace seng499 {
 	
 	
-	kinect_fusion::kinect_fusion () noexcept : mpb_(nullptr), pepb_(nullptr), sppb_(nullptr), urpb_(nullptr) {	}
+	kinect_fusion::kinect_fusion () noexcept : dd_(nullptr), mpb_(nullptr), pepb_(nullptr), sppb_(nullptr), urpb_(nullptr) {	}
 	
 	
 }
