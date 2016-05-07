@@ -82,7 +82,12 @@ obj/%.o:
 	$(GPP) -c -o $@ $(patsubst obj/%.o,src/%.cpp,$@)
 
 	
-OBJS:=
+OBJS:=\
+obj/measurement_pipeline_block.o \
+obj/kinect_fusion.o \
+obj/pose_estimation_pipeline_block.o \
+obj/surface_prediction_pipeline_block.o \
+obj/update_reconstruction_pipeline_block.o
 
 
 TEST_OBJS:=
