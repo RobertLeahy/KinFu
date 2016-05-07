@@ -5,3 +5,4 @@ include/catch.hpp
 makefiles/*
 obj/*
 bin/*
+doc/*

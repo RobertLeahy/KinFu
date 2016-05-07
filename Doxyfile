@@ -1,0 +1,12 @@
+PROJECT_NAME="SENG 499"
+PROJECT_BRIEF="An open source implementation of KinectFusion & Dynamic Fusion for a senior design project at the University of Victoria"
+OUTPUT_DIRECTORY="doc"
+INPUT=include/
+EXCLUDE_PATTERNS=
+FILE_PATTERNS=*.hpp
+RECURSIVE=YES
+INPUT_FILTER=
+FILTER_SOURCE_FILES=NO
+STRIP_FROM_INC_PATH=include/
+HAVE_DOT=YES
+USE_MATHJAX=YES
