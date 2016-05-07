@@ -8,6 +8,7 @@ addons: &gcc5
     packages:
       - g++-5
       - gcc-5
+      - libeigen3-dev 
     sources:
       - ubuntu-toolchain-r-test
 before_install:
