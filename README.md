@@ -1,4 +1,4 @@
-# SENG 499 Summer 2016
+# SENG 499 Summer 2016 {#mainpage}
 [![Stories in Ready](https://badge.waffle.io/RobertLeahy/SENG499.png?label=ready&title=Ready)](http://waffle.io/RobertLeahy/SENG499)
 [![Build Status](https://travis-ci.org/RobertLeahy/SENG499.svg?branch=master)](https://travis-ci.org/RobertLeahy/SENG499)
 
