@@ -18,20 +18,18 @@ May Work on
 * OS/X
 
 ### Dependencies
+* [Eigen 3](http://eigen.tuxfamily.org/index.php?title=Main_Page)
 * Get the header-only [Catch](https://github.com/philsquared/Catch) by copying [catch.hpp](https://raw.githubusercontent.com/philsquared/Catch/master/single_include/catch.hpp) to SENG499/include/catch.hpp
-```
-# Directions for Linux
+* Requires g++-5
 
+#### Directions for Linux
+```
+git clone https://github.com/RobertLeahy/SENG499.git
 cd SENG499
 mkdir -p include
 wget -O include/catch.hpp https://raw.githubusercontent.com/philsquared/Catch/master/single_include/catch.hpp
-```
-* Requires g++-5
-```
-# Included on Ubuntu 16.04 (?)
-# Directions for Linux
+sudo apt-get install g++-5 libeigen3-dev
 
-sudo apt-get install g++-5
 ```
 
 ### Compile
