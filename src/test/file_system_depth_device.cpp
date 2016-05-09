@@ -1,7 +1,7 @@
 #include <seng499/file_system_depth_device.hpp>
 
 #include <Eigen/Dense>
-#include <ctime>
+#include <chrono>
 #include <vector>
 #include <catch.hpp>
 
@@ -11,11 +11,11 @@ SCENARIO("file_system_depth_device is used to debounce the rate at which frames 
 	GIVEN("30 fps") {
 		
 		// A fake implementatio of a file_system_depth_device for testing debouncing
-		class fake_file_system_depth_device: public seng499::file_system_depth_device::file_system_depth_device {
+		class fake_file_system_depth_device : public seng499::file_system_depth_device::file_system_depth_device {
 
 			public:
 			
-				fake_file_system_depth_device(int max_fps): file_system_depth_device(max_fps) { }
+				using file_system_depth_device::file_system_depth_device;
 				
 				std::size_t width() const noexcept { return 0; }
 				std::size_t height() const noexcept { return 0; }
@@ -35,13 +35,15 @@ SCENARIO("file_system_depth_device is used to debounce the rate at which frames 
 		WHEN("The () operator is invoked in succession") {
 			
 			fsdd(frame);
-			clock_t start = clock();
+			using clock=std::chrono::high_resolution_clock;
+			auto start=clock::now();
 			fsdd(frame);
-			clock_t delta = clock() - start;
+			auto delta=clock::now()-start;
 			
 			THEN("At least 1/30 seconds occurs before the second invocation returns") {
-			
-				CHECK(((float)delta/CLOCKS_PER_SEC) > (1.0/30.0));
+				
+				auto delta_ms=std::chrono::duration_cast<std::chrono::milliseconds>(delta);
+				CHECK(delta_ms>=std::chrono::milliseconds(33));
 			
 			}
 			

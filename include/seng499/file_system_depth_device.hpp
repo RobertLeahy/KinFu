@@ -5,12 +5,12 @@
 
 #pragma once
 
-#include <seng499/depth_device.hpp>
 
+#include <seng499/depth_device.hpp>
 #include <Eigen/Dense>
+#include <chrono>
 #include <cstddef>
 #include <vector>
-#include <ctime>
 
 
 namespace seng499 {
@@ -21,21 +21,12 @@ namespace seng499 {
 	 *  in a derived class acts as a source of pre-existing
      *  depth information located on a file system.
 	 * 
-	 *  Includes provisions to allow for fps throttling. 
+	 *  Includes provisions to allow for fps throttling.
 	 */
-	class file_system_depth_device: public depth_device {
-		
-		
+	class file_system_depth_device : public depth_device {
 		
 		
 		public:
-		
-			
-			/**
-			 *	Allows base classes to be cleaned up through
-			 *	pointer or reference to base.
-			 */
-			virtual ~file_system_depth_device () noexcept;
 			
 			
 			/**
@@ -54,17 +45,9 @@ namespace seng499 {
 			 *		representing the distance of that pixel from
 			 *		the sensor in meters.
 			 */
-			 virtual std::vector<float> operator () (std::vector<float> vec) const override final;
-			 
-            
-		private:
+			virtual std::vector<float> operator () (std::vector<float> vec=std::vector<float>{}) const override final;
 			
-			int max_fps_;
-			mutable clock_t last_invocation_;
-            
-		protected:
-		
-		
+			
 			/**
 			 * Creates a new file_system_depth_device.
 			 *
@@ -73,7 +56,20 @@ namespace seng499 {
 			 *		this file_system_depth_device provides
 			 *
 			 */
-			file_system_depth_device (const int max_fps); 
+			explicit file_system_depth_device (unsigned max_fps) noexcept;
+			
+            
+		private:
+		
+		
+			using clock=std::chrono::high_resolution_clock;
+			
+			
+			clock::duration period_;
+			mutable clock::time_point last_invocation_;
+			
+            
+		protected:
 		
 		
 			/**
@@ -94,6 +90,8 @@ namespace seng499 {
 			 *		the sensor in meters.
 			 */
 			virtual std::vector<float> get_file_system_frame(std::vector<float> vec) const = 0;
+		
+		
 	};
 	
 	
