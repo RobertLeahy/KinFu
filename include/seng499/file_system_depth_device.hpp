@@ -7,13 +7,13 @@
 
 
 #include <seng499/depth_device.hpp>
+#include <seng499/optional.hpp>
 #include <Eigen/Dense>
 #include <chrono>
 #include <cstddef>
 #include <vector>
 #include <boost/regex.hpp>
 #include <boost/filesystem.hpp>
-#include <experimental/optional>
 
 
 namespace seng499 {
@@ -70,7 +70,7 @@ namespace seng499 {
 			 *		should be sorted in descending order. Default is false.
 			 */
 			explicit file_system_depth_device (unsigned max_fps, const boost::filesystem::path path, 
-					const std::experimental::optional<boost::regex> regex = {}, const bool sort_desc=false) noexcept;
+					const optional<boost::regex> regex = {}, const bool sort_desc=false) noexcept;
 			
             
 		private:
@@ -83,7 +83,7 @@ namespace seng499 {
 			mutable clock::time_point last_invocation_;
 			
 			boost::filesystem::path path_;
-			std::experimental::optional<boost::regex> regex_;
+			optional<boost::regex> regex_;
 			bool sort_desc_;
 			
 
