@@ -85,6 +85,7 @@ obj/%.o:
 OBJS:=\
 obj/depth_device.o \
 obj/file_system_depth_device.o \
+obj/fps_depth_device.o \
 obj/measurement_pipeline_block.o \
 obj/mock_depth_device.o \
 obj/kinect_fusion.o \
@@ -94,7 +95,8 @@ obj/update_reconstruction_pipeline_block.o
 
 
 TEST_OBJS:=\
-obj/test/file_system_depth_device.o
+obj/test/file_system_depth_device.o \
+obj/test/fps_depth_device.o
 
 
 all: bin/$(MODULE_NAME)$(MODULE_EXT)
