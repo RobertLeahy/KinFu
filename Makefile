@@ -86,6 +86,7 @@ OBJS:=\
 obj/depth_device.o \
 obj/file_system_depth_device.o \
 obj/measurement_pipeline_block.o \
+obj/mock_depth_device.o \
 obj/kinect_fusion.o \
 obj/pose_estimation_pipeline_block.o \
 obj/surface_prediction_pipeline_block.o \
