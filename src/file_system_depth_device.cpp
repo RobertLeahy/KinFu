@@ -2,6 +2,7 @@
 #include <chrono>
 #include <thread>
 #include <utility>
+#include <iostream>
 
 
 namespace seng499 {
@@ -14,7 +15,50 @@ namespace seng499 {
 	}
 	
 	
-	file_system_depth_device::file_system_depth_device(unsigned max_fps) noexcept : period_(std::chrono::duration_cast<clock::duration>(fps_to_period(max_fps))) {	}
+	file_system_depth_device::file_system_depth_device(unsigned max_fps, const boost::filesystem::path path, 
+		const std::experimental::optional<boost::regex> regex, const bool sort_desc) noexcept : 
+		period_(std::chrono::duration_cast<clock::duration>(fps_to_period(max_fps))),
+		path_(std::move(path)), regex_(std::move(regex)), sort_desc_(sort_desc) {	
+		
+		if (!boost::filesystem::is_directory(path_)) {
+			throw new std::invalid_argument("file_system_depth_device: provided path must be an existing directory");
+		}
+		
+		/* 
+		 * Loop over files in the directory specified by path,
+		 * filter by the supplied regex if supplied. Then sort.
+		 * Finally, if sort_desc_ is specified, reverse the vector.
+		 *
+		 */
+		std::vector<boost::filesystem::path> collected_files;
+		
+		boost::filesystem::directory_iterator end_itr;
+		
+		for (boost::filesystem::directory_iterator dir_itr( path_ ); dir_itr != end_itr; ++dir_itr) {
+			
+			if (boost::filesystem::is_regular_file( dir_itr->status() )) {
+				
+				if (!regex_ || boost::regex_match(dir_itr->path().filename().string(), regex_.value())) {
+					
+					collected_files.push_back(boost::filesystem::canonical( dir_itr->path() ));
+					
+				}
+				
+			}
+			
+		}
+	
+		std::sort(collected_files.begin(), collected_files.end());
+		
+		if (sort_desc_) {
+			std::reverse(collected_files.begin(), collected_files.end());
+		}
+		
+		sorted_files_ = std::move(collected_files);
+		
+		current_file_ = sorted_files_.begin();
+		
+	}
 	
 	
 	std::vector<float> file_system_depth_device::operator () (std::vector<float> vec) const {

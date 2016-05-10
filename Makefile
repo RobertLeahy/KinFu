@@ -1,5 +1,5 @@
 SUFFIXES+=.mk
-
+LINK += -lboost_filesystem -lboost_regex -lboost_system
 
 ifeq ($(OS),Windows_NT)
 	GPP:=g++

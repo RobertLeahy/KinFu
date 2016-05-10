@@ -11,6 +11,9 @@
 #include <chrono>
 #include <cstddef>
 #include <vector>
+#include <boost/regex.hpp>
+#include <boost/filesystem.hpp>
+#include <experimental/optional>
 
 
 namespace seng499 {
@@ -54,9 +57,20 @@ namespace seng499 {
 			 * \param [in] max_fps
 			 * 		The max number of frames per second that
 			 *		this file_system_depth_device provides
-			 *
+			 *	\param [in] path
+			 *		A path to the directory where a collection of
+			 *		depth frame files exists.
+			 *	\param [in] regex 
+			 *		An optionally specified string to be converted
+			 *		to a boost::regex, or an empty string (default)
+			 *		to indicate that no filtering is needed. 
+			 *	\param [in] sort_desc
+			 *		An optionally specified boolean value indicating 
+			 *		that the files in directory path, filtered by regex
+			 *		should be sorted in descending order. Default is false.
 			 */
-			explicit file_system_depth_device (unsigned max_fps) noexcept;
+			explicit file_system_depth_device (unsigned max_fps, const boost::filesystem::path path, 
+					const std::experimental::optional<boost::regex> regex = {}, const bool sort_desc=false) noexcept;
 			
             
 		private:
@@ -68,9 +82,21 @@ namespace seng499 {
 			clock::duration period_;
 			mutable clock::time_point last_invocation_;
 			
+			boost::filesystem::path path_;
+			std::experimental::optional<boost::regex> regex_;
+			bool sort_desc_;
+			
+
             
 		protected:
 		
+			std::vector<boost::filesystem::path> sorted_files_;
+			
+			/**
+			 *	Implementations can increment and access current_file_
+			 *	to get the next file to process.
+			 */
+			std::vector<boost::filesystem::path>::iterator current_file_;
 		
 			/**
 			 *	A template method allowing for the fps to be

@@ -3,6 +3,9 @@
 #include <Eigen/Dense>
 #include <chrono>
 #include <vector>
+#include <boost/filesystem.hpp>
+#include <boost/regex.hpp>
+#include <experimental/optional>
 #include <catch.hpp>
 
 
@@ -29,8 +32,9 @@ SCENARIO("file_system_depth_device is used to debounce the rate at which frames 
 		
 		std::vector<float> frame;
 		int fps = 30;
+		boost::filesystem::path fake_path("src/test/fakepath");	
 		
-		fake_file_system_depth_device fsdd(fps);
+		fake_file_system_depth_device fsdd(fps, fake_path);
 		
 		WHEN("The () operator is invoked in succession") {
 			
