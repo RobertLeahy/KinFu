@@ -258,7 +258,7 @@ namespace seng499 {
 			 *		which case a null filter (which includes all files)
 			 *		shall be used.  If a pointer to an object is provided
 			 *		the lifetime of that object must extend until after
-			 *		the last invocation of the newly create object has
+			 *		the last invocation of the newly created object has
 			 *		returned or the behaviour is undefined.
 			 *	\param [in] comparer
 			 *		A pointer to a \ref file_system_depth_device_comparer
