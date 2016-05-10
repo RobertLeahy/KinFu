@@ -1,73 +1,102 @@
+#include <boost/filesystem.hpp>
 #include <seng499/file_system_depth_device.hpp>
-#include <chrono>
-#include <iostream>
-#include <thread>
+#include <algorithm>
+#include <functional>
+#include <sstream>
+#include <stdexcept>
 #include <utility>
 
 
 namespace seng499 {
 	
 	
-	static std::chrono::duration<float> fps_to_period (unsigned fps) noexcept {
-		
-		return std::chrono::duration<float>(1.0/fps);
+	file_system_depth_device_filter::~file_system_depth_device_filter () noexcept {	}
 	
+	
+	bool null_file_system_depth_device_filter::operator () (const boost::filesystem::path &) const {
+		
+		return true;
+		
 	}
 	
 	
-	file_system_depth_device::file_system_depth_device(unsigned max_fps, boost::filesystem::path path, 
-		optional<boost::regex> regex, bool sort_desc) noexcept : 
-		period_(std::chrono::duration_cast<clock::duration>(fps_to_period(max_fps))),
-		path_(std::move(path)), regex_(std::move(regex)), sort_desc_(sort_desc) {
-		
-		if (!boost::filesystem::is_directory(path_)) {
-			throw new std::invalid_argument("file_system_depth_device: provided path must be an existing directory");
-		}
-		
-		/* 
-		 * Loop over files in the directory specified by path,
-		 * filter by the supplied regex if supplied. Then sort.
-		 * Finally, if sort_desc_ is specified, reverse the vector.
-		 *
-		 */
-		std::vector<boost::filesystem::path> collected_files;
-		
-		boost::filesystem::directory_iterator end_itr;
-		
-		for (boost::filesystem::directory_iterator dir_itr( path_ ); dir_itr != end_itr; ++dir_itr) {
-			
-			if (boost::filesystem::is_regular_file( dir_itr->status() )) {
-				
-				if (!regex_ || boost::regex_match(dir_itr->path().filename().string(), regex_.value())) {
-					
-					collected_files.push_back(boost::filesystem::canonical( dir_itr->path() ));
-					
-				}
-				
-			}
-			
-		}
+	file_system_depth_device_comparer::~file_system_depth_device_comparer () noexcept {	}
 	
-		std::sort(collected_files.begin(), collected_files.end());
+	
+	bool null_file_system_depth_device_comparer::operator () (const boost::filesystem::path & a, const boost::filesystem::path & b) const {
 		
-		if (sort_desc_) {
-			std::reverse(collected_files.begin(), collected_files.end());
+		std::less<> c;
+		return c(a,b);
+		
+	}
+	
+	
+	file_system_depth_device_frame_factory::~file_system_depth_device_frame_factory () noexcept {	}
+	
+	
+	file_system_depth_device::end::end () : std::runtime_error("No more files") {	}
+	
+	
+	file_system_depth_device::file_system_depth_device (boost::filesystem::path path, file_system_depth_device_frame_factory & factory, const file_system_depth_device_filter * filter, const file_system_depth_device_comparer * comparer) : factory_(factory) {
+		
+		if (!boost::filesystem::is_directory(path)) {
+			
+			std::ostringstream ss;
+			ss << "file_system_depth_device: \"" << path << "\" is not a directory";
+			throw std::invalid_argument(ss.str());
+			
 		}
 		
-		sorted_files_ = std::move(collected_files);
+		null_file_system_depth_device_comparer nc;
+		const file_system_depth_device_comparer & c=comparer ? *comparer : nc;
+		null_file_system_depth_device_filter nf;
+		const file_system_depth_device_filter & f=filter ? *filter : nf;
 		
-		current_file_ = sorted_files_.begin();
+		std::for_each(boost::filesystem::directory_iterator(path),boost::filesystem::directory_iterator{},[&] (const auto & entry) {
+			
+			if (!boost::filesystem::is_regular_file(entry.status())) return;
+			auto && path=entry.path();
+			if (!f(path)) return;
+			files_.push_back(path);
+			
+		});
+		
+		//	Sorts in reverse so we can pop back to get the "front"
+		std::sort(files_.begin(),files_.end(),[&] (const auto & a, const auto & b) {	return !c(a,b);	});
 		
 	}
 	
 	
 	std::vector<float> file_system_depth_device::operator () (std::vector<float> vec) {
 		
-		std::this_thread::sleep_until(last_invocation_+period_);
-		last_invocation_=clock::now();
+		if (files_.empty()) throw end{};
 		
-		// OK, you can have a frame now
-		return get_file_system_frame(std::move(vec));
+		auto path=std::move(files_.back());
+		files_.pop_back();
+		
+		return factory_(path,std::move(vec));
+		
+	}
+	
+	
+	std::size_t file_system_depth_device::width () const noexcept {
+		
+		return factory_.width();
+		
+	}
+	
+	
+	std::size_t file_system_depth_device::height () const noexcept {
+		
+		return factory_.height();
+		
+	}
+	
+	
+	Eigen::Matrix3f file_system_depth_device::k () const noexcept {
+		
+		return factory_.k();
+		
 	}
 	
 	
