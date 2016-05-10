@@ -1,5 +1,5 @@
 SUFFIXES+=.mk
-LINK += -lboost_filesystem -lboost_system
+LINK = -lboost_filesystem -lboost_system
 
 ifeq ($(OS),Windows_NT)
 	GPP:=g++
@@ -34,6 +34,7 @@ else
 	OPTS_SHARED:=$(OPTS_SHARED) -fPIC
 	MODULE_EXT:=.so
 	EXECUTABLE_EXT:=
+	LINK += `pkg-config --libs opencv`
 endif
 
 
@@ -88,6 +89,7 @@ obj/file_system_depth_device.o \
 obj/fps_depth_device.o \
 obj/measurement_pipeline_block.o \
 obj/mock_depth_device.o \
+obj/msrc_file_system_depth_device.o \
 obj/kinect_fusion.o \
 obj/pose_estimation_pipeline_block.o \
 obj/surface_prediction_pipeline_block.o \
@@ -96,6 +98,7 @@ obj/update_reconstruction_pipeline_block.o
 
 TEST_OBJS:=\
 obj/test/file_system_depth_device.o \
+obj/test/msrc_file_system_depth_device.o \
 obj/test/fps_depth_device.o
 
 
