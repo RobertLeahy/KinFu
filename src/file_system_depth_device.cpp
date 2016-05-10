@@ -61,7 +61,7 @@ namespace seng499 {
 	}
 	
 	
-	std::vector<float> file_system_depth_device::operator () (std::vector<float> vec) const {
+	std::vector<float> file_system_depth_device::operator () (std::vector<float> vec) {
 		
 		std::this_thread::sleep_until(last_invocation_+period_);
 		last_invocation_=clock::now();
