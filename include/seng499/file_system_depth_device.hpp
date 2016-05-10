@@ -30,24 +30,8 @@ namespace seng499 {
 		
 		
 		public:
-			
-			
-			/**
-			 *	Retrieves a frame from the depth sensor.
-			 *
-			 *	All measurements are in meters.
-			 *
-			 *	\param [in] vec
-			 *		An empty vector of floats whose storage may
-			 *		be used for the return value.  Should be
-			 *		empty.  Defaults to a default constructed
-			 *		vector.
-			 *
-			 *	\return
-			 *		A row major collection of floating point values
-			 *		representing the distance of that pixel from
-			 *		the sensor in meters.
-			 */
+		
+		
 			virtual std::vector<float> operator () (std::vector<float> vec=std::vector<float>{}) override final;
 			
 			
