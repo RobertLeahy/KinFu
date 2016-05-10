@@ -9,6 +9,7 @@ addons: &gcc5
       - g++-5
       - gcc-5
       - libeigen3-dev 
+      - libboost-all-dev
     sources:
       - ubuntu-toolchain-r-test
 before_install:
