@@ -30,7 +30,7 @@ mkdir -p include
 wget -O include/catch.hpp https://raw.githubusercontent.com/philsquared/Catch/master/single_include/catch.hpp
 sudo add-apt-repository ppa:ubuntu-toolchain-r/test
 sudo apt-get update
-sudo apt-get install g++-5 libeigen3-dev
+sudo apt-get install g++-5 libeigen3-dev libboost-all-dev
 
 ```
 
