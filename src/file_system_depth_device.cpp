@@ -1,8 +1,8 @@
 #include <seng499/file_system_depth_device.hpp>
 #include <chrono>
+#include <iostream>
 #include <thread>
 #include <utility>
-#include <iostream>
 
 
 namespace seng499 {

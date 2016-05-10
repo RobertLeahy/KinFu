@@ -6,14 +6,14 @@
 #pragma once
 
 
+#include <boost/regex.hpp>
+#include <boost/filesystem.hpp>
 #include <seng499/depth_device.hpp>
 #include <seng499/optional.hpp>
 #include <Eigen/Dense>
 #include <chrono>
 #include <cstddef>
 #include <vector>
-#include <boost/regex.hpp>
-#include <boost/filesystem.hpp>
 
 
 namespace seng499 {
