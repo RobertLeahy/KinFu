@@ -1,52 +1,90 @@
 #include <seng499/file_system_depth_device.hpp>
 
+
+#include <boost/filesystem.hpp>
 #include <Eigen/Dense>
-#include <chrono>
+#include <cstddef>
+#include <utility>
 #include <vector>
 #include <catch.hpp>
 
 
-SCENARIO("file_system_depth_device is used to debounce the rate at which frames can be acquired", "[seng499][depth_device][file_system_depth_device]") {
+SCENARIO("file_system_depth_device loads depth information from files in the file system", "[seng499][depth_device][file_system_depth_device]") {
 	
-	GIVEN("30 fps") {
+	GIVEN("A file_system_depth_device") {
 		
-		// A fake implementatio of a file_system_depth_device for testing debouncing
-		class fake_file_system_depth_device : public seng499::file_system_depth_device::file_system_depth_device {
-
+		class mock_factory : public seng499::file_system_depth_device_frame_factory {
+			
+			
+			private:
+			
+			
+				std::size_t num_;
+			
+			
 			public:
 			
-				using file_system_depth_device::file_system_depth_device;
+			
+				mock_factory () noexcept : num_(0) {	}
 				
-				std::size_t width() const noexcept { return 0; }
-				std::size_t height() const noexcept { return 0; }
-				Eigen::Matrix3f k() const noexcept { return Eigen::Matrix3f::Zero(); }
-
-				std::vector<float> get_file_system_frame(std::vector<float> vec) const {
+				
+				virtual std::vector<float> operator () (const boost::filesystem::path &, std::vector<float> vec) override {
+					
+					++num_;
 					return vec;
+					
 				}
-
+				
+				
+				virtual std::size_t width () const noexcept override {
+					
+					return 0;
+					
+				}
+				
+				
+				virtual std::size_t height () const noexcept override {
+					
+					return 0;
+					
+				}
+				
+				
+				virtual Eigen::Matrix3f k () const noexcept override {
+					
+					return Eigen::Matrix3f::Zero();
+					
+				}
+				
+				
+				std::size_t get () const noexcept {
+					
+					return num_;
+					
+				}
+			
+			
 		};
 		
-		std::vector<float> frame;
-		int fps = 30;
+		boost::filesystem::path fake_path("src/test/fakepath");
+		mock_factory fac;
+		seng499::file_system_depth_device fsdd(std::move(fake_path),fac);
 		
-		fake_file_system_depth_device fsdd(fps);
-		
-		WHEN("The () operator is invoked in succession") {
+		WHEN("It is invoked") {
 			
-			fsdd(frame);
-			using clock=std::chrono::high_resolution_clock;
-			auto start=clock::now();
-			fsdd(frame);
-			auto delta=clock::now()-start;
+			auto frame=fsdd();
 			
-			THEN("At least 1/30 seconds occurs before the second invocation returns") {
+			THEN("The underlying factory is invoked exactly once") {
 				
-				auto delta_ms=std::chrono::duration_cast<std::chrono::milliseconds>(delta);
-				CHECK(delta_ms>=std::chrono::milliseconds(33));
-			
+				CHECK(fac.get()==1U);
+				
 			}
 			
+			THEN("Invoking it again throws an exception as there are no more files") {
+				
+				CHECK_THROWS_AS(fsdd(),seng499::file_system_depth_device::end);
+				
+			}
 			
 		}
 	

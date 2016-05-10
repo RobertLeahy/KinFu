@@ -55,7 +55,7 @@ namespace seng499 {
 			 *		representing the distance of that pixel from
 			 *		the sensor in meters.
 			 */
-			virtual std::vector<float> operator () (std::vector<float> vec=std::vector<float>{}) const = 0;
+			virtual std::vector<float> operator () (std::vector<float> vec=std::vector<float>{}) = 0;
 			
 			
 			/**
