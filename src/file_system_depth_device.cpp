@@ -15,10 +15,10 @@ namespace seng499 {
 	}
 	
 	
-	file_system_depth_device::file_system_depth_device(unsigned max_fps, const boost::filesystem::path path, 
-		const optional<boost::regex> regex, const bool sort_desc) noexcept : 
+	file_system_depth_device::file_system_depth_device(unsigned max_fps, boost::filesystem::path path, 
+		optional<boost::regex> regex, bool sort_desc) noexcept : 
 		period_(std::chrono::duration_cast<clock::duration>(fps_to_period(max_fps))),
-		path_(std::move(path)), regex_(std::move(regex)), sort_desc_(sort_desc) {	
+		path_(std::move(path)), regex_(std::move(regex)), sort_desc_(sort_desc) {
 		
 		if (!boost::filesystem::is_directory(path_)) {
 			throw new std::invalid_argument("file_system_depth_device: provided path must be an existing directory");

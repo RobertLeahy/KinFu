@@ -69,8 +69,8 @@ namespace seng499 {
 			 *		that the files in directory path, filtered by regex
 			 *		should be sorted in descending order. Default is false.
 			 */
-			explicit file_system_depth_device (unsigned max_fps, const boost::filesystem::path path, 
-					const optional<boost::regex> regex = {}, const bool sort_desc=false) noexcept;
+			explicit file_system_depth_device (unsigned max_fps, boost::filesystem::path path, 
+					optional<boost::regex> regex = {}, bool sort_desc=false) noexcept;
 			
             
 		private:
