@@ -3,7 +3,7 @@
 #include <seng499/msrc_file_system_depth_device.hpp>
 #include <regex>
 #include <iostream>
-
+#include <cstdint>
 
 namespace seng499 {
 
@@ -24,17 +24,20 @@ namespace seng499 {
 	
 	std::vector<float> msrc_file_system_depth_device_frame_factory::operator () (const boost::filesystem::path & path, std::vector<float> vec) {
 	
+		// make sure this is empty
+		vec.clear();
+
+		// reserve the size of our image
+		vec.reserve(640*480);
+
 		// Load a grayscale depth image. Anydepth is necessary as these are 16 bit ints 
-		cv::Mat i_img = cv::imread(path.native(), CV_LOAD_IMAGE_GRAYSCALE | CV_LOAD_IMAGE_ANYDEPTH);
+		cv::Mat img = cv::imread(path.native(), CV_LOAD_IMAGE_GRAYSCALE | CV_LOAD_IMAGE_ANYDEPTH);
 
-		// convert to floats	
-		cv::Mat f_img;
-		i_img.convertTo(f_img, CV_32FC1); 
-
-		// OpenCV stores matrices in row order -> copy f_img to vec
-		const float* f_img_ptr = f_img.ptr<float>();
-		std::size_t elements = f_img.rows * f_img.cols;
-		vec.assign(f_img_ptr, f_img_ptr + elements);
+		// Convert mm to m, cast uint16 to float and push into the vector		
+		for (int i=0; i < img.rows; i++)
+			for (int j = 0; j < img.cols; j++)
+				vec.push_back(float(img.at<uint16_t>(i,j)/1000.0f));
+		
 
 		return vec;
 		
