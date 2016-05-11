@@ -10,6 +10,7 @@ addons: &gcc5
       - gcc-5
       - libeigen3-dev 
       - libboost-all-dev
+      - libopencv-dev
     sources:
       - ubuntu-toolchain-r-test
 before_install:
