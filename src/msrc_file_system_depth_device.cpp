@@ -32,7 +32,7 @@ namespace seng499 {
 		vec.reserve(640*480);
 
 		// Load a grayscale depth image. Anydepth is necessary as these are 16 bit ints 
-		auto img = cv::imread(path.native(), CV_LOAD_IMAGE_GRAYSCALE | CV_LOAD_IMAGE_ANYDEPTH);
+		auto img = cv::imread(path.string(), CV_LOAD_IMAGE_GRAYSCALE | CV_LOAD_IMAGE_ANYDEPTH);
 
 		if (!img.data) throw std::runtime_error("cv::imread failed to read image");
 
