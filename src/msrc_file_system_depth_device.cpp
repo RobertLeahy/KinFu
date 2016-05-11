@@ -1,9 +1,10 @@
 #include <boost/filesystem.hpp>
 #include <opencv2/opencv.hpp>
 #include <seng499/msrc_file_system_depth_device.hpp>
-#include <regex>
-#include <iostream>
 #include <cstdint>
+#include <regex>
+#include <stdexcept>
+
 
 namespace seng499 {
 
@@ -16,7 +17,7 @@ namespace seng499 {
 	
 	
 	bool msrc_file_system_depth_device_filter::operator () (const boost::filesystem::path & path) const {
-		
+
 		return std::regex_match(path.filename().string(), get_regex());
 		
 	}
@@ -31,12 +32,16 @@ namespace seng499 {
 		vec.reserve(640*480);
 
 		// Load a grayscale depth image. Anydepth is necessary as these are 16 bit ints 
-		cv::Mat img = cv::imread(path.native(), CV_LOAD_IMAGE_GRAYSCALE | CV_LOAD_IMAGE_ANYDEPTH);
+		auto img = cv::imread(path.native(), CV_LOAD_IMAGE_GRAYSCALE | CV_LOAD_IMAGE_ANYDEPTH);
+
+		if (!img.data) throw std::runtime_error("cv::imread failed to read image");
+
+		if (img.rows != 480 || img.cols != 640) throw std::runtime_error("Image is not of the expected size (640x480)");
 
 		// Convert mm to m, cast uint16 to float and push into the vector		
-		for (int i=0; i < img.rows; i++)
-			for (int j = 0; j < img.cols; j++)
-				vec.push_back(float(img.at<uint16_t>(i,j)/1000.0f));
+		for (int i=0; i < img.rows; ++i)
+			for (int j = 0; j < img.cols; ++j)
+				vec.push_back(float(img.at<std::uint16_t>(i,j)/1000.0f));
 		
 
 		return vec;
@@ -46,13 +51,13 @@ namespace seng499 {
 	
 	std::size_t msrc_file_system_depth_device_frame_factory::width () const noexcept {
 		
-		return 640;
+		return 480;
 		
 	}
 	
 	std::size_t msrc_file_system_depth_device_frame_factory::height () const noexcept {
 		
-		return 480;
+		return 640;
 		
 	}
 	

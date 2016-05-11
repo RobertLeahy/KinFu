@@ -24,14 +24,16 @@ namespace seng499 {
 	};
 	
 	class msrc_file_system_depth_device_frame_factory: public file_system_depth_device_frame_factory {
-		
-		virtual std::vector<float> operator () (const boost::filesystem::path & path, std::vector<float> vec);
-		
-		virtual std::size_t width () const noexcept;
-		
-		virtual std::size_t height() const noexcept;
-		
-		virtual Eigen::Matrix3f k () const noexcept;
+
+		public:
+	
+			virtual std::vector<float> operator () (const boost::filesystem::path & path, std::vector<float> vec);
+	
+			virtual std::size_t width () const noexcept override;
+
+			virtual std::size_t height() const noexcept override;
+
+			virtual Eigen::Matrix3f k () const noexcept override;
 		
 	};
 }

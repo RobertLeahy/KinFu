@@ -8,7 +8,7 @@
 
 SCENARIO("msrc_file_system_depth_device loads depth information from MSRC 7Scene files in the file system", "[seng499][depth_device][file_system_depth_device][msrc_file_system_depth_device]") {
 	
-	GIVEN("An msrc_file_system_depth_device") {
+	GIVEN("A valid msrc_file_system_depth_device") {
 		
 		boost::filesystem::path test_data_path("data/test/msrc_file_system_depth_device");
 		seng499::msrc_file_system_depth_device_frame_factory fac;
@@ -18,18 +18,18 @@ SCENARIO("msrc_file_system_depth_device loads depth information from MSRC 7Scene
 
 		WHEN("Returning the width and height") {
 
-			std::size_t w = fsdd.width();
-			std::size_t h = fsdd.height();
+			auto w = fsdd.width();
+			auto h = fsdd.height();
 
-			THEN("A width of 640 is returned") {
+			THEN("A width of 480 is returned") {
 
-				CHECK(w==640U);
+				CHECK(w==480U);
 
 			}
 
-			THEN("A height of 480 is returned") {
+			THEN("A height of 640 is returned") {
 
-				CHECK(h==480U);
+				CHECK(h==640U);
 
 			}
 
@@ -37,9 +37,9 @@ SCENARIO("msrc_file_system_depth_device loads depth information from MSRC 7Scene
 
 		WHEN("It is invoked on the test image data/test/msrc_file_system_depth_device/frame-000000.depth.png") {
 
-			std::vector<float> frame=fsdd();
+			auto frame=fsdd();
 
-			THEN("A nonzero number elements are returned") {
+			THEN("A non-zero number of elements are returned") {
 
 				CHECK(frame.size() != 0);
 	
@@ -52,4 +52,20 @@ SCENARIO("msrc_file_system_depth_device loads depth information from MSRC 7Scene
 	}
 	
 	
+	GIVEN("An invalid msrc_file_system_depth_device") {
+
+		
+		boost::filesystem::path test_data_path("data/test/msrc_file_system_depth_device/garbage");
+		seng499::msrc_file_system_depth_device_frame_factory fac;
+		seng499::file_system_depth_device fsdd(std::move(test_data_path),fac);
+
+		WHEN("It is invoked on the test image data/test/msrc_file_system_depth_device/00-file_to_small.png") {
+
+			CHECK_THROWS_AS(fsdd(), std::runtime_error);
+			
+		}
+
+
+	}
+
 }
