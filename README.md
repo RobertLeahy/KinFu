@@ -41,6 +41,17 @@ cd SENG499
 make
 ```
 
+### Documentation
+
+Available at [http://seng499.rleahy.ca/](http://seng499.rleahy.ca/)
+
+Use Doxygen and GraphViz
+```
+sudo apt-get install graphviz doxygen
+cd SENG499
+doxygen
+```
+
 ## Links
 * Project Management - [waffle.io](https://waffle.io/RobertLeahy/SENG499)
 * Continuous Integration - [travis-ci](https://travis-ci.org/RobertLeahy/SENG499/)
