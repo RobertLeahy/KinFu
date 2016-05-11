@@ -51,13 +51,13 @@ namespace seng499 {
 	
 	std::size_t msrc_file_system_depth_device_frame_factory::width () const noexcept {
 		
-		return 480;
+		return 640;
 		
 	}
 	
 	std::size_t msrc_file_system_depth_device_frame_factory::height () const noexcept {
 		
-		return 640;
+		return 480;
 		
 	}
 	

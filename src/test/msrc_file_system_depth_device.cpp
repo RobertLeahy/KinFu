@@ -21,15 +21,15 @@ SCENARIO("msrc_file_system_depth_device loads depth information from MSRC 7Scene
 			auto w = fsdd.width();
 			auto h = fsdd.height();
 
-			THEN("A width of 480 is returned") {
+			THEN("A width of 640 is returned") {
 
-				CHECK(w==480U);
+				CHECK(w==640U);
 
 			}
 
-			THEN("A height of 640 is returned") {
+			THEN("A height of 480 is returned") {
 
-				CHECK(h==640U);
+				CHECK(h==480U);
 
 			}
 
