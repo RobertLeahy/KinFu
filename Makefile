@@ -68,7 +68,7 @@ NODEPS:=clean cleanall cleandeps
 ifeq (0,$(words $(findstring $(MAKECMDGOALS),$(NODEPS))))
 
 	ifeq ($(OS),Windows_NT)
-		-include $(subst .cpp,.mk,$(subst src,makefiles,$(subst \,/,$(subst $(shell echo %CD%)\,,$(shell dir /b /s src\*.cpp)))))
+		-include $(subst .cpp,.mk,$(subst src/,makefiles/,$(subst \,/,$(subst $(shell echo %CD%)\,,$(shell dir /b /s src\*.cpp)))))
 	else
 		-include $(patsubst src/%.cpp,makefiles/%.mk,$(shell find src/ -name "*.cpp"))
 	endif
