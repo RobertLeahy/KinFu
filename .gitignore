@@ -6,3 +6,4 @@ makefiles/*
 obj/*
 bin/*
 doc/*
+Thumbs.db
