@@ -114,8 +114,8 @@ SCENARIO("msrc_file_system_depth_device loads depth information from MSRC 7Scene
 		boost::filesystem::path test_data_path("data/test/msrc_file_system_depth_device/garbage");
 		seng499::msrc_file_system_depth_device_frame_factory fac;
 		seng499::file_system_depth_device fsdd(std::move(test_data_path),fac);
-
-		WHEN("It is invoked on the test image data/test/msrc_file_system_depth_device/00-file_to_small.png") {
+		
+		THEN("Invoking it throws an exception") {
 
 			CHECK_THROWS_AS(fsdd(), std::runtime_error);
 			
