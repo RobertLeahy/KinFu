@@ -41,8 +41,10 @@ namespace seng499 {
 
 		// Convert mm to m, cast uint16 to float and push into the vector		
 		for (int i=0; i < img.rows; ++i) for (int j = 0; j < img.cols; ++j) {
-			static_assert(std::numeric_limits<float>::has_quiet_NaN,"qNaN not supported on this platform");
 			auto v=img.at<std::uint16_t>(i,j);
+			// In the MSRC dataset 65535 represents an invalid depth value
+			// which we represent in floating point using qNaN
+			static_assert(std::numeric_limits<float>::has_quiet_NaN,"qNaN not supported on this platform");
 			vec.push_back((v==65535U) ? std::numeric_limits<float>::quiet_NaN() : (v/1000.0f));
 		}
 
