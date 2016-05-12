@@ -3,6 +3,9 @@
 
 #include <boost/filesystem.hpp>
 #include <Eigen/Dense>
+#include <cmath>
+#include <cstddef>
+#include <unordered_set>
 #include <catch.hpp>
 
 
@@ -38,16 +41,69 @@ SCENARIO("msrc_file_system_depth_device loads depth information from MSRC 7Scene
 		WHEN("It is invoked on the test image data/test/msrc_file_system_depth_device/frame-000000.depth.png") {
 
 			auto frame=fsdd();
-
-			THEN("A non-zero number of elements are returned") {
-
-				CHECK(frame.size() != 0);
-	
+			
+			THEN("A frame of the correct size is returned") {
+				
+				auto s=frame.size();
+				REQUIRE(s==640U*480U);
+				
+				AND_THEN("Invalid depth values are transformed into qNaNs") {
+					
+					std::unordered_set<std::size_t> is{
+						19819,
+						19820,
+						19821,
+						20458,
+						20459,
+						21096,
+						21732,
+						21733,
+						21734,
+						21735,
+						21736,
+						22372,
+						22373,
+						22374,
+						22375,
+						23011,
+						23012,
+						28787,
+						28788,
+						28789,
+						28790,
+						29421,
+						29422,
+						29425,
+						29426,
+						29427,
+						29428,
+						29429,
+						29430,
+						30047,
+						30048,
+						30049,
+						30050,
+						30051,
+						30060,
+						30061,
+						30062,
+						30063,
+						30064,
+						30065,
+						30066,
+						30067,
+						30068,
+						30687,
+						30688,
+						30689
+					};
+					for (std::size_t i=0;i<s;++i) CHECK(std::isnan(frame[i])==(is.count(i)!=0));
+					
+				}
+				
 			}
 
 		}
-
-		
 	
 	}
 	
