@@ -2,6 +2,7 @@
 #include <opencv2/opencv.hpp>
 #include <seng499/msrc_file_system_depth_device.hpp>
 #include <cstdint>
+#include <limits>
 #include <regex>
 #include <stdexcept>
 
@@ -39,10 +40,13 @@ namespace seng499 {
 		if (img.rows != 480 || img.cols != 640) throw std::runtime_error("Image is not of the expected size (640x480)");
 
 		// Convert mm to m, cast uint16 to float and push into the vector		
-		for (int i=0; i < img.rows; ++i)
-			for (int j = 0; j < img.cols; ++j)
-				vec.push_back(float(img.at<std::uint16_t>(i,j)/1000.0f));
-		
+		for (int i=0; i < img.rows; ++i) for (int j = 0; j < img.cols; ++j) {
+			auto v=img.at<std::uint16_t>(i,j);
+			// In the MSRC dataset 65535 represents an invalid depth value
+			// which we represent in floating point using qNaN
+			static_assert(std::numeric_limits<float>::has_quiet_NaN,"qNaN not supported on this platform");
+			vec.push_back((v==65535U) ? std::numeric_limits<float>::quiet_NaN() : (v/1000.0f));
+		}
 
 		return vec;
 		
