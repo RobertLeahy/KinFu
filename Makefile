@@ -90,6 +90,7 @@ obj/fps_depth_device.o \
 obj/measurement_pipeline_block.o \
 obj/mock_depth_device.o \
 obj/msrc_file_system_depth_device.o \
+obj/opencl_program_factory.o \
 obj/kinect_fusion.o \
 obj/pose_estimation_pipeline_block.o \
 obj/surface_prediction_pipeline_block.o \
