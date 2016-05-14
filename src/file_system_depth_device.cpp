@@ -42,7 +42,7 @@ namespace seng499 {
 		if (!boost::filesystem::is_directory(path)) {
 			
 			std::ostringstream ss;
-			ss << "file_system_depth_device: \"" << path << "\" is not a directory";
+			ss << "file_system_depth_device: " << path << " is not a directory";
 			throw std::invalid_argument(ss.str());
 			
 		}

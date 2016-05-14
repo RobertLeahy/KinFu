@@ -18,7 +18,7 @@ else
 endif
 
 
-OPTS_SHARED:=-I /usr/include/eigen3 -I ./include -std=c++1z
+OPTS_SHARED:=-I /usr/include/eigen3 -I ./include -std=c++1z -I "C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v7.5\include" -L"C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v7.5\lib\x64"
 
 
 ifeq ($(OS),Windows_NT)
@@ -86,18 +86,23 @@ obj/%.o:
 OBJS:=\
 obj/depth_device.o \
 obj/file_system_depth_device.o \
+obj/file_system_opencl_program_factory.o \
 obj/fps_depth_device.o \
 obj/measurement_pipeline_block.o \
 obj/mock_depth_device.o \
 obj/msrc_file_system_depth_device.o \
+obj/opencl_program_factory.o \
 obj/kinect_fusion.o \
+obj/path.o \
 obj/pose_estimation_pipeline_block.o \
 obj/surface_prediction_pipeline_block.o \
-obj/update_reconstruction_pipeline_block.o
+obj/update_reconstruction_pipeline_block.o \
+obj/whereami.o
 
 
 TEST_OBJS:=\
 obj/test/file_system_depth_device.o \
+obj/test/file_system_opencl_program_factory.o \
 obj/test/msrc_file_system_depth_device.o \
 obj/test/fps_depth_device.o
 
@@ -106,7 +111,7 @@ all: bin/$(MODULE_NAME)$(MODULE_EXT)
 bin/$(MODULE_NAME)$(MODULE_EXT): \
 $(OBJS) | \
 bin
-	$(GPP) -shared -o $@ $^ $(LINK)
+	$(GPP) -shared -o $@ $^ $(LINK) -lOpenCL
 
 
 all: bin/tests$(EXECUTABLE_EXT)
@@ -115,5 +120,5 @@ $(TEST_OBJS) \
 obj/test/main.o | \
 bin \
 bin/$(MODULE_NAME)$(MODULE_EXT)
-	$(GPP) -o $@ $^ $(LINK) bin/$(MODULE_NAME)$(MODULE_EXT)
+	$(GPP) -o $@ $^ $(LINK) bin/$(MODULE_NAME)$(MODULE_EXT) -lOpenCL
 	bin/tests$(EXECUTABLE_EXT)
