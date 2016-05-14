@@ -27,7 +27,7 @@ namespace {
 				
 				return i_;
 				
-			} 
+			}
 		
 		
 	};
