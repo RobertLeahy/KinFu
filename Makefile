@@ -92,9 +92,11 @@ obj/mock_depth_device.o \
 obj/msrc_file_system_depth_device.o \
 obj/opencl_program_factory.o \
 obj/kinect_fusion.o \
+obj/path.o \
 obj/pose_estimation_pipeline_block.o \
 obj/surface_prediction_pipeline_block.o \
-obj/update_reconstruction_pipeline_block.o
+obj/update_reconstruction_pipeline_block.o \
+obj/whereami.o
 
 
 TEST_OBJS:=\

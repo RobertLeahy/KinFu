@@ -3,6 +3,7 @@
 
 #include <boost/filesystem.hpp>
 #include <Eigen/Dense>
+#include <seng499/path.hpp>
 #include <cstddef>
 #include <utility>
 #include <vector>
@@ -66,7 +67,9 @@ SCENARIO("file_system_depth_device loads depth information from files in the fil
 			
 		};
 		
-		boost::filesystem::path fake_path("data/test/file_system_depth_device");
+		boost::filesystem::path fake_path(seng499::current_executable_parent_path());
+		fake_path/="..";
+		fake_path/="data/test/file_system_depth_device";
 		mock_factory fac;
 		seng499::file_system_depth_device fsdd(std::move(fake_path),fac);
 		
