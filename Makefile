@@ -109,6 +109,8 @@ obj/test/cpu_pipeline_value.o \
 obj/test/file_system_depth_device.o \
 obj/test/file_system_opencl_program_factory.o \
 obj/test/msrc_file_system_depth_device.o \
+obj/test/opencl_pipeline_value.o \
+obj/test/opencl_vector_pipeline_value.o \
 obj/test/fps_depth_device.o
 
 
