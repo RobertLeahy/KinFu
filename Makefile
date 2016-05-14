@@ -105,6 +105,7 @@ obj/whereami.o
 
 
 TEST_OBJS:=\
+obj/test/cpu_pipeline_value.o \
 obj/test/file_system_depth_device.o \
 obj/test/file_system_opencl_program_factory.o \
 obj/test/msrc_file_system_depth_device.o \
