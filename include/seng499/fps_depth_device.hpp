@@ -28,7 +28,7 @@ namespace seng499 {
 		private:
 		
 		
-			using clock=std::chrono::high_resolution_clock; 
+			using clock=std::chrono::high_resolution_clock;
 			
 			
 			clock::duration period_;
