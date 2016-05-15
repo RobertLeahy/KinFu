@@ -6,9 +6,10 @@
 #pragma once
 
 
+#include <boost/filesystem.hpp>
 #include <seng499/file_system_depth_device.hpp>
 #include <Eigen/Dense>
-#include <regex>
+#include <cstddef>
 
 
 namespace seng499 {
@@ -40,7 +41,7 @@ namespace seng499 {
 
 		public:
 	
-			virtual value_type operator () (const boost::filesystem::path & path, value_type v) override;
+			virtual value_type operator () (const boost::filesystem::path &, value_type) override;
 	
 			virtual std::size_t width () const noexcept override;
 
