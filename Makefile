@@ -92,11 +92,11 @@ obj/depth_device.o \
 obj/file_system_depth_device.o \
 obj/file_system_opencl_program_factory.o \
 obj/fps_depth_device.o \
+obj/kinect_fusion.o \
 obj/measurement_pipeline_block.o \
 obj/mock_depth_device.o \
 obj/msrc_file_system_depth_device.o \
 obj/opencl_program_factory.o \
-obj/kinect_fusion.o \
 obj/path.o \
 obj/pose_estimation_pipeline_block.o \
 obj/surface_prediction_pipeline_block.o \
@@ -108,10 +108,10 @@ TEST_OBJS:=\
 obj/test/cpu_pipeline_value.o \
 obj/test/file_system_depth_device.o \
 obj/test/file_system_opencl_program_factory.o \
+obj/test/fps_depth_device.o \
 obj/test/msrc_file_system_depth_device.o \
 obj/test/opencl_pipeline_value.o \
-obj/test/opencl_vector_pipeline_value.o \
-obj/test/fps_depth_device.o
+obj/test/opencl_vector_pipeline_value.o
 
 
 all: bin/$(MODULE_NAME)$(MODULE_EXT)
