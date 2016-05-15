@@ -37,6 +37,20 @@ namespace seng499 {
 		public:
 		
 		
+			/**
+			 *	An enumeration of the different types of compatibility
+			 *	between two opencl_pipeline_value objects.
+			 */
+			enum class compatibility {
+				
+				same_queue,	/**<	This object and the other object have the same queue, context, and device.	*/
+				same_context,	/**<	This object and the other object have the same context, and device.	*/
+				same_device,	/**<	This object and the other object have the same device.	*/
+				none	/**<	This object and the other object have nothing in common.	*/
+				
+			};
+			
+			
 			opencl_pipeline_value () = delete;
 			
 			
@@ -88,6 +102,27 @@ namespace seng499 {
 			boost::compute::device device () const {
 				
 				return q_.get_device();
+				
+			}
+			
+			
+			/**
+			 *	Checks the compatibility of this object with another
+			 *	OpenCL command queue, context, and device.
+			 *
+			 *	\param [in] q
+			 *		The command queue to check against.
+			 *
+			 *	\return
+			 *		An enumeration value indicating the level of
+			 *		compatibility between this object and \em q.
+			 */
+			compatibility check (const boost::compute::command_queue & q) const noexcept {
+				
+				if (q_.get_device()!=q.get_device()) return compatibility::none;
+				if (q_.get_context()!=q.get_context()) return compatibility::same_device;
+				if (q_!=q) return compatibility::same_context;
+				return compatibility::same_queue;
 				
 			}
 		
