@@ -29,10 +29,10 @@ SCENARIO("file_system_depth_device loads depth information from files in the fil
 				mock_factory () noexcept : num_(0) {	}
 				
 				
-				virtual std::vector<float> operator () (const boost::filesystem::path &, std::vector<float> vec) override {
+				virtual value_type operator () (const boost::filesystem::path &, value_type v) override {
 					
 					++num_;
-					return vec;
+					return v;
 					
 				}
 				

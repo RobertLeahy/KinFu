@@ -7,10 +7,9 @@
 
 
 #include <Eigen/Dense>
-#include <seng499/depth_device.hpp>
+#include <seng499/depth_device_decorator.hpp>
 #include <chrono>
 #include <stdexcept>
-#include <vector>
 
 
 namespace seng499 {
@@ -23,16 +22,15 @@ namespace seng499 {
 	 *
 	 *	This class is not thread safe.
 	 */
-	class fps_depth_device final : public depth_device {
+	class fps_depth_device final : public depth_device_decorator {
 		
 		
 		private:
 		
 		
-			using clock=std::chrono::high_resolution_clock; 
+			using clock=std::chrono::high_resolution_clock;
 			
 			
-			depth_device & dev_;
 			clock::duration period_;
 			clock::time_point last_;
 			
@@ -53,10 +51,7 @@ namespace seng499 {
 			fps_depth_device (depth_device & dev, unsigned max_fps) noexcept;
 			
 			
-			virtual std::vector<float> operator () (std::vector<float> vec=std::vector<float>{}) override;
-			virtual std::size_t width () const noexcept override;
-			virtual std::size_t height () const noexcept override;
-			virtual Eigen::Matrix3f k () const noexcept override;
+			virtual value_type operator () (value_type v=value_type{}) override;
 		
 		
 	};

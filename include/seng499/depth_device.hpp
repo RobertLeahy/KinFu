@@ -6,8 +6,10 @@
 #pragma once
 
 
+#include <seng499/pipeline_value.hpp>
 #include <Eigen/Dense>
 #include <cstddef>
+#include <memory>
 #include <vector>
 
 
@@ -25,6 +27,18 @@ namespace seng499 {
 		public:
 		
 		
+			/**
+			 *	A vector of single precision floating point values
+			 *	which contains a raw depth buffer.
+			 */
+			using buffer_type=std::vector<float>;
+			/**
+			 *	A std::unique_ptr to a \ref pipeline_value which
+			 *	represents a raw depth buffer.
+			 */
+			using value_type=std::unique_ptr<pipeline_value<buffer_type>>;
+			
+			
 			depth_device () = default;
 			depth_device (const depth_device &) = delete;
 			depth_device (depth_device &&) = delete;
@@ -44,18 +58,24 @@ namespace seng499 {
 			 *
 			 *	All measurements are in meters.
 			 *
-			 *	\param [in] vec
-			 *		An empty vector of floats whose storage may
-			 *		be used for the return value.  Should be
-			 *		empty.  Defaults to a default constructed
-			 *		vector.
+			 *	\param [in] v
+			 *		A \ref pipeline_value object representing a
+			 *		vector of floats which may be used rather
+			 *		than allocated a new such object.  Defaults
+			 *		to a default constructed std::unique_ptr.
+			 *		If this object does not wrap a null pointer
+			 *		then the pointee must be a pointee which was
+			 *		returned by a previous call to this operator
+			 *		on this object or the behaviour is undefined.
 			 *
 			 *	\return
-			 *		A row major collection of floating point values
+			 *		A \ref pipeline_value object representing a
+			 *		vector of floats.  The vector of floats is
+			 *		a row major collection of floating point values
 			 *		representing the distance of that pixel from
 			 *		the sensor in meters.
 			 */
-			virtual std::vector<float> operator () (std::vector<float> vec=std::vector<float>{}) = 0;
+			virtual value_type operator () (value_type v=value_type{}) = 0;
 			
 			
 			/**

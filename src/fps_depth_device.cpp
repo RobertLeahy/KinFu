@@ -14,38 +14,17 @@ namespace seng499 {
 	
 	
 	fps_depth_device::fps_depth_device (depth_device & dev, unsigned max_fps) noexcept
-		:	dev_(dev),
+		:	depth_device_decorator(dev),
 			period_(std::chrono::duration_cast<clock::duration>(fps_to_period(max_fps)))
 	{	}
 	
 	
-	std::vector<float> fps_depth_device::operator () (std::vector<float> vec) {
+	fps_depth_device::value_type fps_depth_device::operator () (value_type v) {
 		
 		std::this_thread::sleep_until(last_+period_);
 		last_=clock::now();
 		
-		return dev_(std::move(vec));
-		
-	}
-	
-	
-	std::size_t fps_depth_device::width () const noexcept {
-		
-		return dev_.width();
-		
-	}
-	
-	
-	std::size_t fps_depth_device::height () const noexcept {
-		
-		return dev_.height();
-		
-	}
-	
-	
-	Eigen::Matrix3f fps_depth_device::k () const noexcept {
-		
-		return dev_.k();
+		return dev_(std::move(v));
 		
 	}
 	

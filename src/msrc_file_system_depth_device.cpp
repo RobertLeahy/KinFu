@@ -1,10 +1,13 @@
 #include <boost/filesystem.hpp>
 #include <opencv2/opencv.hpp>
+#include <seng499/cpu_pipeline_value.hpp>
 #include <seng499/msrc_file_system_depth_device.hpp>
 #include <cstdint>
 #include <limits>
+#include <memory>
 #include <regex>
 #include <stdexcept>
+#include <utility>
 
 
 namespace seng499 {
@@ -24,11 +27,9 @@ namespace seng499 {
 	}
 	
 	
-	std::vector<float> msrc_file_system_depth_device_frame_factory::operator () (const boost::filesystem::path & path, std::vector<float> vec) {
-	
-		// make sure this is empty
-		vec.clear();
-
+	msrc_file_system_depth_device_frame_factory::value_type msrc_file_system_depth_device_frame_factory::operator () (const boost::filesystem::path & path, value_type v) {
+		
+		buffer_type vec;
 		// reserve the size of our image
 		vec.reserve(640*480);
 
@@ -47,8 +48,12 @@ namespace seng499 {
 			static_assert(std::numeric_limits<float>::has_quiet_NaN,"qNaN not supported on this platform");
 			vec.push_back((v==65535U) ? std::numeric_limits<float>::quiet_NaN() : (v/1000.0f));
 		}
-
-		return vec;
+		
+		using type=cpu_pipeline_value<buffer_type>;
+		if (!v) v=std::make_unique<type>();
+		static_cast<type &>(*v.get()).emplace(std::move(vec));
+		
+		return v;
 		
 	}
 	
