@@ -27,7 +27,7 @@ namespace seng499 {
 	 *		The element type.
 	 */
 	template <typename T>
-	class opencl_vector_pipeline_value final : public opencl_pipeline_value<std::vector<T>> {
+	class opencl_vector_pipeline_value : public opencl_pipeline_value<std::vector<T>> {
 		
 		
 		private:

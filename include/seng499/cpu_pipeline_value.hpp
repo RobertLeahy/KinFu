@@ -23,7 +23,7 @@ namespace seng499 {
 	 *		The type of value.
 	 */
 	template <typename T>
-	class cpu_pipeline_value final : public pipeline_value<T> {
+	class cpu_pipeline_value : public pipeline_value<T> {
 		
 		
 		private:
