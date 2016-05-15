@@ -19,12 +19,12 @@ namespace seng499 {
 	{	}
 	
 	
-	std::vector<float> fps_depth_device::operator () (std::vector<float> vec) {
+	fps_depth_device::value_type fps_depth_device::operator () (value_type v) {
 		
 		std::this_thread::sleep_until(last_+period_);
 		last_=clock::now();
 		
-		return dev_(std::move(vec));
+		return dev_(std::move(v));
 		
 	}
 	

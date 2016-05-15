@@ -1,4 +1,6 @@
+#include <seng499/cpu_pipeline_value.hpp>
 #include <seng499/mock_depth_device.hpp>
+#include <memory>
 #include <stdexcept>
 #include <utility>
 
@@ -39,15 +41,19 @@ namespace seng499 {
 	}
 	
 	
-	std::vector<float> mock_depth_device::operator () (std::vector<float>) {
+	mock_depth_device::value_type mock_depth_device::operator () (value_type v) {
+		
+		using type=cpu_pipeline_value<buffer_type>;
+		if (!v) v=std::make_unique<type>();
+		auto && pv=static_cast<type &>(*v.get());
 		
 		if (fs_.empty()) throw std::logic_error("No more frames");
 		
 		auto iter=fs_.begin();
-		auto retr=std::move(*iter);
+		pv.emplace(std::move(*iter));
 		fs_.erase(iter);
 		
-		return retr;
+		return v;
 		
 	}
 	

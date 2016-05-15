@@ -44,7 +44,8 @@ SCENARIO("msrc_file_system_depth_device loads depth information from MSRC 7Scene
 
 		WHEN("It is invoked on the test image data/test/msrc_file_system_depth_device/frame-000000.depth.png") {
 
-			auto frame=fsdd();
+			auto ptr=fsdd();
+			auto && frame=ptr->get();
 			
 			THEN("A frame of the correct size is returned") {
 				

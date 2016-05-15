@@ -40,7 +40,7 @@ namespace seng499 {
 
 		public:
 	
-			virtual std::vector<float> operator () (const boost::filesystem::path & path, std::vector<float> vec) override;
+			virtual value_type operator () (const boost::filesystem::path & path, value_type v) override;
 	
 			virtual std::size_t width () const noexcept override;
 

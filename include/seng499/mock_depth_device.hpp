@@ -65,7 +65,7 @@ namespace seng499 {
 			void add (std::vector<float> f=std::vector<float>{});
 			
 			
-			virtual std::vector<float> operator () (std::vector<float> vec=std::vector<float>{}) override;
+			virtual value_type operator () (value_type v=value_type{}) override;
 			virtual std::size_t width () const noexcept override;
 			virtual std::size_t height () const noexcept override;
 			virtual Eigen::Matrix3f k () const noexcept override;

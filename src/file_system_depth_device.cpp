@@ -67,14 +67,14 @@ namespace seng499 {
 	}
 	
 	
-	std::vector<float> file_system_depth_device::operator () (std::vector<float> vec) {
+	file_system_depth_device::value_type file_system_depth_device::operator () (value_type v) {
 		
 		if (files_.empty()) throw end{};
 		
 		auto path=std::move(files_.back());
 		files_.pop_back();
 		
-		return factory_(path,std::move(vec));
+		return factory_(path,std::move(v));
 		
 	}
 	
