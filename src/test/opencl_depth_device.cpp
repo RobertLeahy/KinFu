@@ -1,4 +1,4 @@
-#include <seng499/gpu_depth_device.hpp>
+#include <seng499/opencl_depth_device.hpp>
 
 
 #include <boost/compute.hpp>
@@ -10,9 +10,9 @@
 #include <catch.hpp>
 
 
-SCENARIO("seng499::gpu_depth_device objects wrap a seng499::depth_device and upload its depth frames to the GPU","[seng499][depth_device][gpu_depth_device]") {
+SCENARIO("seng499::opencl_depth_device objects wrap a seng499::depth_device and upload its depth frames to the GPU","[seng499][depth_device][opencl_depth_device]") {
 	
-	GIVEN("A seng499::gpu_depth_device which wraps a seng499::depth_device which does not upload its depth frames to the GPU") {
+	GIVEN("A seng499::opencl_depth_device which wraps a seng499::depth_device which does not upload its depth frames to the GPU") {
 		
 		seng499::mock_depth_device mdd(Eigen::Matrix3f::Zero(),2,2);
 		std::vector<float> v{1.0f,2.0f,3.0f,4.0f};
@@ -20,7 +20,7 @@ SCENARIO("seng499::gpu_depth_device objects wrap a seng499::depth_device and upl
 		auto dev=boost::compute::system::default_device();
 		boost::compute::context ctx(dev);
 		boost::compute::command_queue q(ctx,dev);
-		seng499::gpu_depth_device gpudd(mdd,q);
+		seng499::opencl_depth_device gpudd(mdd,q);
 		
 		WHEN("It is invoked") {
 			

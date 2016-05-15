@@ -1,7 +1,7 @@
 #include <boost/compute/algorithm/copy.hpp>
 #include <boost/compute/container/vector.hpp>
 #include <boost/compute/async/future.hpp>
-#include <seng499/gpu_depth_device.hpp>
+#include <seng499/opencl_depth_device.hpp>
 #include <seng499/opencl_vector_pipeline_value.hpp>
 #include <memory>
 #include <utility>
@@ -10,13 +10,13 @@
 namespace seng499 {
 	
 	
-	gpu_depth_device::gpu_depth_device (depth_device & dev, boost::compute::command_queue q)
+	opencl_depth_device::opencl_depth_device (depth_device & dev, boost::compute::command_queue q)
 		:	depth_device_decorator(dev),
 			q_(std::move(q))
 	{	}
 	
 	
-	gpu_depth_device::value_type gpu_depth_device::operator () (value_type v) {
+	opencl_depth_device::value_type opencl_depth_device::operator () (value_type v) {
 		
 		using type=opencl_vector_pipeline_value<buffer_type::value_type>;
 		class pipeline_value final : public type {
