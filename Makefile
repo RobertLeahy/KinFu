@@ -3,23 +3,27 @@ LINK = -lboost_filesystem -lboost_system
 
 ifeq ($(OS),Windows_NT)
 	GPP:=g++
+	LINK :=$(LINK) bin/*opencv*.dll
 else
 	GPP:=g++-5
 endif
 
+ifeq ($(SANITIZE_ADDRESS),NO)
+	GCC_SANITIZE_ADDRESS=
+else
+	GCC_SANITIZE_ADDRESS=-fsanitize=address
+endif
 
 ifeq ($(RELEASE),YES)
 	OPTIMIZATION:=-O2
 else
 	OPTIMIZATION:=-O0 -g -fno-inline -fno-omit-frame-pointer -Wall -Wpedantic -Wextra -Werror -Wno-deprecated-declarations
 	ifneq ($(OS),Windows_NT)
-		OPTIMIZATION:=$(OPTIMIZATION) -fsanitize=address
+		OPTIMIZATION:=$(OPTIMIZATION) $(GCC_SANITIZE_ADDRESS)
 	endif
 endif
 
-
-OPTS_SHARED:=-I /usr/include/eigen3 -I ./include -std=c++1z -I "C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v7.5\include" -L"C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v7.5\lib\x64"
-
+OPTS_SHARED := -I /usr/include/eigen3 -I /usr/include/compute -I ./include -std=c++1z -I "C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v7.5\include" -L"C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v7.5\lib\x64"
 
 ifeq ($(OS),Windows_NT)
 	MAKE_PARENT=mkdir.bat $(subst /,\,$(dir $(1)))
