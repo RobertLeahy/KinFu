@@ -23,8 +23,6 @@ namespace seng499 {
 	/**
 	 *	Represents a vector of values stored on the GPU.
 	 *
-	 *	If \em T is not trivial the behaviour is undefined.
-	 *
 	 *	\tparam T
 	 *		The element type.
 	 */
