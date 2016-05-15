@@ -89,6 +89,7 @@ obj/%.o:
 	
 OBJS:=\
 obj/depth_device.o \
+obj/depth_device_decorator.o \
 obj/file_system_depth_device.o \
 obj/file_system_opencl_program_factory.o \
 obj/fps_depth_device.o \
