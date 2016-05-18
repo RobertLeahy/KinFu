@@ -61,7 +61,7 @@ namespace seng499 {
 			 *	\param [in] v
 			 *		A \ref pipeline_value object representing a
 			 *		vector of floats which may be used rather
-			 *		than allocated a new such object.  Defaults
+			 *		than allocating a new such object.  Defaults
 			 *		to a default constructed std::unique_ptr.
 			 *		If this object does not wrap a null pointer
 			 *		then the pointee must be a pointee which was
