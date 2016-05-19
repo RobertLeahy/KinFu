@@ -1,7 +1,7 @@
-#include <seng499/fps_depth_device.hpp>
+#include <dynfu/fps_depth_device.hpp>
 
 
-#include <seng499/mock_depth_device.hpp>
+#include <dynfu/mock_depth_device.hpp>
 #include <chrono>
 #include <catch.hpp>
 
@@ -10,10 +10,10 @@ SCENARIO("fps_depth_device objects limit the rate at which frames may be acquire
 	
 	GIVEN("An fps_depth_device object configured for 30FPS") {
 		
-		seng499::mock_depth_device mock;
+		dynfu::mock_depth_device mock;
 		mock.add();
 		mock.add();
-		seng499::fps_depth_device fps(mock,30);
+		dynfu::fps_depth_device fps(mock,30);
 		std::chrono::milliseconds delay(33);
 		
 		WHEN("operator () is invoked") {

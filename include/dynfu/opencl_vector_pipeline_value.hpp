@@ -9,15 +9,15 @@
 #include <boost/compute/algorithm/copy.hpp>
 #include <boost/compute/command_queue.hpp>
 #include <boost/compute/container/vector.hpp>
-#include <seng499/opencl_pipeline_value.hpp>
-#include <seng499/pipeline_value.hpp>
-#include <seng499/optional.hpp>
+#include <dynfu/opencl_pipeline_value.hpp>
+#include <dynfu/pipeline_value.hpp>
+#include <dynfu/optional.hpp>
 #include <iterator>
 #include <utility>
 #include <vector>
 
 
-namespace seng499 {
+namespace dynfu {
 	
 	
 	/**

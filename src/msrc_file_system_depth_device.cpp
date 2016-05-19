@@ -1,7 +1,7 @@
 #include <boost/filesystem.hpp>
 #include <opencv2/opencv.hpp>
-#include <seng499/cpu_pipeline_value.hpp>
-#include <seng499/msrc_file_system_depth_device.hpp>
+#include <dynfu/cpu_pipeline_value.hpp>
+#include <dynfu/msrc_file_system_depth_device.hpp>
 #include <cstdint>
 #include <limits>
 #include <memory>
@@ -10,7 +10,7 @@
 #include <utility>
 
 
-namespace seng499 {
+namespace dynfu {
 
 	static const std::regex & get_regex() {
 

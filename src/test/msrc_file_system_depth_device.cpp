@@ -1,9 +1,9 @@
-#include <seng499/msrc_file_system_depth_device.hpp>
+#include <dynfu/msrc_file_system_depth_device.hpp>
 
 
 #include <boost/filesystem.hpp>
 #include <Eigen/Dense>
-#include <seng499/path.hpp>
+#include <dynfu/path.hpp>
 #include <cmath>
 #include <cstddef>
 #include <unordered_set>
@@ -12,15 +12,15 @@
 
 SCENARIO("msrc_file_system_depth_device loads depth information from MSRC 7Scene files in the file system", "[seng499][depth_device][file_system_depth_device][msrc_file_system_depth_device]") {
 	
-	boost::filesystem::path test_data_path(seng499::current_executable_parent_path());
+	boost::filesystem::path test_data_path(dynfu::current_executable_parent_path());
 	test_data_path/="..";
 	test_data_path/="data/test/msrc_file_system_depth_device";
 	
 	GIVEN("A valid msrc_file_system_depth_device") {
 		
-		seng499::msrc_file_system_depth_device_frame_factory fac;
-		seng499::msrc_file_system_depth_device_filter filt;
-		seng499::file_system_depth_device fsdd(std::move(test_data_path),fac, &filt);
+		dynfu::msrc_file_system_depth_device_frame_factory fac;
+		dynfu::msrc_file_system_depth_device_filter filt;
+		dynfu::file_system_depth_device fsdd(std::move(test_data_path),fac, &filt);
 		
 
 		WHEN("Returning the width and height") {
@@ -117,8 +117,8 @@ SCENARIO("msrc_file_system_depth_device loads depth information from MSRC 7Scene
 
 		
 		test_data_path/="garbage";
-		seng499::msrc_file_system_depth_device_frame_factory fac;
-		seng499::file_system_depth_device fsdd(std::move(test_data_path),fac);
+		dynfu::msrc_file_system_depth_device_frame_factory fac;
+		dynfu::file_system_depth_device fsdd(std::move(test_data_path),fac);
 		
 		THEN("Invoking it throws an exception") {
 

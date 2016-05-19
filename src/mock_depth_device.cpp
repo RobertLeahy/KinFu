@@ -1,11 +1,11 @@
-#include <seng499/cpu_pipeline_value.hpp>
-#include <seng499/mock_depth_device.hpp>
+#include <dynfu/cpu_pipeline_value.hpp>
+#include <dynfu/mock_depth_device.hpp>
 #include <memory>
 #include <stdexcept>
 #include <utility>
 
 
-namespace seng499 {
+namespace dynfu {
 	
 	
 	void mock_depth_device::check (const std::vector<float> & f) const {

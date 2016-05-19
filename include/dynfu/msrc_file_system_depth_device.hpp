@@ -7,12 +7,12 @@
 
 
 #include <boost/filesystem.hpp>
-#include <seng499/file_system_depth_device.hpp>
+#include <dynfu/file_system_depth_device.hpp>
 #include <Eigen/Dense>
 #include <cstddef>
 
 
-namespace seng499 {
+namespace dynfu {
 	
 	/**
 	 * An implementation of file_system_depth_device_filter

@@ -7,10 +7,10 @@
 
 
 #include <boost/compute/command_queue.hpp>
-#include <seng499/depth_device_decorator.hpp>
+#include <dynfu/depth_device_decorator.hpp>
 
 
-namespace seng499 {
+namespace dynfu {
 	
 	
 	/**

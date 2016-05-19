@@ -7,15 +7,15 @@
 
 
 #include <Eigen/Dense>
-#include <seng499/depth_device.hpp>
-#include <seng499/pipeline_value.hpp>
+#include <dynfu/depth_device.hpp>
+#include <dynfu/pipeline_value.hpp>
 #include <cstddef>
 #include <memory>
 #include <tuple>
 #include <vector>
 
 
-namespace seng499 {
+namespace dynfu {
 	
 	
 	/**

@@ -1,4 +1,4 @@
-#include <seng499/path.hpp>
+#include <dynfu/path.hpp>
 #include <whereami.h>
 #include <cstdlib>
 #include <cstring>
@@ -7,7 +7,7 @@
 #include <stdexcept>
 
 
-namespace seng499 {
+namespace dynfu {
 	
 	
 	static std::string wai_wrapper (bool exec=true) {

@@ -9,11 +9,11 @@
 #include <boost/compute/context.hpp>
 #include <boost/compute/program.hpp>
 #include <boost/filesystem.hpp>
-#include <seng499/opencl_program_factory.hpp>
+#include <dynfu/opencl_program_factory.hpp>
 #include <string>
 
 
-namespace seng499 {
+namespace dynfu {
 	
 	
 	/**

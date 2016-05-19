@@ -1,7 +1,7 @@
-#include <seng499/measurement_pipeline_block.hpp>
+#include <dynfu/measurement_pipeline_block.hpp>
 
 
-namespace seng499 {
+namespace dynfu {
 	
 	
 	measurement_pipeline_block::~measurement_pipeline_block () noexcept {	}

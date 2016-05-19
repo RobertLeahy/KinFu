@@ -1,7 +1,7 @@
-#include <seng499/opencl_program_factory.hpp>
+#include <dynfu/opencl_program_factory.hpp>
 
 
-namespace seng499 {
+namespace dynfu {
 	
 	
 	opencl_program_factory::~opencl_program_factory () noexcept {	}

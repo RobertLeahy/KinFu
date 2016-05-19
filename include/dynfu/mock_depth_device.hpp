@@ -7,12 +7,12 @@
 
 
 #include <Eigen/Dense>
-#include <seng499/depth_device.hpp>
+#include <dynfu/depth_device.hpp>
 #include <cstddef>
 #include <vector>
 
 
-namespace seng499 {
+namespace dynfu {
 	
 	
 	/**

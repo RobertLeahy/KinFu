@@ -1,9 +1,9 @@
-#include <seng499/fps_depth_device.hpp>
+#include <dynfu/fps_depth_device.hpp>
 #include <chrono>
 #include <thread>
 
 
-namespace seng499 {
+namespace dynfu {
 	
 	
 	static std::chrono::duration<float> fps_to_period (unsigned fps) noexcept {

@@ -7,12 +7,12 @@
 
 
 #include <Eigen/Dense>
-#include <seng499/depth_device_decorator.hpp>
+#include <dynfu/depth_device_decorator.hpp>
 #include <chrono>
 #include <stdexcept>
 
 
-namespace seng499 {
+namespace dynfu {
 	
 	
 	/**

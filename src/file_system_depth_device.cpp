@@ -1,5 +1,5 @@
 #include <boost/filesystem.hpp>
-#include <seng499/file_system_depth_device.hpp>
+#include <dynfu/file_system_depth_device.hpp>
 #include <algorithm>
 #include <functional>
 #include <sstream>
@@ -7,7 +7,7 @@
 #include <utility>
 
 
-namespace seng499 {
+namespace dynfu {
 	
 	
 	file_system_depth_device_filter::~file_system_depth_device_filter () noexcept {	}

@@ -6,14 +6,14 @@
 #pragma once
 
 
-#include <seng499/pipeline_value.hpp>
+#include <dynfu/pipeline_value.hpp>
 #include <Eigen/Dense>
 #include <cstddef>
 #include <memory>
 #include <vector>
 
 
-namespace seng499 {
+namespace dynfu {
 	
 	
 	/**

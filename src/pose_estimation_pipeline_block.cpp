@@ -1,7 +1,7 @@
-#include <seng499/pose_estimation_pipeline_block.hpp>
+#include <dynfu/pose_estimation_pipeline_block.hpp>
 
 
-namespace seng499 {
+namespace dynfu {
 	
 	
 	pose_estimation_pipeline_block::~pose_estimation_pipeline_block () noexcept {	}
