@@ -17,13 +17,13 @@ endif
 ifeq ($(RELEASE),YES)
 	OPTIMIZATION:=-O2
 else
-	OPTIMIZATION:=-O0 -g -fno-inline -fno-omit-frame-pointer -Wall -Wpedantic -Wextra -Werror -Wno-deprecated-declarations
+	OPTIMIZATION:=-O0 -g -fno-inline -fno-omit-frame-pointer -Wall -Wpedantic -Wextra -Werror
 	ifneq ($(OS),Windows_NT)
 		OPTIMIZATION:=$(OPTIMIZATION) $(GCC_SANITIZE_ADDRESS)
 	endif
 endif
 
-OPTS_SHARED := -I /usr/include/eigen3 -I /usr/include/compute -I ./include -std=c++1z -I "C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v7.5\include" -L"C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v7.5\lib\x64"
+OPTS_SHARED := -isystem /usr/include/eigen3 -isystem /usr/include/compute -I ./include -std=c++1z -I "C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v7.5\include" -L"C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v7.5\lib\x64"
 
 ifeq ($(OS),Windows_NT)
 	MAKE_PARENT=mkdir.bat $(subst /,\,$(dir $(1)))
