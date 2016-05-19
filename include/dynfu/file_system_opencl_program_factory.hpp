@@ -17,7 +17,8 @@ namespace dynfu {
 	
 	
 	/**
-	 *
+	 *	An \ref opencl_program_factory which loads and
+	 *	compiles OpenCL files from the file system.
 	 */
 	class file_system_opencl_program_factory : public opencl_program_factory {
 		
