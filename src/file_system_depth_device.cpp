@@ -1,5 +1,5 @@
-#include <boost/filesystem.hpp>
 #include <dynfu/file_system_depth_device.hpp>
+#include <dynfu/filesystem.hpp>
 #include <algorithm>
 #include <functional>
 #include <sstream>
@@ -13,7 +13,7 @@ namespace dynfu {
 	file_system_depth_device_filter::~file_system_depth_device_filter () noexcept {	}
 	
 	
-	bool null_file_system_depth_device_filter::operator () (const boost::filesystem::path &) const {
+	bool null_file_system_depth_device_filter::operator () (const filesystem::path &) const {
 		
 		return true;
 		
@@ -23,7 +23,7 @@ namespace dynfu {
 	file_system_depth_device_comparer::~file_system_depth_device_comparer () noexcept {	}
 	
 	
-	bool null_file_system_depth_device_comparer::operator () (const boost::filesystem::path & a, const boost::filesystem::path & b) const {
+	bool null_file_system_depth_device_comparer::operator () (const filesystem::path & a, const filesystem::path & b) const {
 		
 		std::less<> c;
 		return c(a,b);
@@ -37,9 +37,9 @@ namespace dynfu {
 	file_system_depth_device::end::end () : std::runtime_error("No more files") {	}
 	
 	
-	file_system_depth_device::file_system_depth_device (boost::filesystem::path path, file_system_depth_device_frame_factory & factory, const file_system_depth_device_filter * filter, const file_system_depth_device_comparer * comparer) : factory_(factory) {
+	file_system_depth_device::file_system_depth_device (filesystem::path path, file_system_depth_device_frame_factory & factory, const file_system_depth_device_filter * filter, const file_system_depth_device_comparer * comparer) : factory_(factory) {
 		
-		if (!boost::filesystem::is_directory(path)) {
+		if (!filesystem::is_directory(path)) {
 			
 			std::ostringstream ss;
 			ss << "file_system_depth_device: " << path << " is not a directory";
@@ -52,9 +52,9 @@ namespace dynfu {
 		null_file_system_depth_device_filter nf;
 		const file_system_depth_device_filter & f=filter ? *filter : nf;
 		
-		std::for_each(boost::filesystem::directory_iterator(path),boost::filesystem::directory_iterator{},[&] (const auto & entry) {
+		std::for_each(filesystem::directory_iterator(path),filesystem::directory_iterator{},[&] (const auto & entry) {
 			
-			if (!boost::filesystem::is_regular_file(entry.status())) return;
+			if (!filesystem::is_regular_file(entry.status())) return;
 			auto && path=entry.path();
 			if (!f(path)) return;
 			files_.push_back(path);

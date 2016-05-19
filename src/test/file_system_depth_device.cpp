@@ -1,8 +1,8 @@
 #include <dynfu/file_system_depth_device.hpp>
 
 
-#include <boost/filesystem.hpp>
 #include <Eigen/Dense>
+#include <dynfu/filesystem.hpp>
 #include <dynfu/path.hpp>
 #include <cstddef>
 #include <utility>
@@ -29,7 +29,7 @@ SCENARIO("file_system_depth_device loads depth information from files in the fil
 				mock_factory () noexcept : num_(0) {	}
 				
 				
-				virtual value_type operator () (const boost::filesystem::path &, value_type v) override {
+				virtual value_type operator () (const dynfu::filesystem::path &, value_type v) override {
 					
 					++num_;
 					return v;
@@ -67,7 +67,7 @@ SCENARIO("file_system_depth_device loads depth information from files in the fil
 			
 		};
 		
-		boost::filesystem::path fake_path(dynfu::current_executable_parent_path());
+		dynfu::filesystem::path fake_path(dynfu::current_executable_parent_path());
 		fake_path/="..";
 		fake_path/="data/test/file_system_depth_device";
 		mock_factory fac;

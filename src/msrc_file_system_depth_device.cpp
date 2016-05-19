@@ -1,6 +1,6 @@
-#include <boost/filesystem.hpp>
 #include <opencv2/opencv.hpp>
 #include <dynfu/cpu_pipeline_value.hpp>
+#include <dynfu/filesystem.hpp>
 #include <dynfu/msrc_file_system_depth_device.hpp>
 #include <cstdint>
 #include <limits>
@@ -20,14 +20,14 @@ namespace dynfu {
 	}
 	
 	
-	bool msrc_file_system_depth_device_filter::operator () (const boost::filesystem::path & path) const {
+	bool msrc_file_system_depth_device_filter::operator () (const filesystem::path & path) const {
 
 		return std::regex_match(path.filename().string(), get_regex());
 		
 	}
 	
 	
-	msrc_file_system_depth_device_frame_factory::value_type msrc_file_system_depth_device_frame_factory::operator () (const boost::filesystem::path & path, value_type v) {
+	msrc_file_system_depth_device_frame_factory::value_type msrc_file_system_depth_device_frame_factory::operator () (const filesystem::path & path, value_type v) {
 		
 		buffer_type vec;
 		// reserve the size of our image

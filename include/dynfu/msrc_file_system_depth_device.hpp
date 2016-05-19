@@ -6,8 +6,8 @@
 #pragma once
 
 
-#include <boost/filesystem.hpp>
 #include <dynfu/file_system_depth_device.hpp>
+#include <dynfu/filesystem.hpp>
 #include <Eigen/Dense>
 #include <cstddef>
 
@@ -26,7 +26,7 @@ namespace dynfu {
 		
 		public:
 			
-			virtual bool operator () (const boost::filesystem::path &) const override;
+			virtual bool operator () (const filesystem::path &) const override;
 				
 	};
 	
@@ -41,7 +41,7 @@ namespace dynfu {
 
 		public:
 	
-			virtual value_type operator () (const boost::filesystem::path &, value_type) override;
+			virtual value_type operator () (const filesystem::path &, value_type) override;
 	
 			virtual std::size_t width () const noexcept override;
 
