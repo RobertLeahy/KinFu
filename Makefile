@@ -5,7 +5,12 @@ ifeq ($(OS),Windows_NT)
 	GPP:=g++
 	LINK :=$(LINK) bin/*opencv*.dll
 else
+	LINK:=$(LINK) -lstdc++fs
+ifeq ($(GCC_VERSION),6)
+	GPP:=g++-6
+else
 	GPP:=g++-5
+endif
 endif
 
 ifeq ($(SANITIZE_ADDRESS),NO)
