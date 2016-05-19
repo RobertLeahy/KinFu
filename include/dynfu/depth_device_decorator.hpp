@@ -3,10 +3,10 @@
  */
 
 
-#include <seng499/depth_device.hpp>
+#include <dynfu/depth_device.hpp>
 
 
-namespace seng499 {
+namespace dynfu {
 	
 	
 	/**

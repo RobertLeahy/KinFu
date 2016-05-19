@@ -1,9 +1,9 @@
-#include <seng499/file_system_depth_device.hpp>
+#include <dynfu/file_system_depth_device.hpp>
 
 
 #include <boost/filesystem.hpp>
 #include <Eigen/Dense>
-#include <seng499/path.hpp>
+#include <dynfu/path.hpp>
 #include <cstddef>
 #include <utility>
 #include <vector>
@@ -14,7 +14,7 @@ SCENARIO("file_system_depth_device loads depth information from files in the fil
 	
 	GIVEN("A file_system_depth_device") {
 		
-		class mock_factory : public seng499::file_system_depth_device_frame_factory {
+		class mock_factory : public dynfu::file_system_depth_device_frame_factory {
 			
 			
 			private:
@@ -67,11 +67,11 @@ SCENARIO("file_system_depth_device loads depth information from files in the fil
 			
 		};
 		
-		boost::filesystem::path fake_path(seng499::current_executable_parent_path());
+		boost::filesystem::path fake_path(dynfu::current_executable_parent_path());
 		fake_path/="..";
 		fake_path/="data/test/file_system_depth_device";
 		mock_factory fac;
-		seng499::file_system_depth_device fsdd(std::move(fake_path),fac);
+		dynfu::file_system_depth_device fsdd(std::move(fake_path),fac);
 		
 		WHEN("It is invoked") {
 			
@@ -85,7 +85,7 @@ SCENARIO("file_system_depth_device loads depth information from files in the fil
 			
 			THEN("Invoking it again throws an exception as there are no more files") {
 				
-				CHECK_THROWS_AS(fsdd(),seng499::file_system_depth_device::end);
+				CHECK_THROWS_AS(fsdd(),dynfu::file_system_depth_device::end);
 				
 			}
 			

@@ -7,14 +7,14 @@
 
 
 #include <boost/filesystem.hpp>
-#include <seng499/depth_device.hpp>
+#include <dynfu/depth_device.hpp>
 #include <Eigen/Dense>
 #include <cstddef>
 #include <stdexcept>
 #include <vector>
 
 
-namespace seng499 {
+namespace dynfu {
 	
 	
 	/**

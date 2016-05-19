@@ -9,11 +9,11 @@
 #include <boost/compute/command_queue.hpp>
 #include <boost/compute/context.hpp>
 #include <boost/compute/device.hpp>
-#include <seng499/pipeline_value.hpp>
+#include <dynfu/pipeline_value.hpp>
 #include <utility>
 
 
-namespace seng499 {
+namespace dynfu {
 	
 	
 	/**

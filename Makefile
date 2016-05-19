@@ -45,7 +45,7 @@ endif
 GPP:=$(GPP) $(OPTS_SHARED) $(OPTIMIZATION)
 
 
-MODULE_NAME:=seng499
+MODULE_NAME:=dynfu
 
 
 .PHONY: all

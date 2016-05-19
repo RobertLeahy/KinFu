@@ -6,14 +6,14 @@
 #pragma once
 
 
-#include <seng499/depth_device.hpp>
-#include <seng499/measurement_pipeline_block.hpp>
-#include <seng499/pose_estimation_pipeline_block.hpp>
-#include <seng499/surface_prediction_pipeline_block.hpp>
-#include <seng499/update_reconstruction_pipeline_block.hpp>
+#include <dynfu/depth_device.hpp>
+#include <dynfu/measurement_pipeline_block.hpp>
+#include <dynfu/pose_estimation_pipeline_block.hpp>
+#include <dynfu/surface_prediction_pipeline_block.hpp>
+#include <dynfu/update_reconstruction_pipeline_block.hpp>
 
 
-namespace seng499 {
+namespace dynfu {
 	
 	
 	/**

@@ -6,13 +6,13 @@
 #pragma once
 
 
-#include <seng499/optional.hpp>
-#include <seng499/pipeline_value.hpp>
+#include <dynfu/optional.hpp>
+#include <dynfu/pipeline_value.hpp>
 #include <type_traits>
 #include <utility>
 
 
-namespace seng499 {
+namespace dynfu {
 	
 	
 	/**

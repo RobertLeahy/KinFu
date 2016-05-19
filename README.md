@@ -1,5 +1,5 @@
-# SENG 499 Summer 2016 {#mainpage}
-[![Stories in Ready](https://badge.waffle.io/RobertLeahy/SENG499.png?label=ready&title=Ready)](http://waffle.io/RobertLeahy/SENG499)
+# SENG 499 Summer 2016 - DynFu {#mainpage}
+[![Stories in Ready](https://badge.waffle.io/RobertLeahy/DynFu.png?label=ready&title=Ready)](http://waffle.io/RobertLeahy/DynFu)
 [![Build Status](https://travis-ci.com/RobertLeahy/DynFu.svg?token=E1Ypp9btW9nWJKJqzctp&branch=master)](https://travis-ci.com/RobertLeahy/DynFu)
 
 ## Introduction
@@ -24,8 +24,8 @@ May Work on
 
 #### Directions for Linux
 ```
-git clone https://github.com/RobertLeahy/SENG499.git
-cd SENG499
+git clone https://github.com/RobertLeahy/DynFu.git
+cd DynFu
 mkdir -p include
 wget -O include/catch.hpp https://raw.githubusercontent.com/philsquared/Catch/master/single_include/catch.hpp
 sudo add-apt-repository ppa:ubuntu-toolchain-r/test
@@ -37,7 +37,7 @@ sudo apt-get install g++-5 libeigen3-dev libboost-all-dev libopencv-dev
 ### Compile
 Once the dependencies are satisfied...
 ```
-cd SENG499
+cd DynFu
 make
 ```
 
@@ -53,8 +53,8 @@ doxygen
 ```
 
 ## Links
-* Project Management - [waffle.io](https://waffle.io/RobertLeahy/SENG499)
-* Continuous Integration - [travis-ci](https://travis-ci.org/RobertLeahy/SENG499/)
+* Project Management - [waffle.io](https://waffle.io/RobertLeahy/DynFu)
+* Continuous Integration - [travis-ci](https://travis-ci.org/RobertLeahy/DynFu/)
 
 ## Contributing
 Currently, no outside contributions are being accepted as the coursework is required to be our own.

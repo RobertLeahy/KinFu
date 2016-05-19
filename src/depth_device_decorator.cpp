@@ -1,8 +1,8 @@
-#include <seng499/depth_device_decorator.hpp>
+#include <dynfu/depth_device_decorator.hpp>
 #include <utility>
 
 
-namespace seng499 {
+namespace dynfu {
 	
 	
 	depth_device_decorator::depth_device_decorator (depth_device & dev) noexcept : dev_(dev) {	}

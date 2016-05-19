@@ -1,13 +1,13 @@
 #include <boost/compute/algorithm/copy.hpp>
 #include <boost/compute/container/vector.hpp>
 #include <boost/compute/async/future.hpp>
-#include <seng499/opencl_depth_device.hpp>
-#include <seng499/opencl_vector_pipeline_value.hpp>
+#include <dynfu/opencl_depth_device.hpp>
+#include <dynfu/opencl_vector_pipeline_value.hpp>
 #include <memory>
 #include <utility>
 
 
-namespace seng499 {
+namespace dynfu {
 	
 	
 	opencl_depth_device::opencl_depth_device (depth_device & dev, boost::compute::command_queue q)

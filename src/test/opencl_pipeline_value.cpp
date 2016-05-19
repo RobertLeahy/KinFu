@@ -1,4 +1,4 @@
-#include <seng499/opencl_pipeline_value.hpp>
+#include <dynfu/opencl_pipeline_value.hpp>
 
 
 #include <boost/compute.hpp>
@@ -8,7 +8,7 @@
 namespace {
 	
 	
-	class mock final : public seng499::opencl_pipeline_value<int> {
+	class mock final : public dynfu::opencl_pipeline_value<int> {
 		
 		
 		private:
@@ -20,7 +20,7 @@ namespace {
 		public:
 		
 		
-			using seng499::opencl_pipeline_value<int>::opencl_pipeline_value;
+			using dynfu::opencl_pipeline_value<int>::opencl_pipeline_value;
 			
 			
 			virtual const int & get () override {
@@ -57,23 +57,23 @@ namespace {
 }
 
 
-SCENARIO_METHOD(fixture,"seng499::opencl_pipeline_value tracks the association between a GPU pipeline value and its boost::compute::command_queue","[seng499][pipeline_value][opencl_pipeline_value]") {
+SCENARIO_METHOD(fixture,"dynfu::opencl_pipeline_value tracks the association between a GPU pipeline value and its boost::compute::command_queue","[seng499][pipeline_value][opencl_pipeline_value]") {
 	
-	GIVEN("A seng499::opencl_pipeline_value created with some boost::compute::command_queue") {
+	GIVEN("A dynfu::opencl_pipeline_value created with some boost::compute::command_queue") {
 		
-		THEN("seng499::opencl_pipeline_value::command_queue returns the same boost::compute::command_queue that was passed to the constructor") {
+		THEN("dynfu::opencl_pipeline_value::command_queue returns the same boost::compute::command_queue that was passed to the constructor") {
 			
 			CHECK(pv.command_queue()==q);
 			
 		}
 		
-		THEN("seng499::opencl_pipeline_value::context returns the same boost::compute::context which was used to construct the boost::compute::command_queue passed to the constructor") {
+		THEN("dynfu::opencl_pipeline_value::context returns the same boost::compute::context which was used to construct the boost::compute::command_queue passed to the constructor") {
 			
 			CHECK(pv.context()==ctx);
 			
 		}
 		
-		THEN("seng499::opencl_pipeline_value::device returns the same boost::compute::device which was used to construct the boost::compute::command_queue passed to the constructor") {
+		THEN("dynfu::opencl_pipeline_value::device returns the same boost::compute::device which was used to construct the boost::compute::command_queue passed to the constructor") {
 			
 			CHECK(pv.device()==dev);
 			
