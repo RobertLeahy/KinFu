@@ -1,16 +1,15 @@
 SUFFIXES+=.mk
 LINK = -lboost_filesystem -lboost_system
 
+CXX := g++
+GCC_VERSION ?= 5
+
 ifeq ($(OS),Windows_NT)
-	GPP:=g++
+	GPP:=$(CXX)
 	LINK :=$(LINK) bin/*opencv*.dll
 else
 	LINK:=$(LINK) -lstdc++fs
-ifeq ($(GCC_VERSION),6)
-	GPP:=g++-6
-else
-	GPP:=g++-5
-endif
+	GPP:=$(CXX)-$(GCC_VERSION)
 endif
 
 ifeq ($(SANITIZE_ADDRESS),NO)

@@ -3,11 +3,18 @@ dist: trusty
 compiler: g++
 os: linux
 sudo: required
+
+env:
+  - GCC_VERSION=5
+  - GCC_VERSION=6
+
 addons: &gcc5
   apt:
     packages:
       - g++-5
       - gcc-5
+      - gcc-6
+      - g++-6
       - libeigen3-dev 
       - libboost-all-dev
       - libopencv-dev
