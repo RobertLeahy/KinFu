@@ -4,7 +4,7 @@
 #include <boost/compute/context.hpp>
 #include <boost/compute/device.hpp>
 #include <boost/compute/system.hpp>
-#include <boost/filesystem.hpp>
+#include <dynfu/filesystem.hpp>
 #include <dynfu/path.hpp>
 #include <utility>
 #include <catch.hpp>
@@ -21,7 +21,7 @@ namespace {
 		
 			boost::compute::device dev;
 			boost::compute::context ctx;
-			boost::filesystem::path p;
+			dynfu::filesystem::path p;
 			
 			
 		public:

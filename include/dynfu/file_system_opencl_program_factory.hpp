@@ -8,7 +8,7 @@
 
 #include <boost/compute/context.hpp>
 #include <boost/compute/program.hpp>
-#include <boost/filesystem.hpp>
+#include <dynfu/filesystem.hpp>
 #include <dynfu/opencl_program_factory.hpp>
 #include <string>
 
@@ -17,7 +17,8 @@ namespace dynfu {
 	
 	
 	/**
-	 *
+	 *	An \ref opencl_program_factory which loads and
+	 *	compiles OpenCL files from the file system.
 	 */
 	class file_system_opencl_program_factory : public opencl_program_factory {
 		
@@ -25,7 +26,7 @@ namespace dynfu {
 		private:
 		
 		
-			boost::filesystem::path root_;
+			filesystem::path root_;
 			boost::compute::context ctx_;
 			
 			
@@ -47,10 +48,10 @@ namespace dynfu {
 			 *		The boost::compute::context which shall be used to
 			 *		build programs.
 			 */
-			file_system_opencl_program_factory (boost::filesystem::path path, boost::compute::context ctx);
+			file_system_opencl_program_factory (filesystem::path path, boost::compute::context ctx);
 			
 			
-			virtual boost::compute::program operator () (const std::string &) override; 
+			virtual boost::compute::program operator () (const std::string &) override;
 		
 		
 	};

@@ -1,5 +1,5 @@
-#include <boost/filesystem.hpp>
 #include <dynfu/file_system_opencl_program_factory.hpp>
+#include <dynfu/filesystem.hpp>
 #include <sstream>
 #include <stdexcept>
 #include <utility>
@@ -8,9 +8,9 @@
 namespace dynfu {
 	
 	
-	file_system_opencl_program_factory::file_system_opencl_program_factory (boost::filesystem::path path, boost::compute::context ctx) : root_(std::move(path)), ctx_(std::move(ctx)) {
+	file_system_opencl_program_factory::file_system_opencl_program_factory (filesystem::path path, boost::compute::context ctx) : root_(std::move(path)), ctx_(std::move(ctx)) {
 		
-		if (boost::filesystem::is_directory(root_)) return;
+		if (filesystem::is_directory(root_)) return;
 		
 		std::ostringstream ss;
 		ss << root_.string() << " is not a directory";
