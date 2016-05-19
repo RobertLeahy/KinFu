@@ -13,6 +13,12 @@
 namespace dynfu {
 	
 	
+	/**
+	 *	Contains the contents of boost::filesystem,
+	 *	std::experimental::filesystem, or std::filesystem,
+	 *	depending on what is available in the current compiler
+	 *	and standard library version.
+	 */
 	namespace filesystem {
 		
 		
