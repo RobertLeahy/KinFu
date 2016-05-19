@@ -51,7 +51,7 @@ namespace dynfu {
 			file_system_opencl_program_factory (boost::filesystem::path path, boost::compute::context ctx);
 			
 			
-			virtual boost::compute::program operator () (const std::string &) override; 
+			virtual boost::compute::program operator () (const std::string &) override;
 		
 		
 	};
