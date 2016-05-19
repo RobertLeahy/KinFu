@@ -103,7 +103,7 @@ namespace dynfu {
 			 *		A tuple of \ref pipeline_value objects representing a
 			 *		vertex map and corresponding normal map.
 			 */
-			virtual value_type operator () (const depth_device::value_type::element_type & frame, std::size_t width, std::size_t height, Eigen::Matrix3f k, value_type v=value_type{}) = 0;
+			virtual value_type operator () (depth_device::value_type::element_type & frame, std::size_t width, std::size_t height, Eigen::Matrix3f k, value_type v=value_type{}) = 0;
 		
 		
 	};
