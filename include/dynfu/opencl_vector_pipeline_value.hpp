@@ -205,6 +205,20 @@ namespace dynfu {
 				return from_vector(ptr->get());
 				
 			}
+			
+			
+			/**
+			 *	Retrieves the boost::compute::command_queue
+			 *	associated with this object.
+			 *
+			 *	\return
+			 *		A boost::compute::command_queue.
+			 */
+			boost::compute::command_queue command_queue () const {
+				
+				return q_;
+				
+			}
 		
 		
 	};
