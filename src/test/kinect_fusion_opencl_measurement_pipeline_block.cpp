@@ -110,7 +110,7 @@ SCENARIO_METHOD(fixture, "A dynfu::kinect_fusion_opencl_measurement_pipeline_blo
 				
 				for(auto && n : ns) {
 				
-					CHECK((n.norm() == Approx( 1.0f ) || n.isZero() == 1));
+					CHECK((n.norm() == Approx( 1.0f ) || n.isZero()));
 				
 				}
 				
