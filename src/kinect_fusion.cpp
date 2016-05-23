@@ -12,7 +12,9 @@ namespace dynfu {
 		dynfu::depth_device::value_type f;
 		using std::swap;
 		swap(f,frame_);
+		timer t;
 		frame_=(*dd_)(std::move(f));
+		ddt_=t.elapsed();
 		
 	}
 	
@@ -24,7 +26,9 @@ namespace dynfu {
 		using std::swap;
 		swap(v,v_);
 		swap(n,n_);
+		timer t;
 		std::tie(v_,n_)=(*mpb_)(*frame_,width_,height_,k_,std::make_tuple(std::move(v),std::move(n)));
+		mpbt_=t.elapsed();
 		
 	}
 	
@@ -64,6 +68,20 @@ namespace dynfu {
 		get_vertex_and_normal_maps();
 		
 		//	TODO
+		
+	}
+	
+	
+	kinect_fusion::timer::duration kinect_fusion::depth_device_elapsed () const {
+		
+		return ddt_;
+		
+	}
+	
+	
+	kinect_fusion::timer::duration kinect_fusion::measurement_pipeline_block_elapsed () const {
+		
+		return mpbt_;
 		
 	}
 	

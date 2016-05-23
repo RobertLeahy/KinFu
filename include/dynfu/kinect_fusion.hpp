@@ -10,6 +10,7 @@
 #include <dynfu/measurement_pipeline_block.hpp>
 #include <dynfu/pose_estimation_pipeline_block.hpp>
 #include <dynfu/surface_prediction_pipeline_block.hpp>
+#include <dynfu/timer.hpp>
 #include <dynfu/update_reconstruction_pipeline_block.hpp>
 #include <Eigen/Dense>
 #include <cstddef>
@@ -26,14 +27,26 @@ namespace dynfu {
 	class kinect_fusion {
 		
 		
+		public:
+		
+		
+			/**
+			 *	The timer that the pipeline shall use for
+			 *	benchmarking.
+			 */
+			using timer=dynfu::timer;
+		
+		
 		private:
 		
 		
 			dynfu::depth_device * dd_;
+			timer::duration ddt_;
 			Eigen::Matrix3f k_;
 			std::size_t width_;
 			std::size_t height_;
 			dynfu::measurement_pipeline_block * mpb_;
+			timer::duration mpbt_;
 			pose_estimation_pipeline_block * pepb_;
 			surface_prediction_pipeline_block * sppb_;
 			update_reconstruction_pipeline_block * urpb_;
@@ -90,6 +103,25 @@ namespace dynfu {
 			 *	accordingly.
 			 */
 			void operator () ();
+			
+			
+			/**
+			 *	Retrieves the amount of time the pipeline spent
+			 *	waiting for the depth frame on the last invocation.
+			 *
+			 *	\return
+			 *		The amount of time.
+			 */
+			timer::duration depth_device_elapsed () const;
+			/**
+			 *	Retrieves the amount of time the pipeline spent
+			 *	waiting for the measurement pipeline block on the
+			 *	last invocation.
+			 *
+			 *	\return
+			 *		The amount of time.
+			 */
+			timer::duration measurement_pipeline_block_elapsed () const;
 		
 		
 	};
