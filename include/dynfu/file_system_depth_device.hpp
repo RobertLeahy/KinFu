@@ -220,10 +220,17 @@ namespace dynfu {
 		
 			/**
 			 *	Since the \ref depth_device interface assumes a physical
-			 *	device there's no way to signal the end of the stream.
+			 *	device there's no way to signal the end of the stream
+			 *	through the interface it provides.
 			 *
 			 *	An exception of this type is thrown once all depth frames
 			 *	have been loaded and returned from the file system.
+			 *
+			 *	As an alternative to catching this exception
+			 *	\ref file_system_depth_device::operator bool may be invoked
+			 *	before each frame.  If it returns \em true then this exception
+			 *	is guaranteed not to be thrown.  If it returns \em false then
+			 *	this exception is guaranteed to be thrown.
 			 */
 			class end : public std::runtime_error {
 				
@@ -275,6 +282,21 @@ namespace dynfu {
 			 *		has returned or the behaviour is undefined.
 			 */
 			file_system_depth_device (filesystem::path path, file_system_depth_device_frame_factory & factory, const file_system_depth_device_filter * filter=nullptr, const file_system_depth_device_comparer * comparer=nullptr);
+			
+			
+			/**
+			 *	Checks to see if the file_system_depth_device is out of
+			 *	files.
+			 *
+			 *	If this returns \em true it is guaranteed that the next
+			 *	invocation of \ref operator () will not throw an exception
+			 *	of type \ref end.
+			 *
+			 *	\return
+			 *		\em true if there is at least one more file, \em false
+			 *		otherwise.
+			 */
+			explicit operator bool () const noexcept;
 			
             
 		private:

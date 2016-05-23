@@ -100,4 +100,11 @@ namespace dynfu {
 	}
 	
 	
+	file_system_depth_device::operator bool () const noexcept {
+		
+		return !files_.empty();
+		
+	}
+	
+	
 }

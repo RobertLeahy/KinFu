@@ -73,6 +73,12 @@ SCENARIO("file_system_depth_device loads depth information from files in the fil
 		mock_factory fac;
 		dynfu::file_system_depth_device fsdd(std::move(fake_path),fac);
 		
+		THEN("operator bool returs true") {
+			
+			CHECK(fsdd);
+			
+		}
+		
 		WHEN("It is invoked") {
 			
 			auto frame=fsdd();
@@ -86,6 +92,12 @@ SCENARIO("file_system_depth_device loads depth information from files in the fil
 			THEN("Invoking it again throws an exception as there are no more files") {
 				
 				CHECK_THROWS_AS(fsdd(),dynfu::file_system_depth_device::end);
+				
+			}
+			
+			THEN("operator bool returns false as there are no more files") {
+				
+				CHECK(!fsdd);
 				
 			}
 			
