@@ -14,8 +14,8 @@
 #include <dynfu/opencl_program_factory.hpp>
 #include <dynfu/opencl_vector_pipeline_value.hpp>
 #include <dynfu/optional.hpp>
-#include <cstddef>
 #include <Eigen/Dense>
+#include <cstddef>
 
 
 namespace dynfu {
