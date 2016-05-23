@@ -138,3 +138,11 @@ bin \
 bin/$(MODULE_NAME)$(MODULE_EXT)
 	$(GPP) -o $@ $^ $(LINK) bin/$(MODULE_NAME)$(MODULE_EXT) -lOpenCL
 	bin/tests$(EXECUTABLE_EXT)
+
+
+all: bin/test$(EXECUTABLE_EXT)
+bin/test$(EXECUTABLE_EXT): \
+obj/main.o | \
+bin \
+bin/$(MODULE_NAME)$(MODULE_EXT)
+	$(GPP) -o $@ $^ $(LINK) bin/$(MODULE_NAME)$(MODULE_EXT) -lOpenCL
