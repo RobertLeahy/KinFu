@@ -8,6 +8,7 @@
 #include <dynfu/path.hpp>
 #include <dynfu/timer.hpp>
 #include <chrono>
+#include <cstddef>
 #include <cstdlib>
 #include <iostream>
 #include <stdexcept>
@@ -31,21 +32,25 @@ void main_impl (int, char **) {
 	dynfu::kinect_fusion kf;
 	kf.depth_device(dd);
 	kf.measurement_pipeline_block(mpb);
+
+	std::size_t total(0);
+	std::size_t frames(0);
+	while (dd) {
+			
+		dynfu::timer t;
+		kf();
+		auto e=t.elapsed_ms();
+		std::cout << "Depth frame took " << std::chrono::duration_cast<std::chrono::milliseconds>(kf.depth_device_elapsed()).count() << "ms" << std::endl;
+		std::cout << "Measurement took " << std::chrono::duration_cast<std::chrono::milliseconds>(kf.measurement_pipeline_block_elapsed()).count() << "ms" << std::endl;
+		std::cout << "Frame took " << e.count() << "ms" << std::endl;
+		total+=e.count();
+		++frames;
+		
+	}
 	
-	try {
-		
-		for (;;) {
-			
-			dynfu::timer t;
-			kf();
-			auto e=t.elapsed_ms();
-			std::cout << "Depth frame took " << std::chrono::duration_cast<std::chrono::milliseconds>(kf.depth_device_elapsed()).count() << "ms" << std::endl;
-			std::cout << "Measurement took " << std::chrono::duration_cast<std::chrono::milliseconds>(kf.measurement_pipeline_block_elapsed()).count() << "ms" << std::endl;
-			std::cout << "Frame took " << e.count() << "ms" << std::endl;
-			
-		}
-		
-	} catch (const dynfu::file_system_depth_device::end &) {	}
+	std::cout << "Frames: " << frames << std::endl;
+	std::size_t avg=(frames==0) ? 0 : (total/frames);
+	std::cout << "Average time per frame: " << avg << "ms" << std::endl;
 	
 }
 
