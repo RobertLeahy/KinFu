@@ -14,10 +14,19 @@
  */
 kernel void bilateral_filter(__global float* src, __global float* dest, 
     const float sigma_s_inv_sq, const float sigma_r_inv_sq,
-    const unsigned int width, const unsigned int height) {
+    const unsigned int width, const unsigned int height, const unsigned int window_width, const unsigned int window_height) {
 
-    int x = (int)get_global_id(0); // x-dimension of work item???
-    int y = (int)get_global_id(1); // y-dimension of work item???
+    unsigned int x = (unsigned int)get_global_id(0); // x-dimension of work item???
+    unsigned int y = (unsigned int)get_global_id(1); // y-dimension of work item???
+
+    unsigned int start_x = 0;
+    if (x > window_width) start_x = x - window_width;
+    unsigned int start_y = 0;
+    if (y > window_height) start_y = y - window_height;
+    unsigned int end_x = x + window_width;
+    if (end_x > width) end_x = width;
+    unsigned int end_y = y + window_height;
+    if (end_y > height) end_y = height;
 
     float summation = 0;
     float W_p = 0;
@@ -26,8 +35,8 @@ kernel void bilateral_filter(__global float* src, __global float* dest,
     
     // loop over all src pixels (q = [i,j])
     // TODO: use a windowed approach instead of the whole raster...?
-    for (int i = 0; i < width; i++) {
-        for (int j = 0; j < height; j++) {
+    for (unsigned int i = start_x; i < end_x; i++) {
+        for (unsigned int j = start_y; j < end_y; j++) {
 
             float R_k_q = src[j * width + i];
 

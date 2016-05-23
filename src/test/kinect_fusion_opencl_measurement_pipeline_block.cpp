@@ -48,7 +48,7 @@ SCENARIO_METHOD(fixture, "A dynfu::kinect_fusion_opencl_measurement_pipeline_blo
 	
 	GIVEN("A dynfu::kinect_fusion_opencl_measurement_pipeline_block") {		
 		
-		dynfu::kinect_fusion_opencl_measurement_pipeline_block kfompb(q, fsopf);
+		dynfu::kinect_fusion_opencl_measurement_pipeline_block kfompb(q, fsopf, 16, 2.0f, 1.0f);
 		dynfu::cpu_pipeline_value<std::vector<float>> pv;
 		std::vector<float> v{0.0f, 5.0f, 10.0f, 15.0f, 13.0f, 40.0f, 12.0f, 10.0f, 8.0f,19.0f,202.0f,102.0f,84.0f,293.0f,292.0f,293.0f};
 

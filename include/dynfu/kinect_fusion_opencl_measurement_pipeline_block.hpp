@@ -12,6 +12,7 @@
 #include <dynfu/measurement_pipeline_block.hpp>
 #include <dynfu/opencl_program_factory.hpp>
 #include <dynfu/opencl_vector_pipeline_value.hpp>
+#include <cstddef>
 
 
 namespace dynfu {
@@ -32,8 +33,6 @@ namespace dynfu {
 			boost::compute::kernel v_kernel_;
 			boost::compute::kernel n_kernel_;
 			boost::compute::vector<float> v_;
-			float sigma_s_;
-			float sigma_r_;
 		
 		
 		public:
@@ -43,7 +42,10 @@ namespace dynfu {
 			
 			kinect_fusion_opencl_measurement_pipeline_block (
 				boost::compute::command_queue q,
-				opencl_program_factory & opf
+				opencl_program_factory & opf,
+				std::size_t window_size,
+				float sigma_s,
+				float sigma_r
 			);
 			
 			
