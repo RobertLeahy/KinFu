@@ -11,6 +11,8 @@
 #include <dynfu/pose_estimation_pipeline_block.hpp>
 #include <dynfu/surface_prediction_pipeline_block.hpp>
 #include <dynfu/update_reconstruction_pipeline_block.hpp>
+#include <Eigen/Dense>
+#include <cstddef>
 
 
 namespace dynfu {
@@ -27,11 +29,21 @@ namespace dynfu {
 		private:
 		
 		
-			const depth_device * dd_;
-			const measurement_pipeline_block * mpb_;
-			const pose_estimation_pipeline_block * pepb_;
-			const surface_prediction_pipeline_block * sppb_;
-			const update_reconstruction_pipeline_block * urpb_;
+			dynfu::depth_device * dd_;
+			Eigen::Matrix3f k_;
+			std::size_t width_;
+			std::size_t height_;
+			dynfu::measurement_pipeline_block * mpb_;
+			pose_estimation_pipeline_block * pepb_;
+			surface_prediction_pipeline_block * sppb_;
+			update_reconstruction_pipeline_block * urpb_;
+			dynfu::depth_device::value_type frame_;
+			dynfu::measurement_pipeline_block::vertex_value_type v_;
+			dynfu::measurement_pipeline_block::normal_value_type n_;
+			
+			
+			void get_frame ();
+			void get_vertex_and_normal_maps ();
 		
 		
 		public:
@@ -43,7 +55,41 @@ namespace dynfu {
 			kinect_fusion & operator = (kinect_fusion &&) = delete;
 			
 			
+			/**
+			 *	Creates a kinect_fusion object with no
+			 *	pipeline blocks or depth device.
+			 */
 			kinect_fusion () noexcept;
+			
+			
+			/**
+			 *	Sets the depth device.
+			 *
+			 *	\param [in] dd
+			 *		A reference to the depth device this
+			 *		kinect_fusion shall use.  This reference
+			 *		must remain valid as long as this object
+			 *		is in use or the behaviour is undefined.
+			 */
+			void depth_device (dynfu::depth_device & dd) noexcept;
+			/**
+			 *	Sets the measurement pipeline block.
+			 *
+			 *	\param [in] mpb
+			 *		A reference to the measurement pipeline
+			 *		block this kinect_fusion shall use.  This
+			 *		reference must remain valid as long as this
+			 *		object is in use or the behaviour is undefined.
+			 */
+			void measurement_pipeline_block (dynfu::measurement_pipeline_block & mpb) noexcept;
+			
+			
+			/**
+			 *	Retrieves the next frame from the depth device
+			 *	and updates the internal state of this object
+			 *	accordingly.
+			 */
+			void operator () ();
 		
 		
 	};
