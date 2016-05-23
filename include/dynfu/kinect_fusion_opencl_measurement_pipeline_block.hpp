@@ -6,13 +6,16 @@
 #pragma once
 
 
+#include <boost/compute/buffer.hpp>
 #include <boost/compute/command_queue.hpp>
 #include <boost/compute/container/vector.hpp>
 #include <boost/compute/kernel.hpp>
 #include <dynfu/measurement_pipeline_block.hpp>
 #include <dynfu/opencl_program_factory.hpp>
 #include <dynfu/opencl_vector_pipeline_value.hpp>
+#include <dynfu/optional.hpp>
 #include <cstddef>
+#include <Eigen/Dense>
 
 
 namespace dynfu {
@@ -28,11 +31,14 @@ namespace dynfu {
 		
 		private:
 		
+		
 			opencl_vector_pipeline_value_extractor<float> ve_;
 			boost::compute::kernel bilateral_kernel_;
 			boost::compute::kernel v_kernel_;
 			boost::compute::kernel n_kernel_;
 			boost::compute::vector<float> v_;
+			boost::compute::buffer kbuf_;
+			optional<Eigen::Matrix3f> k_;
 		
 		
 		public:
