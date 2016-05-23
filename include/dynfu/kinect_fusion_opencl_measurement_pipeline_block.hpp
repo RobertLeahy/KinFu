@@ -22,7 +22,8 @@ namespace dynfu {
 	
 	
 	/**
-	 *	
+	 *	A \ref measurement_pipeline_block implementation as per the
+	 *	Kinect Fusion paper.
 	 *
 	 *	\sa kinect_fusion
 	 */
@@ -42,10 +43,30 @@ namespace dynfu {
 		
 		
 		public:
-			
+		
+		
 			kinect_fusion_opencl_measurement_pipeline_block () = delete;
 			
 			
+			/**
+			 *	Creates a new kinect_fusion_opencl_measurement_pipeline_block.
+			 *
+			 *	\param [in] q
+			 *		A boost::compute::command_queue which the newly created
+			 *		object shall use to dispatch OpenCL tasks.
+			 *	\param [in] opf
+			 *		An \ref opencl_program_factory which the newly created
+			 *		object shall use to obtain OpenCL programs.
+			 *	\param [in] window_size
+			 *		The window size which shall be used by the bilateral
+			 *		filter.
+			 *	\param [in] sigma_s
+			 *		The \f$\sigma_s\f$ value which shall be used by the
+			 *		bilateral filter.
+			 *	\param [in] sigma_r
+			 *		The \f$\sigma_r\f$ value which shall be used by the
+			 *		bilateral filter.
+			 */
 			kinect_fusion_opencl_measurement_pipeline_block (
 				boost::compute::command_queue q,
 				opencl_program_factory & opf,
