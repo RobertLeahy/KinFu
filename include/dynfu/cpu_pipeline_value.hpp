@@ -53,7 +53,7 @@ namespace dynfu {
 			 *
 			 *	\param [in] args
 			 *		Arguments of types \em Args which shall be
-			 *		forwarded through to a construct of \em T.
+			 *		forwarded through to a constructor of \em T.
 			 *
 			 *	\return
 			 *		A reference to the newly created object.
