@@ -69,15 +69,24 @@ namespace dynfu {
 	}
 	
 	
-	kinect_fusion_opencl_measurement_pipeline_block::kinect_fusion_opencl_measurement_pipeline_block (boost::compute::command_queue q, opencl_program_factory & opf)
+	kinect_fusion_opencl_measurement_pipeline_block::kinect_fusion_opencl_measurement_pipeline_block (boost::compute::command_queue q, opencl_program_factory & opf, std::size_t window_size, float sigma_s, float sigma_r)
 		:	ve_(std::move(q)),
 			bilateral_kernel_(get_bilateral_kernel(opf)),
 			v_kernel_(get_v_kernel(opf)),
 			n_kernel_(get_n_kernel(opf)),
 			v_(ve_.command_queue().get_context()),
-			sigma_s_(2.0f),
-			sigma_r_(1.0f)
-	{	}
+			kbuf_(ve_.command_queue().get_context(),sizeof(Eigen::Matrix3f),CL_MEM_READ_ONLY)
+	{
+		
+		bilateral_kernel_.set_arg(2,1.0f/sigma_s*sigma_s);
+		bilateral_kernel_.set_arg(3,1.0f/sigma_r*sigma_r);
+		std::uint32_t ws(window_size);	//	TODO: Make sure this doesn't overflow?
+		bilateral_kernel_.set_arg(6,ws);
+		bilateral_kernel_.set_arg(7,ws);
+		
+		v_kernel_.set_arg(2,kbuf_);
+		
+	}
 	
 	
 	kinect_fusion_opencl_measurement_pipeline_block::value_type kinect_fusion_opencl_measurement_pipeline_block::operator () (
@@ -104,10 +113,8 @@ namespace dynfu {
 		v_.resize(s,q);
 		bilateral_kernel_.set_arg(0,vec);
 		bilateral_kernel_.set_arg(1,v_);
-		bilateral_kernel_.set_arg(2,1.0f/(sigma_s_*sigma_s_));
-		bilateral_kernel_.set_arg(3,1.0f/(sigma_r_*sigma_r_));
-		bilateral_kernel_.set_arg(4,std::uint32_t(width));
-		bilateral_kernel_.set_arg(5,std::uint32_t(height));
+		bilateral_kernel_.set_arg(4,std::uint32_t(width));	//	TODO: Make sure this doesn't overflow?
+		bilateral_kernel_.set_arg(5,std::uint32_t(height));	//	TODO: Make sure this doesn't overflow?
 		std::size_t extent []={width,height};
 		q.enqueue_nd_range_kernel(bilateral_kernel_,2,nullptr,extent,nullptr);
 		
@@ -130,12 +137,17 @@ namespace dynfu {
 		//	2:	K^-1
 		//	3:	Width
 		//	4:	Height
-		Eigen::Matrix3f k_inv=k.inverse();
-		k_inv.transposeInPlace();
+		if (k_!=k) {
+			
+			Eigen::Matrix3f k_inv=k.inverse();
+			k_inv.transposeInPlace();
+			q.enqueue_write_buffer(kbuf_,0,sizeof(k_inv),k_inv.data());
+			k_=std::move(k);
+			
+		}
+		
 		v_kernel_.set_arg(0,v_);
 		v_kernel_.set_arg(1,vertices);
-		boost::compute::buffer k_inv_buf(q.get_context(),sizeof(k_inv),CL_MEM_READ_ONLY|CL_MEM_COPY_HOST_PTR,k_inv.data());
-		v_kernel_.set_arg(2,k_inv_buf);
 		v_kernel_.set_arg(3,std::uint32_t(width));
 		v_kernel_.set_arg(4,std::uint32_t(height));
 		q.enqueue_nd_range_kernel(v_kernel_,2,nullptr,extent,nullptr);

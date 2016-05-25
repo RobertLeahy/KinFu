@@ -29,7 +29,10 @@ namespace dynfu {
 	
 	msrc_file_system_depth_device_frame_factory::value_type msrc_file_system_depth_device_frame_factory::operator () (const filesystem::path & path, value_type v) {
 		
-		buffer_type vec;
+		using type=cpu_pipeline_value<buffer_type>;
+		if (!v) v=std::make_unique<type>();
+		auto && vec=dynamic_cast<type &>(*v.get()).get_or_emplace();
+		vec.clear();
 		// reserve the size of our image
 		vec.reserve(640*480);
 
@@ -48,10 +51,6 @@ namespace dynfu {
 			static_assert(std::numeric_limits<float>::has_quiet_NaN,"qNaN not supported on this platform");
 			vec.push_back((v==65535U) ? std::numeric_limits<float>::quiet_NaN() : (v/1000.0f));
 		}
-		
-		using type=cpu_pipeline_value<buffer_type>;
-		if (!v) v=std::make_unique<type>();
-		static_cast<type &>(*v.get()).emplace(std::move(vec));
 		
 		return v;
 		
