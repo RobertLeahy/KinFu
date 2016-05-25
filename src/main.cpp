@@ -42,6 +42,13 @@ void main_impl (int, char **) {
 			
 		dynfu::timer t;
 		kf();
+		//	We do this because we're not actually consuming
+		//	the generated values, in the future this shouldn't
+		//	be necessary as the pipeline_value objects we consume
+		//	will do this or equivalent internally as they'll have
+		//	to wait for their offered values to become available
+		//	on the GPU before they download them
+		q.finish();
 		auto e=t.elapsed_ms();
 		std::cout << "Depth frame took " << std::chrono::duration_cast<std::chrono::milliseconds>(kf.depth_device_elapsed()).count() << "ms" << std::endl;
 		std::cout << "Measurement took " << std::chrono::duration_cast<std::chrono::milliseconds>(kf.measurement_pipeline_block_elapsed()).count() << "ms" << std::endl;
