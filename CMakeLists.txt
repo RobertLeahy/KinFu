@@ -1,4 +1,5 @@
 cmake_minimum_required(VERSION 2.6)
+set(CMAKE_OSX_SYSROOT /)
 project(DynFu LANGUAGES CXX)
 
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
@@ -43,10 +44,18 @@ else()
 			add_linker_options(-fsanitize=address)
 		endif()
 	endif()
+	#	Suppress some of Clang's excessive warnings
+	if (DEFINED CMAKE_CXX_COMPILER_ID AND CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+		add_compile_options(-Wno-unused-private-field)
+	endif()
 endif()
 
 #	OpenCL
-add_linker_options(-lOpenCL)
+if(APPLE)
+	add_linker_options(-framework OpenCL)
+else()
+	add_linker_options(-lOpenCL)
+endif()
 
 #	OpenCL include directory on Windows (this is hardcoded and kind of
 #	a hack)
