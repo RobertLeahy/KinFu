@@ -18,7 +18,7 @@ Tested on
 ### Direct Dependencies
 * [Eigen 3](http://eigen.tuxfamily.org/index.php?title=Main_Page)
 * Get the header-only [Catch](https://github.com/philsquared/Catch) by copying [catch.hpp](https://raw.githubusercontent.com/philsquared/Catch/master/single_include/catch.hpp) to SENG499/include/catch.hpp
-* Requires g++-5 and/or g++-6(future proofing in travis-ci build matrices)
+* Requires g++-5 and/or g++-6 (future proofing in travis-ci build matrices)
 * [OpenCV](http://opencv.org/)
 * [Boost](http://www.boost.org/)
 * [Boost.Compute](https://github.com/boostorg/compute)
@@ -51,7 +51,7 @@ cmake .
 make 
 make install
 ```
-#####-lippcv
+#####lippcv
 Download from [here](https://sourceforge.net/projects/opencvlibrary/files/3rdparty/ippicv/)
 
 Extract and copy lib/* to /usr/local/lib
