@@ -18,7 +18,7 @@ Tested on
 ### Direct Dependencies
 * [Eigen 3](http://eigen.tuxfamily.org/index.php?title=Main_Page)
 * Get the header-only [Catch](https://github.com/philsquared/Catch) by copying [catch.hpp](https://raw.githubusercontent.com/philsquared/Catch/master/single_include/catch.hpp) to SENG499/include/catch.hpp
-* Requires g++-5 and/or g++-6(future proofing in travisCI build matrices)
+* Requires g++-5 and/or g++-6(future proofing in travis-ci build matrices)
 * [OpenCV](http://opencv.org/)
 * [Boost](http://www.boost.org/)
 * [Boost.compute](https://github.com/boostorg/compute)
@@ -47,8 +47,8 @@ Download from [here](http://opencv.org/downloads.html)
 
 Extract to location of your choice and open terminal there
 ```
-cmake
-make
+cmake .
+make 
 make install
 ```
 #####-lippcv
@@ -68,8 +68,8 @@ brew install pkg-config
 Note: once #69 is merged in this process should  build the entire project without errors. Warnings are still possible because of symlink issues. #69 contains details.
 
 #### Directions for Windows
+Different build system on Windows than Linux and Mac. 
 
-Different build system on Windows than Linux and Mac
 ##### Mingw64
 Download mingw64 gui installer [here](https://sourceforge.net/projects/mingw/files/latest/download)
 install to location without spaces in the path of the directory.
@@ -92,15 +92,17 @@ Boost windows install instructions can be found [here](http://www.boost.org/doc/
 #####Boost.Compute
 ```
 git clone https://github.com/boostorg/compute.git
-copy headers to /usr/local/include
+copy headers to accessible include location in project
 ```
 #####Catch
 ```
 git clone https://github.com/philsquared/Catch.git
-copy headers to /usr/local/include
+copy headers to accessible build location in project
 ```
 
 #### Directions for Linux
+Since we are using travis-ci it is possible that issues can be resolved by referencing the .travis.yml file on the master branch for solution inspirations. 
+
 ```
 git clone https://github.com/RobertLeahy/DynFu.git
 cd DynFu
@@ -116,7 +118,8 @@ sudo apt-get install g++-5 libeigen3-dev libboost-all-dev libopencv-dev
 Once the dependencies are satisfied...
 ```
 cd DynFu
-cmake
+cmake .
+make
 ```
 
 ### Documentation
