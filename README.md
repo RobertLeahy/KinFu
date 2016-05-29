@@ -1,5 +1,4 @@
 # SENG 499 Summer 2016 - DynFu {#mainpage}
-[![Stories in Ready](https://badge.waffle.io/RobertLeahy/DynFu.png?label=ready&title=Ready)](http://waffle.io/RobertLeahy/DynFu)
 [![Build Status](https://travis-ci.com/RobertLeahy/DynFu.svg?token=E1Ypp9btW9nWJKJqzctp&branch=master)](https://travis-ci.com/RobertLeahy/DynFu)
 
 ## Introduction
