@@ -68,37 +68,43 @@ brew install pkg-config
 Note: once #69 is merged in this process should  build the entire project without errors. Warnings are still possible because of symlink issues. #69 contains details.
 
 #### Directions for Windows
-Different build system on Windows than Linux and Mac. 
 
-##### Mingw64
-Download mingw64 gui installer [here](https://sourceforge.net/projects/mingw/files/latest/download)
-install to location without spaces in the path of the directory.
-Mingw64 can be used to compile with cmake if necessary as [here](http://stackoverflow.com/questions/4101456/running-cmake-on-windows)
+##### MinGW-w64 Compiler
+
+- Download MinGW-w64 GCC v5.3.0 (POSIX threads, SEH exceptions) from [here](https://sourceforge.net/projects/mingw-w64/files/Toolchains%20targetting%20Win64/Personal%20Builds/mingw-builds/5.3.0/threads-posix/seh/)
+- Extract to `C:\MinGW`
+- Add `C:\MinGW\bin` to your path
+- Open command prompt and verify that `g++ --version` displays output which begins with `g++.exe (x86_64-posix-seh-rev0, Built by MinGW-W64 project) 5.3.0`
 
 ##### Eigen3
-Download from [here](http://eigen.tuxfamily.org/index.php?title=Main_Page#Download)
-Extract and include source headers
 
-#####OpenCV 
-Installation instructions for OpenCV include compiling the library
+- Download from [here](http://eigen.tuxfamily.org/index.php?title=Main_Page#Download)
+- Copy `Eigen` directory to `C:\MinGW\x86_64-w64-mingw32\include`
 
-Detailed instructions are available here [here](http://docs.opencv.org/2.4/doc/tutorials/introduction/windows_install/windows_install.html#cpptutwindowsmakeown)
+#####OpenCV
+
+- Download and compile OpenCV (instructions [here](http://docs.opencv.org/2.4/doc/tutorials/introduction/windows_install/windows_install.html#cpptutwindowsmakeown))
+- Copy OpenCV headers to `C:\MinGW\x86_64-w64-mingw32\include`
+- Create directory called `bin` in repository, copy all OpenCV DLLs thereto
 
 #####Boost
-Boost must be built for windows if libraries that are not header only will be included.
 
-Boost windows install instructions can be found [here](http://www.boost.org/doc/libs/1_61_0/more/getting_started/windows.html)
+- Download and compile Boost (instructions [here](http://www.boost.org/doc/libs/1_61_0/more/getting_started/windows.html))
+- Copy Boost headers to `C:\MinGW\x86_64-w64-mingw32\include`
+- Copy files called `libboost_*.a` to `C:\MinGW\lib`
 
 #####Boost.Compute
+
 ```
 git clone https://github.com/boostorg/compute.git
-copy headers to accessible include location in project
 ```
+Copy `./compute/include/boost/*` to `C:\MinGW\x86_64-w64-mingw32\include\boost`
+
 #####Catch
 ```
 git clone https://github.com/philsquared/Catch.git
-copy headers to accessible build location in project
 ```
+Copy `./Catch/single_include/catch.hpp` to `C:\MinGW\x86_64-w64-mingw32\include`
 
 #### Directions for Linux
 Since we are using travis-ci it is possible that issues can be resolved by referencing the .travis.yml file on the master branch for solution inspirations. 
