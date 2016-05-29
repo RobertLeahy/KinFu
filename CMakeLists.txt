@@ -146,6 +146,7 @@ add_executable(tests
 	src/test/opencl_build_error.cpp
 	src/test/opencl_depth_device.cpp
 	src/test/opencl_pipeline_value.cpp
+	src/test/opencl_buffer_pipeline_value.cpp
 	src/test/opencl_vector_pipeline_value.cpp
 	src/test/opencv_depth_device.cpp
 )
