@@ -13,7 +13,7 @@ This repository serves as the home for the course [SENG 499](http://www.ece.uvic
 Tested on
 * Windows 10 (MinGW64)
 * Ubuntu 14.04 and 16.04
-* OS/X (currently builds with warnings as in #69)
+* OS/X It builds with no warnings once the Mac build system is merged, but the tests fail horribly due to some issue we suspect with Boost.Compute & OpenCL on Mac OSX.
 
 ### Direct Dependencies
 * [Eigen 3](http://eigen.tuxfamily.org/index.php?title=Main_Page)
@@ -21,7 +21,7 @@ Tested on
 * Requires g++-5 and/or g++-6(future proofing in travis-ci build matrices)
 * [OpenCV](http://opencv.org/)
 * [Boost](http://www.boost.org/)
-* [Boost.compute](https://github.com/boostorg/compute)
+* [Boost.Compute](https://github.com/boostorg/compute)
 
 #### Directions for Mac
 This includes instructions for installing direct project dependencies and also for build environment dependencies.
@@ -35,12 +35,12 @@ brew install boost
 #####Boost.Compute
 ```
 git clone https://github.com/boostorg/compute.git
-copy headers to /usr/local/include
+copy headers to project: sudo cp -r ./compute/include/boost/* /usr/local/include/boost
 ```
 #####Catch
 ```
 git clone https://github.com/philsquared/Catch.git
-copy headers to /usr/local/include
+copy headers to project: sudo cp ./Catch/single_include/catch.hpp /usr/local/include
 ```
 #####OpenCV
 Download from [here](http://opencv.org/downloads.html)
@@ -59,6 +59,7 @@ Extract and copy lib/* to /usr/local/lib
 #####Eigen3
 ```
 brew install eigen
+sudo ln -s /usr/local/include/eigen3/Eigen /usr/local/include/Eigen
 ```
 #####pkg-config
 ```
