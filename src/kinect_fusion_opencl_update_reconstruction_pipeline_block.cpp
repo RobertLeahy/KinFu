@@ -56,16 +56,15 @@ namespace dynfu {
 		auto q = ve_.command_queue();
 		
 		if (k_ != k) {
-		
-			k_ = std::move(k);
 			
-			Eigen::Matrix3f k = k_.value();
-			k.transposeInPlace();
-			q.enqueue_write_buffer(k_buf_,0,sizeof(k),k.data());
+			k_ = k;
 			
-			Eigen::Matrix3f k_inv = k_.value().inverse();
+			Eigen::Matrix3f k_inv = k.inverse();
 			k_inv.transposeInPlace();
 			q.enqueue_write_buffer(ik_buf_,0,sizeof(k_inv),k_inv.data());
+			
+			k.transposeInPlace();
+			q.enqueue_write_buffer(k_buf_,0,sizeof(k),k.data());
 			
 		}
 		
@@ -88,11 +87,11 @@ namespace dynfu {
 			proj(3,2) = -1.0f; // Positive or negative?
 			
 			// enqueue the proj_view matrix
-			Eigen::Matrix4f proj_view = proj *  t_g_k_.value().inverse();;
+			Eigen::Matrix4f proj_view = proj *  t_g_k_->inverse();;
 			q.enqueue_write_buffer(proj_view_buf_, 0, sizeof(proj_view), proj_view.data());
 			
 			// t_g_k is the transformation component of the sensor pose estimation
-			Eigen::Vector3f t_g_k_vec = t_g_k_.value().block<3,1>(0,2);
+			Eigen::Vector3f t_g_k_vec = t_g_k_->block<3,1>(0,2);
 			t_g_k_vec[2] = 0.0f;
 			//TODO: do we need to transpose this???
 			q.enqueue_write_buffer(t_g_k_vec_buf_,0,sizeof(t_g_k_vec),t_g_k_vec.data());
