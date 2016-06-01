@@ -67,6 +67,7 @@ add_library(dynfu SHARED
 	src/measurement_pipeline_block.cpp
 	src/mock_depth_device.cpp
 	src/msrc_file_system_depth_device.cpp
+	src/opencl_build_error.cpp
 	src/opencl_depth_device.cpp
 	src/opencl_program_factory.cpp
 	src/path.cpp
