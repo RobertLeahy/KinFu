@@ -26,11 +26,8 @@ namespace dynfu {
 		auto p=root_;
 		p/=name;
 		p+=".cl";
-	
-		auto retr=boost::compute::program::create_with_source_file(p.string(),ctx_);
-		opencl_build_error::build(retr);
 		
-		return retr;
+		return opencl_file_build_error::build(p,ctx_);
 		
 	}
 	
