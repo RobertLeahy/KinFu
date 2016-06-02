@@ -99,6 +99,7 @@ add_executable(tests
 	src/test/kinect_fusion_opencl_update_reconstruction_pipeline_block.cpp
 	src/test/main.cpp
 	src/test/msrc_file_system_depth_device.cpp
+	src/test/opencl_build_error.cpp
 	src/test/opencl_depth_device.cpp
 	src/test/opencl_pipeline_value.cpp
 	src/test/opencl_vector_pipeline_value.cpp
