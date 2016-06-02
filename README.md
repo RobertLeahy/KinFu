@@ -24,7 +24,11 @@ Tested on
 
 #### Directions for Mac
 This includes instructions for installing direct project dependencies and also for build environment dependencies.
-After installing all systems, cmake should work in your environment. 
+After installing all systems, cmake should work in your environment.
+
+#####Command Line Tools for XCode
+
+`xcode-select --install`
 
 #####Boost
 Install Homebrew if not already installed
