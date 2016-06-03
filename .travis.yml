@@ -87,8 +87,7 @@ before_install:
       cmake .;
       make -j4;
       make install;
-      cd;
-      mkdir -p ippicv;
+      cd ${HOME};
       wget -O ippicv_macosx_20141027.tgz https://sourceforge.net/projects/opencvlibrary/files/3rdparty/ippicv/ippicv_macosx_20141027.tgz/download;
       tar -xzvf ippicv_macosx_20141027.tgz;
       cp ippicv_osx/lib/* /usr/local/lib/;
