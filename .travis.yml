@@ -1,12 +1,31 @@
 language: cpp
 dist: trusty
-compiler: g++
-os: linux
+osx_image: xcode7.3
+compiler:
+  - gcc
+  - clang
+os:
+  - linux
+  - osx
 sudo: required
 
-env:
-  - GCC_VERSION=5
-  - GCC_VERSION=6
+
+matrix:
+  exclude:
+    - os: osx
+      compiler: gcc
+    - os: linux
+  include:
+    - os: linux
+      env: GCC_VERSION=5
+      compiler: gcc
+    - os: linux
+      env: GCC_VERSION=6
+      compiler: gcc
+
+cache:
+  directories:
+  - ${HOME}/OpenCV
 
 addons: &gcc5
   apt:
@@ -21,13 +40,13 @@ addons: &gcc5
     sources:
       - ubuntu-toolchain-r-test
 before_install:
-  - mkdir -p include
-  - curl -o include/catch.hpp https://raw.githubusercontent.com/philsquared/Catch/master/single_include/catch.hpp
-  - sudo add-apt-repository ppa:kylelutz/compute -y
-  - sudo apt-get update -q
-  - sudo apt-get -y install boost-compute opencl-headers ocl-icd-opencl-dev
-  - sudo cp -r /usr/include/compute/boost/* /usr/include/boost
   - if [ $TRAVIS_OS_NAME = "linux" ]; then
+      mkdir -p include;
+      curl -o include/catch.hpp https://raw.githubusercontent.com/philsquared/Catch/master/single_include/catch.hpp;
+      sudo add-apt-repository ppa:kylelutz/compute -y;
+      sudo apt-get update -q;
+      sudo apt-get -y install boost-compute opencl-headers ocl-icd-opencl-dev;
+      sudo cp -r /usr/include/compute/boost/* /usr/include/boost;
       bash .travis/amd_sdk.sh;
       tar -xjf AMD-SDK.tar.bz2;
       AMDAPPSDK=${HOME}/AMDAPPSDK;
@@ -38,16 +57,44 @@ before_install:
       export LD_LIBRARY_PATH=${AMDAPPSDK}/lib/x86_64:${LD_LIBRARY_PATH};
       chmod +x ${AMDAPPSDK}/bin/x86_64/clinfo;
       ${AMDAPPSDK}/bin/x86_64/clinfo;
+      sudo rm /usr/bin/g++;
+      if [ $GCC_VERSION = 5 ]; then
+        sudo ln -s /usr/bin/g++-5 /usr/bin/g++;
+      fi;
+      if [ $GCC_VERSION = 6 ]; then
+        sudo ln -s /usr/bin/g++-6 /usr/bin/g++;
+      fi;
+      sudo ln -s /usr/include/eigen3/Eigen /usr/include/Eigen;
     fi;
-  - sudo rm /usr/bin/g++
-  - if [ $GCC_VERSION = 5 ]; then
-      sudo ln -s /usr/bin/g++-5 /usr/bin/g++;
+
+  - if [ $TRAVIS_OS_NAME = "osx" ]; then
+      brew update;
+      brew install eigen;
+      brew install pkg-config;
+      brew install boost;
+      git clone https://github.com/boostorg/compute.git;
+      sudo cp -r ./compute/include/boost/* /usr/local/include/boost;
+      git clone https://github.com/philsquared/Catch.git;
+      sudo cp ./Catch/single_include/catch.hpp /usr/local/include;
+      xcode-select --install;
+      cd ${HOME};
+      pwd;
+      mkdir -p OpenCV;
+      cd OpenCV;
+      wget https://github.com/Itseez/opencv/archive/3.1.0.zip;
+      unzip -q 3.1.0.zip;
+      cd opencv-3.1.0;
+      cmake .;
+      make -j4;
+      make install;
+      cd ${HOME};
+      wget -O ippicv_macosx_20141027.tgz https://sourceforge.net/projects/opencvlibrary/files/3rdparty/ippicv/ippicv_macosx_20141027.tgz/download;
+      tar -xzvf ippicv_macosx_20141027.tgz;
+      cp ippicv_osx/lib/* /usr/local/lib/;
+      cd ${TRAVIS_BUILD_DIR};
+      sudo ln -s /usr/local/include/eigen3/Eigen /usr/local/include/Eigen;
     fi;
-  - if [ $GCC_VERSION = 6 ]; then
-      sudo ln -s /usr/bin/g++-6 /usr/bin/g++;
-    fi;
-  - sudo ln -s /usr/include/eigen3/Eigen /usr/include/Eigen
-  
+    
 script:
   - cmake . -DUSE_ADDRESS_SANITIZER=0
-  - make VERBOSE=1
+  - make VERBOSE=1 -j4
