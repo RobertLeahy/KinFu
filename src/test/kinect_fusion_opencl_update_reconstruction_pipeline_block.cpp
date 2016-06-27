@@ -51,8 +51,8 @@ namespace {
 		
 			fixture () : dev(boost::compute::system::default_device()), ctx(dev), q(ctx,dev), width(4), height(4), fsopf(cl_path(),ctx), tsdf_width(16), tsdf_height(16), tsdf_depth(16) {
 					
-				k << 0.585f, 0.0f, 16.0f,
-					 0.0f, -0.585f, 16.0f,
+				k << 585.0f, 0.0f, 16.0f,
+					 0.0f, -585.0f, 16.0f,
 					 0.0f, 0.0f, 1.0f;
 					 
 				t_g_k = Eigen::Matrix4f::Identity();
