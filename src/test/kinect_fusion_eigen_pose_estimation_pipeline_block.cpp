@@ -179,7 +179,7 @@ SCENARIO_METHOD(fixture, "A kinect_fusion_eigen_pose_estimation_pipeline_block u
 			
 			THEN("A tracking failure occurs") {
 				
-					CHECK_THROWS_AS(kfepeb(t, t2, k, t_gk_minus_one), dynfu::tracking_lost_error);
+				CHECK_THROWS_AS(kfepeb(t, t2, k, t_gk_minus_one), dynfu::pose_estimation_pipeline_block::tracking_lost_error);
 					
 				
 			}
