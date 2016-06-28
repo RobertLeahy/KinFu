@@ -93,7 +93,7 @@ SCENARIO_METHOD(fixture, "A kinect_fusion_eigen_pose_estimation_pipeline_block u
 			dynfu::file_system_depth_device ddi(pp/".."/"data/test/msrc_file_system_depth_device",ff,&f);
 			dynfu::opencl_depth_device dd(ddi,q);
 
-			auto v=dd()->get();
+			auto v=dd()->get(); // frame 00
 			pv.emplace(v);
 			pv2.emplace(std::move(v));
 			 
@@ -128,8 +128,8 @@ SCENARIO_METHOD(fixture, "A kinect_fusion_eigen_pose_estimation_pipeline_block u
 			dynfu::opencl_depth_device dd(ddi,q);
 		
 			
-			pv.emplace(std::move(dd()->get()));
-			pv2.emplace(std::move(dd()->get()));
+			pv.emplace(std::move(dd()->get())); // frame 00
+			pv2.emplace(std::move(dd()->get())); // frame 01
 			
  
 			auto t=kfompb(pv, width, height, k);
@@ -152,7 +152,37 @@ SCENARIO_METHOD(fixture, "A kinect_fusion_eigen_pose_estimation_pipeline_block u
 
 				
 			}
+		}
+
+		WHEN("It is invoked on a set of non-consecutive frames") {
+		
+			dynfu::cpu_pipeline_value<std::vector<float>> pv;
+			dynfu::cpu_pipeline_value<std::vector<float>> pv2;
 			
+			dynfu::filesystem::path pp(dynfu::current_executable_parent_path());
+
+			
+			dynfu::msrc_file_system_depth_device_frame_factory ff;
+			dynfu::msrc_file_system_depth_device_filter f;
+			dynfu::file_system_depth_device ddi(pp/".."/"data/test/kinect_fusion_eigen_pose_estimation_pipeline_block",ff,&f);
+			dynfu::opencl_depth_device dd(ddi,q);
+		
+			
+			pv.emplace(std::move(dd()->get())); // frame 00
+			dd(); // frame 01
+			pv2.emplace(std::move(dd()->get())); // frame 23
+			
+
+			auto t=kfompb(pv, width, height, k);
+			auto t2=kfompb2(pv2, width, height, k);
+			
+			
+			THEN("A tracking failure occurs") {
+				
+					CHECK_THROWS_AS(kfepeb(t, t2, k, t_gk_minus_one), dynfu::tracking_lost_error);
+					
+				
+			}
 		}
 		
 	}
