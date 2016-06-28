@@ -11,6 +11,7 @@
 #include <dynfu/measurement_pipeline_block.hpp>
 #include <dynfu/surface_prediction_pipeline_block.hpp>
 #include <memory>
+#include <stdexcept>
 
 namespace dynfu {
 	
@@ -79,9 +80,25 @@ namespace dynfu {
 				Eigen::Matrix3f k,
 				Eigen::Matrix4f t_gk_minus_one
 			) = 0;
+
+
+			/**
+			*	An exception that indicates that a \ref pose_estimation_pipeline_block
+			*	has lost the tracking of the scene.
+			*
+			*	Specifically, this is most often thrown if the projective data association
+			*	does not find a minimum number of point-point correspondences.
+			*/
+			class tracking_lost_error: public std::runtime_error {
+
+				public:
+
+					using std::runtime_error::runtime_error;
+
+			};
 		
-		
+	
 	};
-	
-	
+
+
 }

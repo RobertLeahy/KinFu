@@ -95,7 +95,7 @@ namespace dynfu {
 		// TODO: What percent to actually use
 		if (correspondences.size() < 0.1*frame_width_*frame_height_) {
 			// I think this means we have blown our tracking... what to do...
-			throw std::runtime_error("Less than 10% of correspondences were accepted, tracking lost");
+			throw pose_estimation_pipeline_block::tracking_lost_error("Less than 10% of correspondences were accepted");
 		} 
 
 		// build and sum up the matrices
