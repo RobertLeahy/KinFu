@@ -111,7 +111,8 @@ target_link_libraries(tests dynfu)
 add_executable(tsdf_viewer
 	src/tsdf_viewer.cpp
 )
-target_link_libraries(tsdf_viewer dynfu)
+find_package(OpenGL)
+target_link_libraries(tsdf_viewer dynfu ${OPENGL_gl_LIBRARY} glfw3)
 
 add_custom_target(tests_run ALL
 	COMMAND tests
