@@ -112,8 +112,11 @@ add_executable(tsdf_viewer
 	src/tsdf_viewer.cpp
 )
 find_package(OpenGL REQUIRED)
-find_package(GLEW REQUIRED)
-target_link_libraries(tsdf_viewer dynfu ${OPENGL_gl_LIBRARY} ${GLEW_LIBRARIES} glfw pthread)
+target_link_libraries(tsdf_viewer dynfu ${OPENGL_gl_LIBRARY} glfw pthread)
+if (NOT APPLE)
+	find_package(GLEW REQUIRED)
+	target_link_libraries(tsdf_viewer ${GLEW_LIBRARIES})
+endif()
 
 add_custom_target(tests_run ALL
 	COMMAND tests
