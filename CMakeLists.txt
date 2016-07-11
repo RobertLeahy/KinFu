@@ -110,14 +110,37 @@ add_executable(tests
 )
 target_link_libraries(tests dynfu)
 
+#	tsdf_viewer won't assemble on Windows without this (too many sections)
+#	It also seems to matter that this come before add_executable (doesn't
+#	show up if it comes after like everything else)
+if (WIN32)
+	add_compile_options("-Wa,-mbig-obj")
+endif()
 add_executable(tsdf_viewer
 	src/tsdf_viewer.cpp
 )
 find_package(OpenGL REQUIRED)
-target_link_libraries(tsdf_viewer dynfu ${OPENGL_gl_LIBRARY} glfw pthread)
-if (NOT APPLE)
+target_link_libraries(tsdf_viewer dynfu ${OPENGL_gl_LIBRARY} pthread)
+#	We link against GLFW using a DLL in bin on Windows so this flag
+#	isn't needed (and actually breaks everything)
+if (NOT WIN32)
+	target_link_libraries(tsdf_viewer glfw)
+endif()
+if (NOT APPLE AND NOT WIN32)
 	find_package(GLEW REQUIRED)
 	target_link_libraries(tsdf_viewer ${GLEW_LIBRARIES})
+endif()
+#	Special GLEW/GLFW linker nonsense on Windows
+if (WIN32)
+	set_target_properties(tsdf_viewer PROPERTIES LINK_FLAGS "bin/glew32.dll bin/glfw3.dll bin/*opencv*.dll")
+endif()
+#	Try and workaround THIS issue with libigl and Windows headers
+#	The issue: The libigl source uses THIS as a variable, whereas
+#	certain Windows headers #define it to be something else
+#	These offending Windows headers aren't pulled in with
+#	WIN32_LEAN_AND_MEAN
+if (WIN32)
+	add_definitions(-DWIN32_LEAN_AND_MEAN)
 endif()
 
 add_custom_target(tests_run ALL
