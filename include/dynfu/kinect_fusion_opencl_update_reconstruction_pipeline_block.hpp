@@ -68,11 +68,17 @@ namespace dynfu {
 			 *		truncated to the maximum distance of \f$\mu\f$. Non-visible points farther than \f$\mu\f$
 			 *		from the surface are not measured.
 			 *	\param [in] tsdf_width
-			 *		The width of the TSDF.
+			 *		The number of elements of the TSDF in the width direction.
 			 *	\param [in] tsdf_height
-			 *		The height of the TSDF.
+			 *		The number of elements of the TSDF in the height direction.
 			 *	\param [in] tsdf_depth
-			 *		The depth of the TSDF.
+			 *		The number of elements of the TSDF in the depth direction.
+			 *	\param [in] tsdf_extent_w
+			 *		The extent of the TSDF (in meters) in the width direction.
+			 *	\param [in] tsdf_extent_h
+			 *		The extent of the TSDF (in meters) in the height direction.
+			 *	\param [in] tsdf_extent_d
+			 *		The extent of the TSDF (in meters) in the depth direction.
 			 */
 			kinect_fusion_opencl_update_reconstruction_pipeline_block (				
 				boost::compute::command_queue q,
@@ -80,7 +86,10 @@ namespace dynfu {
 				float mu,
 				std::size_t tsdf_width=512,
 				std::size_t tsdf_height=512,
-				std::size_t tsdf_depth=512	
+				std::size_t tsdf_depth=512,
+				float tsdf_extent_w=3.0f,
+				float tsdf_extent_h=3.0f,
+				float tsdf_extent_d=3.0f
 			);
 			
 			virtual value_type operator () (depth_device::value_type::element_type & frame, std::size_t width, std::size_t height, Eigen::Matrix3f k, Eigen::Matrix4f T_g_k, value_type v=value_type{});

@@ -22,7 +22,10 @@ namespace dynfu {
 		float mu,
 		std::size_t tsdf_width,
 		std::size_t tsdf_height,
-		std::size_t tsdf_depth)
+		std::size_t tsdf_depth,
+		float tsdf_extent_w,
+		float tsdf_extent_h,
+		float tsdf_extent_d)
 		:	ve_(std::move(q)),
 			tsdf_kernel_(get_tsdf_kernel(opf)),
 			t_g_k_vec_buf_(ve_.command_queue().get_context(),sizeof(Eigen::Vector3f),CL_MEM_READ_ONLY),
@@ -39,6 +42,10 @@ namespace dynfu {
 		tsdf_kernel_.set_arg(6,k_buf_);
 		tsdf_kernel_.set_arg(7,ik_buf_);
 		tsdf_kernel_.set_arg(8,t_g_k_vec_buf_);
+		tsdf_kernel_.set_arg(12, tsdf_extent_w);
+		tsdf_kernel_.set_arg(13, tsdf_extent_h);
+		tsdf_kernel_.set_arg(14, tsdf_extent_d);
+
 
 	}
 	
@@ -54,50 +61,55 @@ namespace dynfu {
 		
 		auto && depth_frame = ve_(frame);
 		auto q = ve_.command_queue();
-		
-		if (k_ != k) {
-			
-			k_ = k;
-			
-			Eigen::Matrix3f k_inv = k.inverse();
-			k_inv.transposeInPlace();
-			q.enqueue_write_buffer(ik_buf_,0,sizeof(k_inv),k_inv.data());
-			
-			k.transposeInPlace();
-			q.enqueue_write_buffer(k_buf_,0,sizeof(k),k.data());
-			
-		}
-		
+
+
 		if (t_g_k_ != t_g_k) {
 			
 			t_g_k_ = std::move(t_g_k);
 			
 			// generate the projection matrix
 			Eigen::Matrix4f proj = Eigen::Matrix4f::Zero();
-			float near_plane = 0.030f; // 30 cm
+			float near_plane = 0.30f; // 30 cm (kinect only can read > 0.4m)
 			float far_plane  = 3.0f; // 3 meters
-			float right = 1.0f; 
-			float top = 1.0f;
-			
-			// imply that bottom = -top and left = -right 
-			proj(0,0) = near_plane / right;
-			proj(1,1) = near_plane / top;
-			proj(2,2) = -(far_plane + near_plane) / (far_plane - near_plane);
+
+			// From https://strawlab.org/2011/11/05/augmented-reality-with-OpenGL
+			proj(0,0) = 2.0f * k(0,0) / frame_width;
+			proj(0,1) = -2.0 * k(0,1) / frame_width;
+			proj(0,2) = (frame_width - 2 * k(0,2)) / frame_width;
+			proj(1,1) = -2.0f * k(1,1) / frame_height;
+			proj(1,2) = (frame_height - 2 * k(1,2)) / frame_height;
+			proj(2,2) = -far_plane - near_plane / (far_plane - near_plane);
 			proj(2,3) = -2.0f * far_plane * near_plane / (far_plane - near_plane);
-			proj(3,2) = -1.0f; // Positive or negative?
-			
+			proj(3,2) = -1.0f;
+
 			// enqueue the proj_view matrix
-			Eigen::Matrix4f proj_view = proj *  t_g_k_->inverse();;
+			Eigen::Matrix4f proj_view = proj *  t_g_k_->inverse();
+			proj_view.transposeInPlace();
+
 			q.enqueue_write_buffer(proj_view_buf_, 0, sizeof(proj_view), proj_view.data());
 			
 			// t_g_k is the transformation component of the sensor pose estimation
-			Eigen::Vector3f t_g_k_vec = t_g_k_->block<3,1>(0,2);
-			t_g_k_vec[2] = 0.0f;
-			//TODO: do we need to transpose this???
+			Eigen::Vector3f t_g_k_vec = t_g_k_->block<3,1>(0,3);
+
 			q.enqueue_write_buffer(t_g_k_vec_buf_,0,sizeof(t_g_k_vec),t_g_k_vec.data());
 		
 		}
-		
+
+
+		if (k_ != k) {
+
+			k_ = k;
+
+			Eigen::Matrix3f k_inv = k.inverse();
+			k_inv.transposeInPlace();
+			q.enqueue_write_buffer(ik_buf_,0,sizeof(k_inv),k_inv.data());
+
+			k.transposeInPlace();
+			q.enqueue_write_buffer(k_buf_,0,sizeof(k),k.data());
+
+		}
+
+
 		auto && tsdf_ptr = v.buffer;
 		using type = opencl_vector_pipeline_value<float>;
 		if (!tsdf_ptr) tsdf_ptr = std::make_unique<type>(q);
