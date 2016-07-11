@@ -66,30 +66,36 @@ void main_impl (int, char **) {
     std::cout << "Finished generating TSDF" << std::endl;
 
     float px,py,pz;
-
     Eigen::MatrixXi SF;
     Eigen::MatrixXd SV;
-
     Eigen::VectorXd S_(tsdf_depth*tsdf_height*tsdf_width);
-
-    std::size_t j(0);
-
     Eigen::MatrixXd GV(tsdf_width*tsdf_height*tsdf_depth,3);
-    for(int zi = 0;zi<(int)tsdf_depth;zi++)
-    {
-        pz = ((float)zi+0.5) * tsdf_extent/tsdf_width;
-        for(int yi = 0;yi<(int)tsdf_height;yi++)
-        {
-            py = ((float)yi+0.5) * tsdf_extent/tsdf_width;
-            for(int xi = 0;xi<(int)tsdf_width;xi++)
-            {
-                px = ((float)xi+0.5) * tsdf_extent/tsdf_width;
-                GV.row(xi+tsdf_width*(yi + tsdf_height*zi)) = Eigen::RowVector3d(px,py,pz);
-                S_(j) = ts[xi+tsdf_width*(yi + tsdf_height*zi)];
-                j++;
+    std::size_t abs_idx(0);
+
+    for(std::size_t zi(0); zi < tsdf_depth; ++zi) {
+
+        pz = (float(zi)+0.5f) * tsdf_extent/tsdf_depth;
+
+        for(std::size_t yi(0); yi < tsdf_height; ++yi) {
+
+            py = (float(yi)+0.5f) * tsdf_extent/tsdf_height;
+
+            for(std::size_t xi(0); xi < tsdf_width; ++xi) {
+
+                px = (float(xi)+0.5f) * tsdf_extent/tsdf_width;
+                
+                std::size_t vox_idx(xi + tsdf_width * (yi + tsdf_height * zi));
+
+                GV.row(vox_idx) = Eigen::RowVector3d(px,py,pz);
+                S_(abs_idx) = ts[vox_idx];
+                abs_idx++;
+
             }
+
         }
+
         std::cout << "Export Progress: "  << (zi + 1) << " / " << tsdf_depth << std::endl;
+
     }
 
     std::cout << "Running Marching Cubes..." << std::endl;
