@@ -53,7 +53,7 @@ endif()
 
 #	OpenCL
 if(APPLE)
-	add_linker_options(-framework OpenCL)
+	add_linker_options(-framework OpenCL -framework CoreVideo -framework IOKit -framework Cocoa)
 else()
 	add_linker_options(-lOpenCL)
 endif()
