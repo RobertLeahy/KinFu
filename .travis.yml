@@ -47,7 +47,7 @@ before_install:
       curl -o include/catch.hpp https://raw.githubusercontent.com/philsquared/Catch/master/single_include/catch.hpp;
       sudo add-apt-repository ppa:kylelutz/compute -y;
       sudo apt-get update -q;
-      sudo apt-get -y install boost-compute opencl-headers ocl-icd-opencl-dev libglew-dev;
+      sudo apt-get -y install boost-compute opencl-headers ocl-icd-opencl-dev libglew-dev libglapi-mesa libosmesa6;
       sudo cp -r /usr/include/compute/boost/* /usr/include/boost;
       bash .travis/amd_sdk.sh;
       tar -xjf AMD-SDK.tar.bz2;
