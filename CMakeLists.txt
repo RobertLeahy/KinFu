@@ -51,7 +51,7 @@ else()
 	endif()
 endif()
 
-#	OpenCL
+#	OpenCL and other miscellaneous frameworks for TSDF Viewer
 if(APPLE)
 	add_linker_options(-framework OpenCL -framework CoreVideo -framework IOKit -framework Cocoa)
 else()
