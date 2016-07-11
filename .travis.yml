@@ -137,7 +137,7 @@ before_install:
         unzip -q glfw-3.2.zip;
       fi;
       cd glfw-3.2;
-      cmake .;
+      cmake -DBUILD_SHARED_LIBS=ON .;
       make;
       sudo make install;
       cd ${HOME};

@@ -112,7 +112,7 @@ add_executable(tsdf_viewer
 	src/tsdf_viewer.cpp
 )
 find_package(OpenGL)
-target_link_libraries(tsdf_viewer dynfu ${OPENGL_gl_LIBRARY} glfw3)
+target_link_libraries(tsdf_viewer dynfu ${OPENGL_gl_LIBRARY} glfw)
 
 add_custom_target(tests_run ALL
 	COMMAND tests
