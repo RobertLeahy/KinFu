@@ -26,6 +26,8 @@ matrix:
 cache:
   directories:
   - ${HOME}/OpenCV
+  - ${HOME}/igl
+  - ${HOME}/glfw3
 
 addons: &gcc5
   apt:
@@ -87,6 +89,29 @@ before_install:
       cmake .;
       make -j4;
       make install;
+      cd ${HOME};
+      mkdir -p igl;
+      cd igl;
+      if [ ! -e "master.zip" ]; then
+        wget https://github.com/libigl/libigl/archive/master.zip;
+      fi;
+      if [ ! -e "libigl-master" ]; then
+        unzip -q master.zip;
+      fi;
+      sudo cp -r libigl-master/include/* /usr/local/include;
+      cd ${HOME};
+      mkdir -p glfw3;
+      cd glfw3;
+      if [ ! -e "glfw-3.2.zip" ]; then
+        wget https://github.com/glfw/glfw/releases/download/3.2/glfw-3.2.zip;
+      fi;
+      if [ ! -e "glfw-3.2" ]; then
+        unzip -q glfw-3.2.zip;
+      fi;
+      cd glfw-3.2;
+      cmake .;
+      make;
+      sudo make install;
       cd ${HOME};
       wget -O ippicv_macosx_20141027.tgz https://sourceforge.net/projects/opencvlibrary/files/3rdparty/ippicv/ippicv_macosx_20141027.tgz/download;
       tar -xzvf ippicv_macosx_20141027.tgz;
