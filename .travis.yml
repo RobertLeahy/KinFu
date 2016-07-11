@@ -90,6 +90,10 @@ before_install:
       cmake .;
       make;
       sudo make install;
+      cd ${HOME};
+      wget -O glcorearb.h http://www.opengl.org/registry/api/GL/glcorearb.h;
+      sudo mkdir -p /usr/include/GL;
+      sudo cp glcorearb.h /usr/include/GL;
       cd ${TRAVIS_BUILD_DIR};
     fi;
 
