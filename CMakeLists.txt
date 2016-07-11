@@ -51,9 +51,9 @@ else()
 	endif()
 endif()
 
-#	OpenCL
+#	OpenCL and other miscellaneous frameworks for TSDF Viewer
 if(APPLE)
-	add_linker_options(-framework OpenCL)
+	add_linker_options(-framework OpenCL -framework CoreVideo -framework IOKit -framework Cocoa)
 else()
 	add_linker_options(-lOpenCL)
 endif()
@@ -107,6 +107,16 @@ add_executable(tests
 	src/test/opencl_vector_pipeline_value.cpp
 )
 target_link_libraries(tests dynfu)
+
+add_executable(tsdf_viewer
+	src/tsdf_viewer.cpp
+)
+find_package(OpenGL REQUIRED)
+target_link_libraries(tsdf_viewer dynfu ${OPENGL_gl_LIBRARY} glfw pthread)
+if (NOT APPLE)
+	find_package(GLEW REQUIRED)
+	target_link_libraries(tsdf_viewer ${GLEW_LIBRARIES})
+endif()
 
 add_custom_target(tests_run ALL
 	COMMAND tests
