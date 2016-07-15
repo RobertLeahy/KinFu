@@ -51,7 +51,8 @@ namespace dynfu {
 			surface_prediction_pipeline_block * sppb_;
 			update_reconstruction_pipeline_block * urpb_;
 			dynfu::depth_device::value_type frame_;
-			dynfu::measurement_pipeline_block::value_type vn_;
+			dynfu::measurement_pipeline_block::vertex_value_type v_;
+			dynfu::measurement_pipeline_block::normal_value_type n_;
 			
 			
 			void get_frame ();
