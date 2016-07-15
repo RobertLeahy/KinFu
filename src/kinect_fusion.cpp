@@ -20,14 +20,12 @@ namespace dynfu {
 	
 	
 	void kinect_fusion::get_vertex_and_normal_maps () {
-		
-		dynfu::measurement_pipeline_block::vertex_value_type v;
-		dynfu::measurement_pipeline_block::normal_value_type n;
+
+		dynfu::measurement_pipeline_block::value_type vn;
 		using std::swap;
-		swap(v,v_);
-		swap(n,n_);
+		swap(vn,vn_);
 		timer t;
-		std::tie(v_,n_)=(*mpb_)(*frame_,width_,height_,k_,std::make_tuple(std::move(v),std::move(n)));
+		vn_=(*mpb_)(*frame_,width_,height_,k_,std::move(vn));
 		mpbt_=t.elapsed();
 		
 	}
