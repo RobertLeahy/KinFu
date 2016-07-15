@@ -1,3 +1,5 @@
+#ifdef TEST_EIGEN_POSE_ESTIMATION // By default, don't run these tests as since they are non optimized, they are really slow
+
 #include <dynfu/kinect_fusion_eigen_pose_estimation_pipeline_block.hpp>
 
 #include <boost/compute.hpp>
@@ -188,3 +190,4 @@ SCENARIO_METHOD(fixture, "A kinect_fusion_eigen_pose_estimation_pipeline_block u
 	}
 	
 }
+#endif

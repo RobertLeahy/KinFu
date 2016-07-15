@@ -74,6 +74,7 @@ add_library(dynfu SHARED
 	src/kinect_fusion.cpp
 	src/kinect_fusion_eigen_pose_estimation_pipeline_block.cpp
 	src/kinect_fusion_opencl_measurement_pipeline_block.cpp
+	src/kinect_fusion_opencl_surface_prediction_pipeline_block.cpp
 	src/kinect_fusion_opencl_update_reconstruction_pipeline_block.cpp
 	src/measurement_pipeline_block.cpp
 	src/mock_depth_device.cpp
@@ -99,6 +100,7 @@ add_executable(tests
 	src/test/fps_depth_device.cpp
 	src/test/kinect_fusion_eigen_pose_estimation_pipeline_block.cpp
 	src/test/kinect_fusion_opencl_measurement_pipeline_block.cpp
+	src/test/kinect_fusion_opencl_surface_prediction_pipeline_block.cpp
 	src/test/kinect_fusion_opencl_update_reconstruction_pipeline_block.cpp
 	src/test/main.cpp
 	src/test/msrc_file_system_depth_device.cpp
@@ -152,8 +154,11 @@ add_custom_target(tests_run ALL
 
 #	Special OpenCV linker nonsense
 if(WIN32)
-	set_target_properties(dynfu client tests PROPERTIES LINK_FLAGS "bin/*opencv*.dll")
+	set_target_properties(dynfu client tests PROPERTIES LINK_FLAGS "bin/glew32.dll bin/glfw3.dll bin/*opencv*.dll")
 else()
 	execute_process(COMMAND pkg-config --libs opencv OUTPUT_VARIABLE OPENCV_PKGCONFIG OUTPUT_STRIP_TRAILING_WHITESPACE)
 	add_linker_options(${OPENCV_PKGCONFIG})
 endif()
+
+target_link_libraries(dynfu ${OPENGL_gl_LIBRARY} pthread)
+target_link_libraries(tests ${OPENGL_gl_LIBRARY} pthread)

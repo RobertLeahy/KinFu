@@ -1,4 +1,5 @@
 #include <boost/compute/buffer.hpp>
+#include <dynfu/boost_compute_detail_type_name_trait.hpp>
 #include <dynfu/kinect_fusion_opencl_measurement_pipeline_block.hpp>
 #include <dynfu/opencl_vector_pipeline_value.hpp>
 #include <Eigen/Dense>
@@ -7,39 +8,6 @@
 #include <memory>
 #include <utility>
 #include <tuple>
-
-
-//	This is evil black magic
-namespace boost {
-	
-	
-	namespace compute {
-		
-		
-		namespace detail {
-			
-			
-			template <>
-			struct type_name_trait<Eigen::Vector3f> {
-				
-				
-				static const char * value () noexcept {
-					
-					return "Eigen::Vector3f";
-					
-				}
-				
-				
-			};
-			
-			
-		}
-		
-		
-	}
-	
-	
-}
 
 
 namespace dynfu {
