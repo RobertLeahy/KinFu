@@ -4,6 +4,7 @@
 #include <cmath>
 #include <exception>
 #include <memory>
+#include <stdexcept>
 #include <tuple>
 #include <utility>
 
@@ -23,8 +24,10 @@ namespace dynfu {
 
 
 	Eigen::Matrix4f kinect_fusion_eigen_pose_estimation_pipeline_block::iterate(
-		measurement_pipeline_block::value_type & live_vn,
-		surface_prediction_pipeline_block::value_type & predicted_previous_vn,
+		measurement_pipeline_block::vertex_value_type::element_type & v_i,
+		measurement_pipeline_block::normal_value_type::element_type & n_i,
+		surface_prediction_pipeline_block::vertex_value_type::element_type * prev_v,
+		surface_prediction_pipeline_block::normal_value_type::element_type * prev_n,
 		Eigen::Matrix3f k,
 		Eigen::Matrix4f t_frame_frame,
 		Eigen::Matrix4f t_z
@@ -41,8 +44,8 @@ namespace dynfu {
 
 		for (std::size_t i = 0; i < numpts; ++i) {
 
-			auto v = std::get<0>(live_vn)->get()[i];
-			auto n = std::get<1>(live_vn)->get()[i];
+			auto v = v_i.get()[i];
+			auto n = n_i.get()[i];
 
 			Eigen::Vector4f v_homo(v(0), v(1), v(2), 1.0f);
 
@@ -58,8 +61,8 @@ namespace dynfu {
 
 			if (lin_idx >= numpts) continue;
 
-			auto pv = std::get<0>(predicted_previous_vn)->get()[lin_idx];
-			auto pn = std::get<1>(predicted_previous_vn)->get()[lin_idx];
+			auto pv = prev_v->get()[lin_idx];
+			auto pn = prev_n->get()[lin_idx];
 			
 			// Test correspondences rejection critea (Eqn 17)
 			
@@ -147,18 +150,22 @@ namespace dynfu {
 	}
 
 	kinect_fusion_eigen_pose_estimation_pipeline_block::value_type kinect_fusion_eigen_pose_estimation_pipeline_block::operator () (
-		measurement_pipeline_block::value_type & live_vn,
-		surface_prediction_pipeline_block::value_type & predicted_previous_vn,
+		measurement_pipeline_block::vertex_value_type::element_type & v,
+		measurement_pipeline_block::normal_value_type::element_type & n,
+		surface_prediction_pipeline_block::vertex_value_type::element_type * prev_v,
+		surface_prediction_pipeline_block::normal_value_type::element_type * prev_n,
 		Eigen::Matrix3f k,
-		Eigen::Matrix4f t_g_k_minus_one
+		value_type t_gk_minus_one
 	) {
 
+		if (!(prev_v && prev_n && t_gk_minus_one)) throw std::logic_error("Null pointers");
+
 		Eigen::Matrix4f t_frame_frame = Eigen::Matrix4f::Identity();
-		Eigen::Matrix4f t_z = t_g_k_minus_one;
+		Eigen::Matrix4f t_z = t_gk_minus_one->get();
 		
 		for (std::size_t i = 0; i < numit_; ++i) {
-			t_z = kinect_fusion_eigen_pose_estimation_pipeline_block::iterate(live_vn, predicted_previous_vn, k, t_frame_frame, t_z);
-			t_frame_frame = t_g_k_minus_one.inverse() * t_z; // TODO: is this really the inverse?
+			t_z = kinect_fusion_eigen_pose_estimation_pipeline_block::iterate(v, n, prev_v, prev_n, k, t_frame_frame, t_z);
+			t_frame_frame = t_gk_minus_one->get().inverse() * t_z; // TODO: is this really the inverse?
 		}
 		
 		auto ptr = std::make_unique<cpu_pipeline_value<sensor_pose_estimation_type>>();

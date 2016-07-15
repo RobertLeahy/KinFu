@@ -16,7 +16,9 @@
 #include <algorithm>
 #include <cmath>
 #include <cstddef>
+#include <memory>
 #include <tuple>
+#include <utility>
 #include <vector>
 
 #include <catch.hpp>
@@ -103,7 +105,9 @@ SCENARIO_METHOD(fixture, "A kinect_fusion_eigen_pose_estimation_pipeline_block u
 			
 			THEN("The determined t_g_k matrix is an identity matrix.") {
 				
-					auto && s = kfepeb(t, t2, k, t_gk_minus_one);
+					auto tgkm1=std::make_unique<dynfu::cpu_pipeline_value<Eigen::Matrix4f>>();
+					tgkm1->emplace(t_gk_minus_one);
+					auto && s = kfepeb(*std::get<0>(t), *std::get<1>(t), std::get<0>(t2).get(), std::get<1>(t2).get(), k, std::move(tgkm1));
 					
 					Eigen::Matrix4f t_k = s->get();
 					
@@ -137,8 +141,10 @@ SCENARIO_METHOD(fixture, "A kinect_fusion_eigen_pose_estimation_pipeline_block u
 			
 			
 			THEN("The determined t_g_k matrix is valid") {
-				
-					auto && s = kfepeb(t, t2, k, t_gk_minus_one);
+
+					auto tgkm1=std::make_unique<dynfu::cpu_pipeline_value<Eigen::Matrix4f>>();
+					tgkm1->emplace(t_gk_minus_one);
+					auto && s = kfepeb(*std::get<0>(t), *std::get<1>(t), std::get<0>(t2).get(), std::get<1>(t2).get(), k, std::move(tgkm1));
 					
 					Eigen::Matrix4f t_k = s->get();
 					
@@ -179,7 +185,9 @@ SCENARIO_METHOD(fixture, "A kinect_fusion_eigen_pose_estimation_pipeline_block u
 			
 			THEN("A tracking failure occurs") {
 				
-				CHECK_THROWS_AS(kfepeb(t, t2, k, t_gk_minus_one), dynfu::pose_estimation_pipeline_block::tracking_lost_error);
+				auto tgkm1=std::make_unique<dynfu::cpu_pipeline_value<Eigen::Matrix4f>>();
+				tgkm1->emplace(t_gk_minus_one);
+				CHECK_THROWS_AS(kfepeb(*std::get<0>(t), *std::get<1>(t), std::get<0>(t2).get(), std::get<1>(t2).get(), k, std::move(tgkm1)), dynfu::pose_estimation_pipeline_block::tracking_lost_error);
 					
 				
 			}

@@ -63,22 +63,42 @@ namespace dynfu {
 			 *	against the previously predicted vertex and normal
 			 *	maps.
 			 *
-			 *	\param [in] live_vn
-			 *		A \ref measurement_pipeline_block::value_type representing
-			 *		the current vertex and normal maps.
-			 *	\param [in] predicted_previous_vn
-			 *		A \ref measurement_pipeline_block::value_type representing
-			 *		the previously predicted vertex and normal maps.
+			 *	\param [in] v
+			 *		A \ref pipeline_value which represents the vertex map
+			 *		calculated for the current frame.
+			 *	\param [in] n
+			 *		A \ref pipeline_value which represents the normal map
+			 *		calculated for the current frame.
+			 *	\param [in] prev_v
+			 *		A pointer to a \ref pipeline_value which represents
+			 *		the previous frame's simulated vertex map.  This
+			 *		pointer shall be \em nullptr for the first frame.
+			 *	\param [in] prev_n
+			 *		A pointer to a \ref pipeline_value which represents
+			 *		the previous frame's simulated normal map.  This
+			 *		pointer shall be \em nullptr for the first frame.	
+			 *	\param [in] k
+			 *		Camera calibration matrix.
+			 *	\param [in] t_gk_minus_one
+			 *		The pose estimation calculated for the previous frame.
+			 *		This std::unique_ptr will not manage a pointee for the
+			 *		first frame.  The \ref pipeline_value managed by this
+			 *		std::unique_ptr (if any) is guaranteed to be a value
+			 *		previously returned by calling this function.  The
+			 *		storage and object may be reused and returned by value
+			 *		if advantageous for efficiency reasons.
 			 *
 			 *	\return
 			 *		A \ref value_type object represernting an updated sensor
 			 *		pose estimation, \f$T_{g,k}\f$.
 			 */
 			virtual value_type operator () (
-				measurement_pipeline_block::value_type & live_vn,
-				surface_prediction_pipeline_block::value_type & predicted_previous_vn,
+				measurement_pipeline_block::vertex_value_type::element_type & v,
+				measurement_pipeline_block::normal_value_type::element_type & n,
+				surface_prediction_pipeline_block::vertex_value_type::element_type * prev_v,
+				surface_prediction_pipeline_block::normal_value_type::element_type * prev_n,
 				Eigen::Matrix3f k,
-				Eigen::Matrix4f t_gk_minus_one
+				value_type t_gk_minus_one
 			) = 0;
 
 
