@@ -65,6 +65,20 @@ namespace dynfu {
 		urpbt_=t.elapsed();
 
 	}
+
+
+	void kinect_fusion::get_prediction () {
+
+		dynfu::surface_prediction_pipeline_block::vertex_value_type v;
+		dynfu::surface_prediction_pipeline_block::normal_value_type n;
+		using std::swap;
+		swap(v,prev_v_);
+		swap(n,prev_n_);
+		timer t;
+		std::tie(prev_v_,prev_n_)=(*sppb_)(*tsdf_.buffer,tsdf_.width,tsdf_.height,tsdf_.depth,*t_g_k_,k_);
+		sppbt_=t.elapsed();
+
+	}
 	
 	
 	kinect_fusion::kinect_fusion () noexcept
@@ -109,6 +123,13 @@ namespace dynfu {
 		urpb_=&urpb;
 
 	}
+
+
+	void kinect_fusion::surface_prediction_pipeline_block (dynfu::surface_prediction_pipeline_block & sppb) noexcept {
+
+		sppb_=&sppb;
+
+	}
 	
 	
 	void kinect_fusion::operator () () {
@@ -119,8 +140,7 @@ namespace dynfu {
 		get_vertex_and_normal_maps();
 		get_tgk();
 		get_tsdf();
-		
-		//	TODO
+		get_prediction();
 		
 	}
 	
@@ -149,6 +169,13 @@ namespace dynfu {
 	kinect_fusion::timer::duration kinect_fusion::update_reconstruction_pipeline_block_elapsed () const {
 
 		return urpbt_;
+
+	}
+
+
+	kinect_fusion::timer::duration kinect_fusion::surface_prediction_pipeline_block_elapsed () const {
+
+		return sppbt_;
 
 	}
 	

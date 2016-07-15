@@ -51,7 +51,8 @@ namespace dynfu {
 			timer::duration pepbt_;
 			dynfu::update_reconstruction_pipeline_block * urpb_;
 			timer::duration urpbt_;
-			surface_prediction_pipeline_block * sppb_;
+			dynfu::surface_prediction_pipeline_block * sppb_;
+			timer::duration sppbt_;
 			dynfu::depth_device::value_type frame_;
 			dynfu::measurement_pipeline_block::vertex_value_type v_;
 			dynfu::measurement_pipeline_block::normal_value_type n_;
@@ -66,6 +67,7 @@ namespace dynfu {
 			void get_vertex_and_normal_maps ();
 			void get_tgk ();
 			void get_tsdf ();
+			void get_prediction ();
 		
 		
 		public:
@@ -125,6 +127,17 @@ namespace dynfu {
 			 *		undefined.
 			 */
 			void update_reconstruction_pipeline_block (dynfu::update_reconstruction_pipeline_block & urpb) noexcept;
+			/**
+			 *	Sets the surface prediction pipeline block.
+			 *
+			 *	\param [in] sppb
+			 *		A reference to the surface prediction
+			 *		pipeline block this kinect_fusion shall use.
+			 *		This reference must remain valid as long as
+			 *		this object is in use or the behaviour is
+			 *		undefined.
+			 */
+			void surface_prediction_pipeline_block (dynfu::surface_prediction_pipeline_block & sppb) noexcept;
 			
 			
 			/**
@@ -170,6 +183,15 @@ namespace dynfu {
 			 *		The amount of time.
 			 */
 			timer::duration update_reconstruction_pipeline_block_elapsed () const;
+			/**
+			 *	Retrieves the amount of time the pipeline spent
+			 *	waiting for the surface preduction pipeline block on
+			 *	the last invocation.
+			 *
+			 *	\return
+			 *		The amount of time.
+			 */
+			timer::duration surface_prediction_pipeline_block_elapsed () const;
 		
 		
 	};
