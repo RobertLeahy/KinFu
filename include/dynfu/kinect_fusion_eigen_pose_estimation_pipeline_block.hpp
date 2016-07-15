@@ -33,8 +33,8 @@ namespace dynfu {
 			Eigen::Matrix4f iterate(
 				measurement_pipeline_block::vertex_value_type::element_type &,
 				measurement_pipeline_block::normal_value_type::element_type &,
-				surface_prediction_pipeline_block::vertex_value_type::element_type *,
-				surface_prediction_pipeline_block::normal_value_type::element_type *,
+				measurement_pipeline_block::vertex_value_type::element_type *,
+				measurement_pipeline_block::normal_value_type::element_type *,
 				Eigen::Matrix3f,
 				Eigen::Matrix4f,
 				Eigen::Matrix4f
@@ -76,8 +76,8 @@ namespace dynfu {
 			virtual value_type operator () (
 				measurement_pipeline_block::vertex_value_type::element_type & v,
 				measurement_pipeline_block::normal_value_type::element_type & n,
-				surface_prediction_pipeline_block::vertex_value_type::element_type * prev_v,
-				surface_prediction_pipeline_block::normal_value_type::element_type * prev_n,
+				measurement_pipeline_block::vertex_value_type::element_type * prev_v,
+				measurement_pipeline_block::normal_value_type::element_type * prev_n,
 				Eigen::Matrix3f k,
 				value_type t_gk_minus_one
 			) override;

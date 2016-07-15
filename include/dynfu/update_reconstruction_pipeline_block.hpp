@@ -44,11 +44,16 @@ namespace dynfu {
 			class value_type {
 				
 				public:
+
+					/**
+					 *	The type used to represent the values of the TSDF.
+					 */
+					using element_type=pipeline_value<buffer_type>;
 					
 					/**
 					 *	A std::unique_ptr to a pipeline_value that stores the buffer of the TSDF.
 					 */
-					std::unique_ptr<pipeline_value<buffer_type>> buffer;
+					std::unique_ptr<element_type> buffer;
 					
 					/**
 					 * The width of the TSDF.

@@ -9,7 +9,6 @@
 #include <Eigen/Dense>
 #include <dynfu/pipeline_value.hpp>
 #include <dynfu/measurement_pipeline_block.hpp>
-#include <dynfu/surface_prediction_pipeline_block.hpp>
 #include <memory>
 #include <stdexcept>
 
@@ -95,8 +94,8 @@ namespace dynfu {
 			virtual value_type operator () (
 				measurement_pipeline_block::vertex_value_type::element_type & v,
 				measurement_pipeline_block::normal_value_type::element_type & n,
-				surface_prediction_pipeline_block::vertex_value_type::element_type * prev_v,
-				surface_prediction_pipeline_block::normal_value_type::element_type * prev_n,
+				measurement_pipeline_block::vertex_value_type::element_type * prev_v,
+				measurement_pipeline_block::normal_value_type::element_type * prev_n,
 				Eigen::Matrix3f k,
 				value_type t_gk_minus_one
 			) = 0;

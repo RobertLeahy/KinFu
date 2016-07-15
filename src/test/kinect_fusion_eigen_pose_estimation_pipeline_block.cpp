@@ -49,7 +49,7 @@ namespace {
 				std::size_t width;
 				std::size_t height;
 				dynfu::measurement_pipeline_block::value_type live_vn_;
-				dynfu::surface_prediction_pipeline_block::value_type prev_vn_;
+				dynfu::measurement_pipeline_block::value_type prev_vn_;
 				Eigen::Matrix3f k;
 				Eigen::Matrix4f t_gk_minus_one;
 				dynfu::file_system_opencl_program_factory fsopf;

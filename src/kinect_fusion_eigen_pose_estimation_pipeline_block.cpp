@@ -28,8 +28,8 @@ namespace dynfu {
 	Eigen::Matrix4f kinect_fusion_eigen_pose_estimation_pipeline_block::iterate(
 		measurement_pipeline_block::vertex_value_type::element_type & v_i,
 		measurement_pipeline_block::normal_value_type::element_type & n_i,
-		surface_prediction_pipeline_block::vertex_value_type::element_type * prev_v,
-		surface_prediction_pipeline_block::normal_value_type::element_type * prev_n,
+		measurement_pipeline_block::vertex_value_type::element_type * prev_v,
+		measurement_pipeline_block::normal_value_type::element_type * prev_n,
 		Eigen::Matrix3f k,
 		Eigen::Matrix4f t_frame_frame,
 		Eigen::Matrix4f t_z
@@ -154,8 +154,8 @@ namespace dynfu {
 	kinect_fusion_eigen_pose_estimation_pipeline_block::value_type kinect_fusion_eigen_pose_estimation_pipeline_block::operator () (
 		measurement_pipeline_block::vertex_value_type::element_type & v,
 		measurement_pipeline_block::normal_value_type::element_type & n,
-		surface_prediction_pipeline_block::vertex_value_type::element_type * prev_v,
-		surface_prediction_pipeline_block::normal_value_type::element_type * prev_n,
+		measurement_pipeline_block::vertex_value_type::element_type * prev_v,
+		measurement_pipeline_block::normal_value_type::element_type * prev_n,
 		Eigen::Matrix3f k,
 		value_type t_gk_minus_one
 	) {

@@ -5,13 +5,16 @@
 
 #pragma once
 
+
 #include <dynfu/pipeline_value.hpp>
-
+#include <dynfu/pose_estimation_pipeline_block.hpp>
+#include <dynfu/update_reconstruction_pipeline_block.hpp>
 #include <Eigen/Dense>
-
+#include <cstddef>
 #include <memory>
 #include <tuple>
 #include <vector>
+
 
 namespace dynfu {
 	
@@ -29,6 +32,7 @@ namespace dynfu {
 		
 		
 		public:
+
 
 			/**
 			 *	A collection of vertices.
@@ -75,6 +79,29 @@ namespace dynfu {
 			 *	through pointer or reference to base.
 			 */
 			virtual ~surface_prediction_pipeline_block () noexcept;
+
+
+			/**
+			 *	Calculates the predicted vertex and normal maps.
+			 *
+			 *	\param [in] tsdf
+			 *		A \ref pipeline_value which represents the raw
+			 *		values of the TSDF.
+			 *	\param [in] width
+			 *		The width of the TSDF.
+			 *	\param [in] height
+			 *		The height of the TSDF.
+			 *	\param [in] depth
+			 *		The depth of the TSDF.
+			 *	\param [in] t_g_k
+			 *		The current pose estimation.
+			 *	\param [in] k
+			 *		The camera calibration matrix.
+			 *
+			 *	\return
+			 *		The predicted vertex and normal maps.
+			 */
+			virtual value_type operator () (update_reconstruction_pipeline_block::value_type::element_type & tsdf, std::size_t width, std::size_t height, std::size_t depth, pose_estimation_pipeline_block::value_type::element_type & t_g_k, Eigen::Matrix3f k) = 0;
 		
 		
 	};
