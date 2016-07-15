@@ -1,6 +1,7 @@
 #include <dynfu/kinect_fusion_eigen_pose_estimation_pipeline_block.hpp>
 #include <dynfu/cpu_pipeline_value.hpp>
 #include <dynfu/pipeline_value.hpp>
+#include <Eigen/Dense>
 #include <cmath>
 #include <exception>
 #include <memory>
@@ -19,8 +20,9 @@ namespace dynfu {
 		float epsilon_theta,
 		std::size_t frame_width, 
 		std::size_t frame_height,
+		Eigen::Matrix4f t_gk_initial,
 		std::size_t numit
-	) : epsilon_d_(epsilon_d), epsilon_theta_(epsilon_theta), frame_width_(frame_width), frame_height_(frame_height), numit_(numit) {}
+	) : epsilon_d_(epsilon_d), epsilon_theta_(epsilon_theta), frame_width_(frame_width), frame_height_(frame_height), numit_(numit), t_gk_initial_(std::move(t_gk_initial)) {}
 
 
 	Eigen::Matrix4f kinect_fusion_eigen_pose_estimation_pipeline_block::iterate(
@@ -157,8 +159,12 @@ namespace dynfu {
 		Eigen::Matrix3f k,
 		value_type t_gk_minus_one
 	) {
-
-		if (!(prev_v && prev_n && t_gk_minus_one)) throw std::logic_error("Null pointers");
+		
+		if (!(prev_v && prev_n && t_gk_minus_one)) {
+			auto ptr=std::make_unique<cpu_pipeline_value<sensor_pose_estimation_type>>();
+			ptr->emplace(t_gk_initial_);
+			return ptr;
+		}
 
 		Eigen::Matrix4f t_frame_frame = Eigen::Matrix4f::Identity();
 		Eigen::Matrix4f t_z = t_gk_minus_one->get();
@@ -167,10 +173,10 @@ namespace dynfu {
 			t_z = kinect_fusion_eigen_pose_estimation_pipeline_block::iterate(v, n, prev_v, prev_n, k, t_frame_frame, t_z);
 			t_frame_frame = t_gk_minus_one->get().inverse() * t_z; // TODO: is this really the inverse?
 		}
-		
-		auto ptr = std::make_unique<cpu_pipeline_value<sensor_pose_estimation_type>>();
-		ptr->emplace(t_z);
-		return std::move(ptr);
+
+		auto && pv=dynamic_cast<cpu_pipeline_value<sensor_pose_estimation_type> &>(*t_gk_minus_one);
+		pv.emplace(t_z);
+		return t_gk_minus_one;
 	}
 	
 

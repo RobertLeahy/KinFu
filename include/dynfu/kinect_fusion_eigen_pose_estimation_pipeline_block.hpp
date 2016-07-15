@@ -6,6 +6,7 @@
 #pragma once
 
 #include <dynfu/pose_estimation_pipeline_block.hpp>
+#include <Eigen/Dense>
 #include <cstddef>
 
 
@@ -27,6 +28,7 @@ namespace dynfu {
 			std::size_t frame_width_;
 			std::size_t frame_height_;
 			std::size_t numit_;
+			Eigen::Matrix4f t_gk_initial_;
 
 			Eigen::Matrix4f iterate(
 				measurement_pipeline_block::vertex_value_type::element_type &,
@@ -55,6 +57,9 @@ namespace dynfu {
 			 *  \param [in] frame_height
 			 *      The height of the depth frame
 			 *
+			 *	\param [in] t_gk_initial
+			 *		The \f$T_{g,k}\f$ to return from the first invocation.
+			 *
 			 *  \param [in] numit
 			 *      The number of iterations to use
 			 *
@@ -64,6 +69,7 @@ namespace dynfu {
 				float epsilon_theta,
 				std::size_t frame_width,
 				std::size_t frame_height,
+				Eigen::Matrix4f t_gk_initial,
 				std::size_t numit=15
 			);
 

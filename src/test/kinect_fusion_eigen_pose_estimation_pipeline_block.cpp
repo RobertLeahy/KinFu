@@ -53,15 +53,19 @@ namespace {
 				Eigen::Matrix3f k;
 				Eigen::Matrix4f t_gk_minus_one;
 				dynfu::file_system_opencl_program_factory fsopf;
+				Eigen::Matrix4f t_gk_initial;
 				
 				
 			public:
 				
-				fixture(): dev(boost::compute::system::default_device()), ctx(dev), q(ctx,dev), width(640), height(480), t_gk_minus_one(Eigen::Matrix4f::Identity()), fsopf(cl_path(),ctx){
+				fixture(): dev(boost::compute::system::default_device()), ctx(dev), q(ctx,dev), width(640), height(480), t_gk_minus_one(Eigen::Matrix4f::Identity()), fsopf(cl_path(),ctx), t_gk_initial(Eigen::Matrix4f::Identity()){
 					
 					k <<  585.0f, 0.0f, 320.0f,
 					 0.0f, -585.0f, 240.0f,
 					 0.0f, 0.0f, 1.0f;
+					t_gk_initial(0,3) = 1.5f;
+					t_gk_initial(1,3) = 1.5f;
+					t_gk_initial(2,3) = 1.5f;
 					
 					
 				}
@@ -77,7 +81,7 @@ SCENARIO_METHOD(fixture, "A kinect_fusion_eigen_pose_estimation_pipeline_block u
 	
 	GIVEN("A kinect_fusion_eigen_pose_estimation_pipeline_block") {
 		
-		dynfu::kinect_fusion_eigen_pose_estimation_pipeline_block kfepeb(0.10f, std::sin(20.0f * 3.14159f / 180.0f), 640, 480); // took default params from KinFu
+		dynfu::kinect_fusion_eigen_pose_estimation_pipeline_block kfepeb(0.10f, std::sin(20.0f * 3.14159f / 180.0f), 640, 480, t_gk_initial); // took default params from KinFu
 		dynfu::kinect_fusion_opencl_measurement_pipeline_block kfompb(q, fsopf, 16, 2.0f, 1.0f);
 		dynfu::kinect_fusion_opencl_measurement_pipeline_block kfompb2(q, fsopf, 16, 2.0f, 1.0f);
 
