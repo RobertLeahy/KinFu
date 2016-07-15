@@ -43,6 +43,18 @@ namespace dynfu {
 		pepbt_=t.elapsed();
 
 	}
+
+
+	void kinect_fusion::get_tsdf () {
+
+		dynfu::update_reconstruction_pipeline_block::value_type tsdf{{},0,0,0};
+		using std::swap;
+		swap(tsdf,tsdf_);
+		timer t;
+		tsdf_=(*urpb_)(*frame_,width_,height_,k_,*t_g_k_,std::move(tsdf));
+		urpbt_=t.elapsed();
+
+	}
 	
 	
 	kinect_fusion::kinect_fusion () noexcept
@@ -52,8 +64,9 @@ namespace dynfu {
 			height_(0),
 			mpb_(nullptr),
 			pepb_(nullptr),
+			urpb_(nullptr),
 			sppb_(nullptr),
-			urpb_(nullptr)
+			tsdf_{{},0,0,0}
 	{	}
 	
 	
@@ -79,6 +92,13 @@ namespace dynfu {
 		pepb_=&pepb;
 
 	}
+
+
+	void kinect_fusion::update_reconstruction_pipeline_block (dynfu::update_reconstruction_pipeline_block & urpb) noexcept {
+
+		urpb_=&urpb;
+
+	}
 	
 	
 	void kinect_fusion::operator () () {
@@ -86,6 +106,7 @@ namespace dynfu {
 		get_frame();
 		get_vertex_and_normal_maps();
 		get_tgk();
+		get_tsdf();
 		
 		//	TODO
 		
@@ -109,6 +130,13 @@ namespace dynfu {
 	kinect_fusion::timer::duration kinect_fusion::pose_estimation_pipeline_block_elapsed () const {
 
 		return pepbt_;
+
+	}
+
+
+	kinect_fusion::timer::duration kinect_fusion::update_reconstruction_pipeline_block_elapsed () const {
+
+		return urpbt_;
 
 	}
 	
