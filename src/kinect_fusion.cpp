@@ -178,6 +178,48 @@ namespace dynfu {
 		return sppbt_;
 
 	}
+
+
+	depth_device::value_type::element_type & kinect_fusion::frame () const noexcept {
+
+		return *frame_;
+
+	}
+
+
+	measurement_pipeline_block::vertex_value_type::element_type & kinect_fusion::vertex_map () const noexcept {
+
+		return *v_;
+
+	}
+
+
+	measurement_pipeline_block::normal_value_type::element_type & kinect_fusion::normal_map () const noexcept {
+
+		return *n_;
+
+	}
+
+
+	pose_estimation_pipeline_block::value_type::element_type & kinect_fusion::pose_estimation () const noexcept {
+
+		return *t_g_k_;
+
+	}
+
+
+	surface_prediction_pipeline_block::vertex_value_type::element_type & kinect_fusion::predicted_vertex_map () const noexcept {
+
+		return *prev_v_;
+
+	}
+
+
+	surface_prediction_pipeline_block::normal_value_type::element_type & kinect_fusion::predicted_normal_map () const noexcept {
+
+		return *prev_n_;
+
+	}
 	
 	
 }
