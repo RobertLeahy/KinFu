@@ -1,4 +1,6 @@
 #include <boost/compute.hpp>
+#include <boost/program_options.hpp>
+#include <dynfu/depth_device.hpp>
 #include <dynfu/file_system_depth_device.hpp>
 #include <dynfu/file_system_opencl_program_factory.hpp>
 #include <dynfu/filesystem.hpp>
@@ -6,6 +8,8 @@
 #include <dynfu/kinect_fusion_opencl_measurement_pipeline_block.hpp>
 #include <dynfu/msrc_file_system_depth_device.hpp>
 #include <dynfu/opencl_depth_device.hpp>
+#include <dynfu/opencv_depth_device.hpp>
+#include <dynfu/optional.hpp>
 #include <dynfu/path.hpp>
 #include <dynfu/timer.hpp>
 #include <chrono>
@@ -13,22 +17,87 @@
 #include <cstdlib>
 #include <iostream>
 #include <stdexcept>
+#include <string>
 #include <utility>
 
 
-void main_impl (int, char **) {
-	
-	dynfu::filesystem::path pp(dynfu::current_executable_parent_path());
+namespace {
+
+
+	class program_options {
+
+
+		public:
+
+
+			dynfu::optional<dynfu::filesystem::path> dataset;
+
+
+	};
+
+
+}
+
+
+static dynfu::optional<program_options> get_program_options (int argc, char ** argv) {
+
+	boost::program_options::options_description desc("Command line flags");
+	desc.add_options()("dataset",boost::program_options::value<std::string>(),"Path to depth frames")("help,?","Display usage information");
+
+	boost::program_options::variables_map vm;
+	boost::program_options::store(boost::program_options::parse_command_line(argc,argv,desc),vm);
+	boost::program_options::notify(vm);
+
+	if (vm.count("help")) {
+
+		std::cout << desc << std::endl;
+		return dynfu::nullopt;
+
+	}
+
+	program_options retr;
+
+	if (vm.count("dataset")) retr.dataset.emplace(vm["dataset"].as<std::string>());
+
+	return retr;
+
+}
+
+
+static void main_impl (int argc, char ** argv) {
+
+	auto opt=get_program_options(argc,argv);
+	if (!opt) return;
+	auto && options=*opt;
 	
 	auto d=boost::compute::system::default_device();
 	boost::compute::context ctx(d);
 	boost::compute::command_queue q(ctx,d);
-	
-	dynfu::msrc_file_system_depth_device_frame_factory ff;
-	dynfu::msrc_file_system_depth_device_filter f;
-	dynfu::file_system_depth_device ddi(pp/".."/"data/test/msrc_file_system_depth_device",ff,&f);
-	dynfu::opencl_depth_device dd(ddi,q);
-	
+
+	dynfu::optional<dynfu::msrc_file_system_depth_device_frame_factory> ff;
+	dynfu::optional<dynfu::msrc_file_system_depth_device_filter> f;
+	dynfu::optional<dynfu::file_system_depth_device> ddi;
+	dynfu::optional<dynfu::opencv_depth_device> ddocv;
+	dynfu::depth_device * ddp;
+
+	if (options.dataset) {
+
+		ff.emplace();
+		f.emplace();
+		ddi.emplace(*options.dataset,*ff,&*f);
+		ddp=&*ddi;
+
+	} else {
+
+		ddocv.emplace();
+		ddp=&*ddocv;
+
+	}
+
+	dynfu::opencl_depth_device dd(*ddp,q);
+
+	dynfu::filesystem::path pp(dynfu::current_executable_parent_path());
+
 	dynfu::file_system_opencl_program_factory opf(pp/".."/"cl",ctx);
 	dynfu::kinect_fusion_opencl_measurement_pipeline_block mpb(q,opf,20,2.0f,1.0f);
 	

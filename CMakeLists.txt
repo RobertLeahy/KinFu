@@ -90,7 +90,7 @@ add_library(dynfu SHARED
 )
 
 add_executable(client src/main.cpp)
-target_link_libraries(client dynfu)
+target_link_libraries(client dynfu boost_program_options)
 
 add_executable(tests
 	src/test/cpu_pipeline_value.cpp
