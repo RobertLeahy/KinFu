@@ -1,10 +1,20 @@
 #include <dynfu/kinect_fusion.hpp>
 #include <Eigen/Dense>
+#include <stdexcept>
 #include <tuple>
 #include <utility>
 
 
 namespace dynfu {
+
+
+	void kinect_fusion::check_pipeline () const {
+
+		if (!(dd_ && mpb_ && pepb_ && urpb_ && sppb_)) throw std::logic_error(
+			"Incomplete Kinect Fusion pipeline"
+		);
+
+	}
 	
 	
 	void kinect_fusion::get_frame () {
@@ -102,6 +112,8 @@ namespace dynfu {
 	
 	
 	void kinect_fusion::operator () () {
+
+		check_pipeline();
 		
 		get_frame();
 		get_vertex_and_normal_maps();

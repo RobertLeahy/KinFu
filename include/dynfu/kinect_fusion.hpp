@@ -61,6 +61,7 @@ namespace dynfu {
 			dynfu::surface_prediction_pipeline_block::normal_value_type prev_n_;
 			
 			
+			void check_pipeline () const;
 			void get_frame ();
 			void get_vertex_and_normal_maps ();
 			void get_tgk ();
