@@ -71,7 +71,7 @@ namespace {
 
 
 
-SCENARIO_METHOD(fixture, "A kinect_fusion_eigen_pose_estimation_pipeline_block uses Eigen to find an updated sensor pose estimation", "[dynfu][pipeline_block][pose_estimation_pipeline_block][kinect_fusion_eigen_pose_estimation_pipeline_block]") {
+SCENARIO_METHOD(fixture, "A kinect_fusion_eigen_pose_estimation_pipeline_block uses Eigen to find an updated sensor pose estimation", "[dynfu][pipeline_block][pose_estimation_pipeline_block][kinect_fusion_eigen_pose_estimation_pipeline_block][!hide]") {
 	
 	GIVEN("A kinect_fusion_eigen_pose_estimation_pipeline_block") {
 		
