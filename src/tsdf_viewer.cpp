@@ -1,4 +1,5 @@
 #include <boost/compute.hpp>
+#include <dynfu/cpu_pipeline_value.hpp>
 #include <dynfu/filesystem.hpp>
 #include <dynfu/file_system_opencl_program_factory.hpp>
 #include <dynfu/kinect_fusion_opencl_update_reconstruction_pipeline_block.hpp>
@@ -51,6 +52,8 @@ void main_impl (int, char **) {
     t_g_k(0,3) = 1.5f;
     t_g_k(1,3) = 1.5f;
     t_g_k(2,3) = 1.5f;
+    dynfu::cpu_pipeline_value<Eigen::Matrix4f> t_g_k_pv;
+    t_g_k_pv.emplace(t_g_k);
 
 
     dynfu::kinect_fusion_opencl_update_reconstruction_pipeline_block kfourpb(q, fsopf, 5.0f, tsdf_width, tsdf_height, tsdf_depth);
@@ -61,7 +64,7 @@ void main_impl (int, char **) {
     dynfu::opencl_depth_device dd(ddi,q);
 
     std::cout << "Generating TSDF..." << std::endl;
-	auto && t=kfourpb(*dd(), width, height, k, t_g_k);
+	auto && t=kfourpb(*dd(), width, height, k, t_g_k_pv);
 	auto && ts = t.buffer->get();
     std::cout << "Finished generating TSDF" << std::endl;
 

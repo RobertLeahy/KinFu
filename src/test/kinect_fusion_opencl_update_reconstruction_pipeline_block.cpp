@@ -45,7 +45,7 @@ namespace {
 			std::size_t width;
 			std::size_t height;
 			Eigen::Matrix3f k;
-			Eigen::Matrix4f t_g_k;
+			dynfu::cpu_pipeline_value<Eigen::Matrix4f> t_g_k;
 			dynfu::file_system_opencl_program_factory fsopf;
 			std::size_t tsdf_width;
 			std::size_t tsdf_height;
@@ -61,11 +61,11 @@ namespace {
 					 0.0f, 0.0f, 1.0f;
 
 				//needs to be a valid t_g_k for meaningful test (?)
-				t_g_k = Eigen::Matrix4f::Identity();
+				Eigen::Matrix4f t_g_k(Eigen::Matrix4f::Identity());
 				t_g_k(0,3) = 1.5f;
 				t_g_k(1,3) = 1.5f;
 				t_g_k(2,3) = 1.5f;
-
+				this->t_g_k.emplace(std::move(t_g_k));
 
 			}
 

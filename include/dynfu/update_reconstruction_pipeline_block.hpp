@@ -7,6 +7,7 @@
 
 #include <dynfu/depth_device.hpp>
 #include <dynfu/pipeline_value.hpp>
+#include <dynfu/pose_estimation_pipeline_block.hpp>
 #include <cstddef>
 #include <memory>
 #include <vector>
@@ -96,7 +97,8 @@ namespace dynfu {
 			 *		The \f$K\f$ matrix for the \ref depth_device
 			 *		which generated \em frame.
 			 *	\param [in] T_g_k
-			 *		The \f$T_{g,k}\f$ matrix for the current frame, \f$k\f$.
+			 *		A \ref pipeline_value representing the \f$T_{g,k}\f$
+			 *		matrix for the current frame, \f$k\f$.
 			 *	\param [in] v
 			 *		A std::unique_ptr to a \ref pipeline_value which
 			 *		this object may use rather than allocating a new
@@ -107,7 +109,7 @@ namespace dynfu {
 			 *	\return
 			 *		A \ref pipeline_value representing the TSDF generated from \em frame.
 			 */
-			virtual value_type operator () (depth_device::value_type::element_type & frame, std::size_t width, std::size_t height, Eigen::Matrix3f k, Eigen::Matrix4f T_g_k, value_type v=value_type{}) = 0;
+			virtual value_type operator () (depth_device::value_type::element_type & frame, std::size_t width, std::size_t height, Eigen::Matrix3f k, pose_estimation_pipeline_block::value_type::element_type & T_g_k, value_type v=value_type{}) = 0;
 		
 	};
 	
