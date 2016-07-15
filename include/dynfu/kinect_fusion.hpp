@@ -47,16 +47,21 @@ namespace dynfu {
 			std::size_t height_;
 			dynfu::measurement_pipeline_block * mpb_;
 			timer::duration mpbt_;
-			pose_estimation_pipeline_block * pepb_;
+			dynfu::pose_estimation_pipeline_block * pepb_;
+			timer::duration pepbt_;
 			surface_prediction_pipeline_block * sppb_;
 			update_reconstruction_pipeline_block * urpb_;
 			dynfu::depth_device::value_type frame_;
 			dynfu::measurement_pipeline_block::vertex_value_type v_;
 			dynfu::measurement_pipeline_block::normal_value_type n_;
+			dynfu::pose_estimation_pipeline_block::value_type t_g_k_;
+			dynfu::surface_prediction_pipeline_block::vertex_value_type prev_v_;
+			dynfu::surface_prediction_pipeline_block::normal_value_type prev_n_;
 			
 			
 			void get_frame ();
 			void get_vertex_and_normal_maps ();
+			void get_tgk ();
 		
 		
 		public:
@@ -95,6 +100,16 @@ namespace dynfu {
 			 *		object is in use or the behaviour is undefined.
 			 */
 			void measurement_pipeline_block (dynfu::measurement_pipeline_block & mpb) noexcept;
+			/**
+			 *	Sets the pose estimation pipeline block.
+			 *
+			 *	\param [in] pepb
+			 *		A reference to the pose estimation pipeline
+			 *		block this kinect_fusion shall use.  This
+			 *		reference must remain valid as long as this
+			 *		object is in use or the behaviour is undefined.
+			 */
+			void pose_estimation_pipeline_block (dynfu::pose_estimation_pipeline_block & pepb) noexcept;
 			
 			
 			/**
@@ -122,6 +137,15 @@ namespace dynfu {
 			 *		The amount of time.
 			 */
 			timer::duration measurement_pipeline_block_elapsed () const;
+			/**
+			 *	Retrieves the amount of time the pipeline spent
+			 *	waiting for the pose estimation pipeline block on the
+			 *	last invocation.
+			 *
+			 *	\return
+			 *		The amount of time.
+			 */
+			timer::duration pose_estimation_pipeline_block_elapsed () const;
 		
 		
 	};

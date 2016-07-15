@@ -31,6 +31,18 @@ namespace dynfu {
 		mpbt_=t.elapsed();
 		
 	}
+
+
+	void kinect_fusion::get_tgk () {
+
+		dynfu::pose_estimation_pipeline_block::value_type t_g_k;
+		using std::swap;
+		swap(t_g_k,t_g_k_);
+		timer t;
+		t_g_k_=(*pepb_)(*v_,*n_,prev_v_.get(),prev_n_.get(),k_,std::move(t_g_k));
+		pepbt_=t.elapsed();
+
+	}
 	
 	
 	kinect_fusion::kinect_fusion () noexcept
@@ -60,12 +72,20 @@ namespace dynfu {
 		mpb_=&mpb;
 		
 	}
+
+
+	void kinect_fusion::pose_estimation_pipeline_block (dynfu::pose_estimation_pipeline_block & pepb) noexcept {
+
+		pepb_=&pepb;
+
+	}
 	
 	
 	void kinect_fusion::operator () () {
 		
 		get_frame();
 		get_vertex_and_normal_maps();
+		get_tgk();
 		
 		//	TODO
 		
@@ -83,6 +103,13 @@ namespace dynfu {
 		
 		return mpbt_;
 		
+	}
+
+
+	kinect_fusion::timer::duration kinect_fusion::pose_estimation_pipeline_block_elapsed () const {
+
+		return pepbt_;
+
 	}
 	
 	
