@@ -135,6 +135,9 @@ static void main_impl (int argc, char ** argv) {
 		auto e=t.elapsed_ms();
 		std::cout << "Depth frame took " << std::chrono::duration_cast<std::chrono::milliseconds>(kf.depth_device_elapsed()).count() << "ms" << std::endl;
 		std::cout << "Measurement took " << std::chrono::duration_cast<std::chrono::milliseconds>(kf.measurement_pipeline_block_elapsed()).count() << "ms" << std::endl;
+		std::cout << "Pose estimation took " << std::chrono::duration_cast<std::chrono::milliseconds>(kf.pose_estimation_pipeline_block_elapsed()).count() << "ms" << std::endl;
+		std::cout << "Updating reconstruction took " << std::chrono::duration_cast<std::chrono::milliseconds>(kf.update_reconstruction_pipeline_block_elapsed()).count() << "ms" << std::endl;
+		std::cout << "Surface prediction took " << std::chrono::duration_cast<std::chrono::milliseconds>(kf.surface_prediction_pipeline_block_elapsed()).count() << "ms" << std::endl;
 		std::cout << "Frame took " << e.count() << "ms" << std::endl;
 		total+=e.count();
 		++frames;
