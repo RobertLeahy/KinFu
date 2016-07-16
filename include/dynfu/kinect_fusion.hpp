@@ -242,6 +242,48 @@ namespace dynfu {
 			 */
 			dynfu::pose_estimation_pipeline_block::value_type::element_type & pose_estimation () const noexcept;
 			/**
+			 *	Retrieves the truncated signed distance function calculated
+			 *	during the last invocation.
+			 *
+			 *	If this object has not yet been successfully invoked
+			 *	the behaviour is undefined.
+			 *
+			 *	\return
+			 *		A reference to a \ref pipeline_value object which
+			 *		represents the last truncated signed distance function.
+			 */
+			dynfu::update_reconstruction_pipeline_block::value_type::element_type & truncated_signed_distance_function () const noexcept;
+			/**
+			 *	Retrieves the width of the truncated signed distance function.
+			 *
+			 *	If this object has not yet been successfully invoked
+			 *	the behaviour is undefined.
+			 *
+			 *	\return
+			 *		The width.
+			 */
+			std::size_t truncated_signed_distance_function_width () const noexcept;
+			/**
+			 *	Retrieves the height of the truncated signed distance function.
+			 *
+			 *	If this object has not yet been successfully invoked
+			 *	the behaviour is undefined.
+			 *
+			 *	\return
+			 *		The height.
+			 */
+			std::size_t truncated_signed_distance_function_height () const noexcept;
+			/**
+			 *	Retrieves the depth of the truncated signed distance function.
+			 *
+			 *	If this object has not yet been successfully invoked
+			 *	the behaviour is undefined.
+			 *
+			 *	\return
+			 *		The depth.
+			 */
+			std::size_t truncated_signed_distance_function_depth () const noexcept;
+			/**
 			 *	Retrieves the vertex map which was obtained as a result
 			 *	of raycasting the truncated signed distance function during
 			 *	the last invocation.

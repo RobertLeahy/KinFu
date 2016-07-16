@@ -208,6 +208,34 @@ namespace dynfu {
 	}
 
 
+	update_reconstruction_pipeline_block::value_type::element_type & kinect_fusion::truncated_signed_distance_function () const noexcept {
+
+		return *tsdf_.buffer;
+
+	}
+
+
+	std::size_t kinect_fusion::truncated_signed_distance_function_width () const noexcept {
+
+		return tsdf_.width;
+
+	}
+
+
+	std::size_t kinect_fusion::truncated_signed_distance_function_height () const noexcept {
+
+		return tsdf_.height;
+
+	}
+
+
+	std::size_t kinect_fusion::truncated_signed_distance_function_depth () const noexcept {
+
+		return tsdf_.depth;
+
+	}
+
+
 	surface_prediction_pipeline_block::vertex_value_type::element_type & kinect_fusion::predicted_vertex_map () const noexcept {
 
 		return *prev_v_;
