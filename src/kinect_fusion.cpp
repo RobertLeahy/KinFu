@@ -75,7 +75,7 @@ namespace dynfu {
 		swap(v,prev_v_);
 		swap(n,prev_n_);
 		timer t;
-		std::tie(prev_v_,prev_n_)=(*sppb_)(*tsdf_.buffer,tsdf_.width,tsdf_.height,tsdf_.depth,*t_g_k_,k_);
+		std::tie(prev_v_,prev_n_)=(*sppb_)(*tsdf_.buffer,tsdf_.width,tsdf_.height,tsdf_.depth,*t_g_k_,k_,*v_,*n_,std::make_tuple(std::move(v),std::move(n)));
 		sppbt_=t.elapsed();
 
 	}
