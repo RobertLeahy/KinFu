@@ -45,8 +45,8 @@ namespace dynfu {
 		prev_v_vec.resize(vertices.size(),q_);
 		prev_n_vec.resize(normals.size(),q_);
 
-		boost::compute::copy(vertices.begin(),vertices.end(),prev_v_vec.begin());
-		boost::compute::copy(normals.begin(),normals.end(),prev_n_vec.begin());
+		boost::compute::copy(vertices.begin(),vertices.end(),prev_v_vec.begin(),q_);
+		boost::compute::copy(normals.begin(),normals.end(),prev_n_vec.begin(),q_);
 
 		return std::make_tuple(std::move(prev_v_ptr),std::move(prev_n_ptr));
 
