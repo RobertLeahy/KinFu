@@ -83,7 +83,8 @@ kernel void correspondences(
 	float3 curr_n=vload3(idx,n);
 	float3 curr_pv=vload3(lin_idx,pv);
 	float3 curr_pn=vload3(lin_idx,pn);
-	if (!(is_finite(curr_v) && is_finite(curr_n) && is_finite(curr_pv) && is_finite(curr_pn))) {
+	//	TODO: Should we be checking the current normal?
+	if (!(is_finite(curr_v) && is_finite(curr_pv) && is_finite(curr_pn))) {
 
 		vstore3(nullv,idx,corr_pn);
 		atomic_add(count,1);
