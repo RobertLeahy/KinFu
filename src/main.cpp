@@ -5,9 +5,9 @@
 #include <dynfu/file_system_opencl_program_factory.hpp>
 #include <dynfu/filesystem.hpp>
 #include <dynfu/kinect_fusion.hpp>
-#include <dynfu/kinect_fusion_eigen_pose_estimation_pipeline_block.hpp>
 #include <dynfu/kinect_fusion_opencl_frame_to_frame_surface_prediction_pipeline_block.hpp>
 #include <dynfu/kinect_fusion_opencl_measurement_pipeline_block.hpp>
+#include <dynfu/kinect_fusion_opencl_pose_estimation_pipeline_block.hpp>
 #include <dynfu/kinect_fusion_opencl_update_reconstruction_pipeline_block.hpp>
 #include <dynfu/msrc_file_system_depth_device.hpp>
 #include <dynfu/opencl_depth_device.hpp>
@@ -108,7 +108,7 @@ static void main_impl (int argc, char ** argv) {
 	t_g_k(0,3)=1.5f;
 	t_g_k(1,3)=1.5f;
 	t_g_k(2,3)=1.5f;
-	dynfu::kinect_fusion_eigen_pose_estimation_pipeline_block pepb(0.1f,std::sin(20.0f*3.14159254f/180.0f),dd.width(),dd.height(),t_g_k);
+	dynfu::kinect_fusion_opencl_pose_estimation_pipeline_block pepb(opf,q,0.1f,std::sin(20.0f*3.14159254f/180.0f),dd.width(),dd.height(),t_g_k);
 	dynfu::kinect_fusion_opencl_update_reconstruction_pipeline_block urpb(q,opf,0.03f);
 	dynfu::kinect_fusion_opencl_frame_to_frame_surface_prediction_pipeline_block sppb(q);
 	
