@@ -1,3 +1,28 @@
+float3 matrixmul3(const __global float * m, float3 v) {
+
+    float3 retr;
+    retr.x=dot(vload3(0,m),v);
+    retr.y=dot(vload3(1,m),v);
+    retr.z=dot(vload3(2,m),v);
+
+    return retr;
+
+}
+
+
+float4 matrixmul4(const __global float * m, float4 v) {
+
+    float4 retr;
+    retr.x=dot(vload4(0,m),v);
+    retr.y=dot(vload4(1,m),v);
+    retr.z=dot(vload4(2,m),v);
+    retr.w=dot(vload4(3,m),v);
+
+    return retr;
+
+}
+
+
 int is_finite(float3 v) {
 
 	return isfinite(v.x) && isfinite(v.y) && isfinite(v.z);
@@ -29,44 +54,10 @@ kernel void correspondences(
 	float3 curr_v=vload3(idx,v);
 	float4 curr_v_homo=(float4)(curr_v,1);
 	
-	float4 persp;
-	persp.x=
-		(t_frame_frame[0]*curr_v_homo.x)+
-		(t_frame_frame[1]*curr_v_homo.y)+
-		(t_frame_frame[2]*curr_v_homo.z)+
-		(t_frame_frame[3]*curr_v_homo.w);
-	persp.y=
-		(t_frame_frame[4]*curr_v_homo.x)+
-		(t_frame_frame[5]*curr_v_homo.y)+
-		(t_frame_frame[6]*curr_v_homo.z)+
-		(t_frame_frame[7]*curr_v_homo.w);
-	persp.z=
-		(t_frame_frame[8]*curr_v_homo.x)+
-		(t_frame_frame[9]*curr_v_homo.y)+
-		(t_frame_frame[10]*curr_v_homo.z)+
-		(t_frame_frame[11]*curr_v_homo.w);
-	persp.w=
-		(t_frame_frame[12]*curr_v_homo.x)+
-		(t_frame_frame[13]*curr_v_homo.y)+
-		(t_frame_frame[14]*curr_v_homo.z)+
-		(t_frame_frame[15]*curr_v_homo.w);
-	
+	float4 persp=matrixmul4(t_frame_frame,curr_v_homo);
 	float3 persp_div=(float3)(curr_v_homo.x/curr_v_homo.w,curr_v_homo.y/curr_v_homo.w,curr_v_homo.z/curr_v_homo.w);
 
-	float3 image_plane;
-	image_plane.x=
-		(k[0]*persp_div.x)+
-		(k[1]*persp_div.y)+
-		(k[2]*persp_div.z);
-	image_plane.y=
-		(k[3]*persp_div.x)+
-		(k[4]*persp_div.y)+
-		(k[5]*persp_div.z);
-	image_plane.z=
-		(k[6]*persp_div.x)+
-		(k[7]*persp_div.y)+
-		(k[8]*persp_div.z);
-	
+	float3 image_plane=matrixmul3(k,persp_div);
 	uint2 u=(uint2)(round(image_plane.x/image_plane.z),round(image_plane.y/image_plane.z));
 
 	size_t lin_idx=u.x+u.y*width;
@@ -93,27 +84,7 @@ kernel void correspondences(
 	}
 
 	float4 curr_pv_homo=(float4)(curr_pv,1);
-	float4 t_z_curr_v_homo;
-	t_z_curr_v_homo.x=
-		(t_z[0]*curr_v_homo.x)+
-		(t_z[1]*curr_v_homo.y)+
-		(t_z[2]*curr_v_homo.z)+
-		(t_z[3]*curr_v_homo.w);
-	t_z_curr_v_homo.y=
-		(t_z[4]*curr_v_homo.x)+
-		(t_z[5]*curr_v_homo.y)+
-		(t_z[6]*curr_v_homo.z)+
-		(t_z[7]*curr_v_homo.w);
-	t_z_curr_v_homo.z=
-		(t_z[8]*curr_v_homo.x)+
-		(t_z[9]*curr_v_homo.y)+
-		(t_z[10]*curr_v_homo.z)+
-		(t_z[11]*curr_v_homo.w);
-	t_z_curr_v_homo.w=
-		(t_z[12]*curr_v_homo.x)+
-		(t_z[13]*curr_v_homo.y)+
-		(t_z[14]*curr_v_homo.z)+
-		(t_z[15]*curr_v_homo.w);
+	float4 t_z_curr_v_homo=matrixmul4(t_z,curr_v_homo);
 	float4 t_z_curr_v_homo_curr_pv_homo=t_z_curr_v_homo-curr_pv_homo;
 	if (dot(t_z_curr_v_homo_curr_pv_homo,t_z_curr_v_homo_curr_pv_homo)>(epsilon_d*epsilon_d)) {
 
