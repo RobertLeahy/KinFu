@@ -165,8 +165,8 @@ namespace dynfu {
 		k.transposeInPlace();
 		q_.enqueue_write_buffer(k_,0,sizeof(k),&k);
 
-		std::uint32_t threshold(frame_height_*frame_width_);
-		threshold/=10U;
+		std::uint32_t threshold (frame_height_*frame_width_*0.9f);// can have up to 90% rejected
+
 
 		for (std::size_t i=0;i<numit_;++i) {
 
