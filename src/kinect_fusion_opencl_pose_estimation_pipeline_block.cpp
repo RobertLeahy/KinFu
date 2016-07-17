@@ -189,7 +189,7 @@ namespace dynfu {
 			if (count>threshold) {
 
 				std::ostringstream ss;
-				ss << "Tracking lost: Could not find correspondences for " << count << " points (maximum allowable is " << threshold << ")";
+				ss << "Tracking lost: Could not find correspondences for " << count << "/" << (frame_height_*frame_width_) << " points (maximum allowable is " << threshold << ")";
 				throw tracking_lost_error(ss.str());
 
 			}
