@@ -138,10 +138,10 @@ namespace dynfu {
 	
 		if (!(t_gk_minus_one && prev_v && prev_n)) {
 
-			auto ptr=std::make_unique<pv_type>();
-			ptr->emplace(t_gk_initial_);
+			t_gk_minus_one=std::make_unique<pv_type>();
+			static_cast<pv_type &>(*t_gk_minus_one).emplace(t_gk_initial_);
 
-			return ptr;
+			return t_gk_minus_one;
 
 		}
 
