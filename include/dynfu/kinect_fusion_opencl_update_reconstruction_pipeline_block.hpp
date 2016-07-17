@@ -86,9 +86,9 @@ namespace dynfu {
 				boost::compute::command_queue q,
 				opencl_program_factory & opf,
 				float mu,
-				std::size_t tsdf_width=512,
-				std::size_t tsdf_height=512,
-				std::size_t tsdf_depth=512,
+				std::size_t tsdf_width=256,
+				std::size_t tsdf_height=256,
+				std::size_t tsdf_depth=256,
 				float tsdf_extent_w=3.0f,
 				float tsdf_extent_h=3.0f,
 				float tsdf_extent_d=3.0f
