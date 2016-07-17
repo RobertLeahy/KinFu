@@ -35,6 +35,7 @@ namespace {
 
 
 			dynfu::optional<dynfu::filesystem::path> dataset;
+			dynfu::optional<std::size_t> max_frames;
 
 
 	};
@@ -46,7 +47,7 @@ namespace {
 static dynfu::optional<program_options> get_program_options (int argc, char ** argv) {
 
 	boost::program_options::options_description desc("Command line flags");
-	desc.add_options()("dataset",boost::program_options::value<std::string>(),"Path to depth frames")("help,?","Display usage information");
+	desc.add_options()("dataset",boost::program_options::value<std::string>(),"Path to depth frames")("max-frames",boost::program_options::value<std::size_t>(),"Max frames to process")("help,?","Display usage information");
 
 	boost::program_options::variables_map vm;
 	boost::program_options::store(boost::program_options::parse_command_line(argc,argv,desc),vm);
@@ -62,6 +63,7 @@ static dynfu::optional<program_options> get_program_options (int argc, char ** a
 	program_options retr;
 
 	if (vm.count("dataset")) retr.dataset.emplace(vm["dataset"].as<std::string>());
+	if (vm.count("max-frames")) retr.max_frames.emplace(vm["max-frames"].as<std::size_t>());
 
 	return retr;
 
@@ -140,7 +142,7 @@ static void main_impl (int argc, char ** argv) {
 		std::cout << "Surface prediction took " << std::chrono::duration_cast<std::chrono::milliseconds>(kf.surface_prediction_pipeline_block_elapsed()).count() << "ms" << std::endl;
 		std::cout << "Frame took " << e.count() << "ms" << std::endl;
 		total+=e.count();
-		++frames;
+		if (options.max_frames && ++frames == *options.max_frames) break;
 		
 	}
 	
