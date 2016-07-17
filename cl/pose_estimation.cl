@@ -114,7 +114,8 @@ kernel void correspondences(
 		(t_z[13]*curr_v_homo.y)+
 		(t_z[14]*curr_v_homo.z)+
 		(t_z[15]*curr_v_homo.w);
-	if (dot(t_z_curr_v_homo,curr_pv_homo)>(epsilon_d*epsilon_d)) {
+	float4 t_z_curr_v_homo_curr_pv_homo=t_z_curr_v_homo-curr_pv_homo;
+	if (dot(t_z_curr_v_homo_curr_pv_homo,t_z_curr_v_homo_curr_pv_homo)>(epsilon_d*epsilon_d)) {
 
 		vstore3(nullv,idx,corr_pn);
 		atomic_add(count,1);
