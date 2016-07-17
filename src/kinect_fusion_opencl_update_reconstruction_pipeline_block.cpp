@@ -36,7 +36,8 @@ namespace dynfu {
 			mu_(mu),
 			tsdf_width_(tsdf_width),
 			tsdf_height_(tsdf_height),
-			tsdf_depth_(tsdf_depth)
+			tsdf_depth_(tsdf_depth),
+			invk_(0)
 	{
 
 		tsdf_kernel_.set_arg(5,proj_view_buf_);
@@ -127,6 +128,8 @@ namespace dynfu {
 		tsdf_kernel_.set_arg(9, mu_);
 		tsdf_kernel_.set_arg(10, std::uint32_t(frame_width));
 		tsdf_kernel_.set_arg(11, std::uint32_t(frame_height));
+		tsdf_kernel_.set_arg(15, std::uint32_t(invk_++));
+
 		
 		// Ready to run the kernel
 		std::size_t tsdf_extent[] = {tsdf_width_, tsdf_height_, tsdf_depth_};

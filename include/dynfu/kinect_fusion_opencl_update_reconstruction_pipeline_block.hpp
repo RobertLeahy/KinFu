@@ -49,6 +49,7 @@ namespace dynfu {
 			std::size_t tsdf_height_;
 			std::size_t tsdf_depth_;
 			
+			std::size_t invk_;
 		
 		public:
 			
