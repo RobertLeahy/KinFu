@@ -103,6 +103,7 @@ namespace dynfu {
 		corr_.set_arg(10,k_);
 		corr_.set_arg(11,corr_pv_);
 		corr_.set_arg(12,corr_pn_);
+		corr_.set_arg(13,count_);
 
 		//	Map arguments
 		map_.set_arg(1,corr_pv_);
@@ -111,7 +112,6 @@ namespace dynfu {
 		map_.set_arg(4,std::uint32_t(frame_height_));
 		map_.set_arg(5,ais_);
 		map_.set_arg(6,bis_);
-		map_.set_arg(7,count_);
 
 		//	Reduce arguments
 		std::uint32_t length(frame_height_*frame_width_);
@@ -177,14 +177,10 @@ namespace dynfu {
 			q_.enqueue_write_buffer(t_z_,0,sizeof(t_z),&t_z);
 
 			//	Enqueue correspondences kernel
-			std::size_t extent []={frame_width_,frame_height_};
-			q_.enqueue_nd_range_kernel(corr_,2,nullptr,extent,nullptr);
-
-			//	Map
-			map_.set_arg(0,vb);
 			std::uint32_t count(0);
 			q_.enqueue_write_buffer(count_,0,sizeof(count),&count);
-			q_.enqueue_nd_range_kernel(map_,2,nullptr,extent,nullptr);
+			std::size_t extent []={frame_width_,frame_height_};
+			q_.enqueue_nd_range_kernel(corr_,2,nullptr,extent,nullptr);
 			q_.enqueue_read_buffer(count_,0,sizeof(count),&count);
 			if (count>threshold) {
 
@@ -193,6 +189,10 @@ namespace dynfu {
 				throw tracking_lost_error(ss.str());
 
 			}
+
+			//	Map
+			map_.set_arg(0,vb);
+			q_.enqueue_nd_range_kernel(map_,2,nullptr,extent,nullptr);
 
 			//	Reduce
 			std::size_t a_extent []={6,6};

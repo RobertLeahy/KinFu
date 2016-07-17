@@ -18,7 +18,8 @@ kernel void correspondences(
 	float epsilon_theta,	//	9
 	__global float * k,	//	10
 	__global float * corr_pv,	//	11
-	__global float * corr_pn	//	12
+	__global float * corr_pn,	//	12
+	volatile __global unsigned int * count	//	13
 ) {
 
 	size_t x=get_global_id(0);
@@ -74,6 +75,7 @@ kernel void correspondences(
 	if (lin_idx>=(width*height)) {
 
 		vstore3(nullv,idx,corr_pn);
+		atomic_add(count,1);
 		return;
 
 	}
@@ -84,6 +86,7 @@ kernel void correspondences(
 	if (!(is_finite(curr_v) && is_finite(curr_n) && is_finite(curr_pv) && is_finite(curr_pn))) {
 
 		vstore3(nullv,idx,corr_pn);
+		atomic_add(count,1);
 		return;
 
 	}
@@ -113,6 +116,7 @@ kernel void correspondences(
 	if (dot(t_z_curr_v_homo,curr_pv_homo)>(epsilon_d*epsilon_d)) {
 
 		vstore3(nullv,idx,corr_pn);
+		atomic_add(count,1);
 		return;
 
 	}
@@ -134,6 +138,7 @@ kernel void correspondences(
 	if (dot(c,c)>(epsilon_theta*epsilon_theta)) {
 
 		vstore3(nullv,idx,corr_pn);
+		atomic_add(count,1);
 		return;
 
 	}
@@ -151,8 +156,7 @@ kernel void map(
 	const unsigned int width,	//	3
 	const unsigned int height,	//	4
 	__global float * ais,	//	5
-	__global float * bis,	//	6
-	volatile __global unsigned int * count	//	7
+	__global float * bis	//	6
 ) {
 
 	size_t x=get_global_id(0);
@@ -178,7 +182,6 @@ kernel void map(
 		#pragma unroll
 		for (size_t i=0;i<6;++i) bi[i]=0;
 
-		atomic_add(count,1);
 		return;
 
 	}
