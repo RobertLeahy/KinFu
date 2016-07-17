@@ -142,10 +142,11 @@ endif()
 if (NOT APPLE AND NOT WIN32)
 	find_package(GLEW REQUIRED)
 	target_link_libraries(tsdf_viewer ${GLEW_LIBRARIES})
+	target_link_libraries(client, ${GLEW_LIBRARIES})
 endif()
 #	Special GLEW/GLFW linker nonsense on Windows
 if (WIN32)
-	set_target_properties(tsdf_viewer PROPERTIES LINK_FLAGS "bin/glew32.dll bin/glfw3.dll bin/*opencv*.dll")
+	set_target_properties(tsdf_viewer client PROPERTIES LINK_FLAGS "bin/glew32.dll bin/glfw3.dll bin/*opencv*.dll")
 endif()
 
 add_custom_target(tests_run ALL
@@ -157,7 +158,7 @@ add_custom_target(tests_run ALL
 
 #	Special OpenCV linker nonsense
 if(WIN32)
-	set_target_properties(dynfu client tests PROPERTIES LINK_FLAGS "bin/glew32.dll bin/glfw3.dll bin/*opencv*.dll")
+	set_target_properties(dynfu tests PROPERTIES LINK_FLAGS "bin/*opencv*.dll")
 else()
 	execute_process(COMMAND pkg-config --libs opencv OUTPUT_VARIABLE OPENCV_PKGCONFIG OUTPUT_STRIP_TRAILING_WHITESPACE)
 	add_linker_options(${OPENCV_PKGCONFIG})
