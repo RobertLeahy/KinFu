@@ -6,17 +6,17 @@ int is_finite(float3 v) {
 
 
 kernel void correspondences(
-	__global float * v,	//	0
-	__global float * n,	//	1
-	__global float * pv,	//	2
-	__global float * pn,	//	3
+	const __global float * v,	//	0
+	const __global float * n,	//	1
+	const __global float * pv,	//	2
+	const __global float * pn,	//	3
 	const unsigned int width,	//	4
 	const unsigned int height,	//	5
-	__global float * t_frame_frame,	//	6
-	__global float * t_z,	//	7
+	const __global float * t_frame_frame,	//	6
+	const __global float * t_z,	//	7
 	float epsilon_d,	//	8
 	float epsilon_theta,	//	9
-	__global float * k,	//	10
+	const __global float * k,	//	10
 	__global float * corr_pv,	//	11
 	__global float * corr_pn,	//	12
 	volatile __global unsigned int * count	//	13
@@ -152,9 +152,9 @@ kernel void correspondences(
 
 
 kernel void map(
-	__global float * v,	//	0
-	__global float * corr_pv,	//	1
-	__global float * corr_pn,	//	2
+	const __global float * v,	//	0
+	const __global float * corr_pv,	//	1
+	const __global float * corr_pn,	//	2
 	const unsigned int width,	//	3
 	const unsigned int height,	//	4
 	__global float * ais,	//	5
@@ -249,7 +249,7 @@ kernel void map(
 
 
 kernel void reduce_a(
-	__global float * ais,	//	0
+	const __global float * ais,	//	0
 	__global float * a,	//	1
 	const unsigned int length	//	2
 ) {
@@ -271,7 +271,7 @@ kernel void reduce_a(
 
 
 kernel void reduce_b(
-	__global float * bis,	//	0
+	const __global float * bis,	//	0
 	__global float * b,	//	1
 	const unsigned int length	//	2
 ) {
