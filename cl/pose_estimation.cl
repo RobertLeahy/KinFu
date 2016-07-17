@@ -1,6 +1,6 @@
 int is_finite(float3 v) {
 
-	return isfinite(v.x) && is_finite(v.y) && is_finite(v.z);
+	return isfinite(v.x) && isfinite(v.y) && isfinite(v.z);
 
 }
 
