@@ -91,6 +91,21 @@ add_library(dynfu SHARED
 	src/whereami.cpp
 )
 
+#	tsdf_viewer won't assemble on Windows without this (too many sections)
+#	It also seems to matter that this come before add_executable (doesn't
+#	show up if it comes after like everything else)
+if (WIN32)
+	add_compile_options("-Wa,-mbig-obj")
+endif()
+#	Try and workaround THIS issue with libigl and Windows headers
+#	The issue: The libigl source uses THIS as a variable, whereas
+#	certain Windows headers #define it to be something else
+#	These offending Windows headers aren't pulled in with
+#	WIN32_LEAN_AND_MEAN
+if (WIN32)
+ 	add_definitions(-DWIN32_LEAN_AND_MEAN)
+ endif()
+
 add_executable(client src/main.cpp)
 target_link_libraries(client dynfu boost_program_options)
 
@@ -114,12 +129,6 @@ add_executable(tests
 )
 target_link_libraries(tests dynfu)
 
-#	tsdf_viewer won't assemble on Windows without this (too many sections)
-#	It also seems to matter that this come before add_executable (doesn't
-#	show up if it comes after like everything else)
-if (WIN32)
-	add_compile_options("-Wa,-mbig-obj")
-endif()
 add_executable(tsdf_viewer
 	src/tsdf_viewer.cpp
 )
@@ -138,14 +147,6 @@ endif()
 if (WIN32)
 	set_target_properties(tsdf_viewer PROPERTIES LINK_FLAGS "bin/glew32.dll bin/glfw3.dll bin/*opencv*.dll")
 endif()
-#	Try and workaround THIS issue with libigl and Windows headers
-#	The issue: The libigl source uses THIS as a variable, whereas
-#	certain Windows headers #define it to be something else
-#	These offending Windows headers aren't pulled in with
-#	WIN32_LEAN_AND_MEAN
-if (WIN32)
-	add_definitions(-DWIN32_LEAN_AND_MEAN)
-endif()
 
 add_custom_target(tests_run ALL
 	COMMAND tests
@@ -156,8 +157,11 @@ add_custom_target(tests_run ALL
 
 #	Special OpenCV linker nonsense
 if(WIN32)
-	set_target_properties(dynfu client tests PROPERTIES LINK_FLAGS "bin/*opencv*.dll")
+	set_target_properties(dynfu client tests PROPERTIES LINK_FLAGS "bin/glew32.dll bin/glfw3.dll bin/*opencv*.dll")
 else()
 	execute_process(COMMAND pkg-config --libs opencv OUTPUT_VARIABLE OPENCV_PKGCONFIG OUTPUT_STRIP_TRAILING_WHITESPACE)
 	add_linker_options(${OPENCV_PKGCONFIG})
 endif()
+
+target_link_libraries(dynfu ${OPENGL_gl_LIBRARY} pthread)
+target_link_libraries(client ${OPENGL_gl_LIBRARY} pthread)

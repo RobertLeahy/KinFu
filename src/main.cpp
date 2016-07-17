@@ -15,6 +15,8 @@
 #include <dynfu/optional.hpp>
 #include <dynfu/path.hpp>
 #include <dynfu/timer.hpp>
+#include <igl/copyleft/marching_cubes.h>
+#include <igl/viewer/Viewer.h>
 #include <chrono>
 #include <cmath>
 #include <cstddef>
@@ -150,6 +152,62 @@ static void main_impl (int argc, char ** argv) {
 	std::size_t avg=(frames==0) ? 0 : (total/frames);
 	std::cout << "Average time per frame: " << avg << "ms" << std::endl;
 	
+	auto && tsdf = kf.truncated_signed_distance_function().get();
+
+	float tsdf_extent = 3.0;
+	std::size_t tsdf_size(256);
+
+	float px,py,pz;
+    Eigen::MatrixXi SF;
+    Eigen::MatrixXd SV;
+    Eigen::VectorXd S_(tsdf_size*tsdf_size*tsdf_size);
+    Eigen::MatrixXd GV(tsdf_size*tsdf_size*tsdf_size,3);
+    std::size_t abs_idx(0);
+	std::size_t nans(0);
+    for(std::size_t zi(0); zi < tsdf_size; ++zi) {
+
+        pz = (float(zi)+0.5f) * tsdf_extent/tsdf_size;
+
+        for(std::size_t yi(0); yi < tsdf_size; ++yi) {
+
+            py = (float(yi)+0.5f) * tsdf_extent/tsdf_size;
+
+            for(std::size_t xi(0); xi < tsdf_size; ++xi) {
+
+                px = (float(xi)+0.5f) * tsdf_extent/tsdf_size;
+               
+                std::size_t vox_idx(xi + tsdf_size * (yi + tsdf_size * zi));
+
+                GV.row(vox_idx) = Eigen::RowVector3d(px,py,pz);
+
+				if (std::isnan(tsdf[vox_idx])) {
+					++nans;
+					S_(abs_idx) = 1.0f;
+				} else {
+ 					S_(abs_idx) = tsdf[vox_idx];
+				}
+               
+                abs_idx++;
+
+            }
+
+        }
+
+        std::cout << "Export Progress: "  << (zi + 1) << " / " << tsdf_size << std::endl;
+
+    }
+
+	std::cout << "NaN's detected: " << nans << std::endl;
+
+    std::cout << "Running Marching Cubes..." << std::endl;
+
+    igl::copyleft::marching_cubes(S_,GV,tsdf_size,tsdf_size,tsdf_size,SV,SF);
+    igl::viewer::Viewer viewer;
+    viewer.data.set_mesh(SV,SF);
+    viewer.launch();
+
+
+
 }
 
 
