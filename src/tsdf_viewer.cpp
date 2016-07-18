@@ -3,13 +3,11 @@
 #include <dynfu/filesystem.hpp>
 #include <dynfu/file_system_opencl_program_factory.hpp>
 #include <dynfu/kinect_fusion_opencl_update_reconstruction_pipeline_block.hpp>
+#include <dynfu/libigl.hpp>
 #include <dynfu/msrc_file_system_depth_device.hpp>
 #include <dynfu/opencl_depth_device.hpp>
 #include <dynfu/path.hpp>
 #include <Eigen/Dense>
-#include <igl/copyleft/marching_cubes.h>
-#include <igl/readOFF.h>
-#include <igl/viewer/Viewer.h>
 #include <cstdlib>
 #include <exception>
 #include <iostream>
@@ -103,10 +101,8 @@ void main_impl (int, char **) {
 
     std::cout << "Running Marching Cubes..." << std::endl;
 
-    igl::copyleft::marching_cubes(S_,GV,tsdf_width,tsdf_height,tsdf_depth,SV,SF);
-    igl::viewer::Viewer viewer;
-    viewer.data.set_mesh(SV,SF);
-    viewer.launch();
+    dynfu::libigl::marching_cubes(S_,GV,tsdf_width,tsdf_height,tsdf_depth,SV,SF);
+    dynfu::libigl::viewer(SV,SF);
 
 }
 

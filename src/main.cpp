@@ -9,14 +9,13 @@
 #include <dynfu/kinect_fusion_opencl_measurement_pipeline_block.hpp>
 #include <dynfu/kinect_fusion_opencl_pose_estimation_pipeline_block.hpp>
 #include <dynfu/kinect_fusion_opencl_update_reconstruction_pipeline_block.hpp>
+#include <dynfu/libigl.hpp>
 #include <dynfu/msrc_file_system_depth_device.hpp>
 #include <dynfu/opencl_depth_device.hpp>
 #include <dynfu/opencv_depth_device.hpp>
 #include <dynfu/optional.hpp>
 #include <dynfu/path.hpp>
 #include <dynfu/timer.hpp>
-#include <igl/copyleft/marching_cubes.h>
-#include <igl/viewer/Viewer.h>
 #include <chrono>
 #include <cmath>
 #include <cstddef>
@@ -201,12 +200,8 @@ static void main_impl (int argc, char ** argv) {
 
     std::cout << "Running Marching Cubes..." << std::endl;
 
-    igl::copyleft::marching_cubes(S_,GV,tsdf_size,tsdf_size,tsdf_size,SV,SF);
-    igl::viewer::Viewer viewer;
-    viewer.data.set_mesh(SV,SF);
-    viewer.launch();
-
-
+    dynfu::libigl::marching_cubes(S_,GV,tsdf_size,tsdf_size,tsdf_size,SV,SF);
+    dynfu::libigl::viewer(SV,SF);
 
 }
 
