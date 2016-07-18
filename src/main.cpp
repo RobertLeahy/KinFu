@@ -9,6 +9,7 @@
 #include <dynfu/kinect_fusion_opencl_measurement_pipeline_block.hpp>
 #include <dynfu/kinect_fusion_opencl_pose_estimation_pipeline_block.hpp>
 #include <dynfu/kinect_fusion_opencl_update_reconstruction_pipeline_block.hpp>
+#include <dynfu/libigl.hpp>
 #include <dynfu/msrc_file_system_depth_device.hpp>
 #include <dynfu/opencl_depth_device.hpp>
 #include <dynfu/opencv_depth_device.hpp>
@@ -35,6 +36,7 @@ namespace {
 
 
 			dynfu::optional<dynfu::filesystem::path> dataset;
+			dynfu::optional<std::size_t> max_frames;
 
 
 	};
@@ -46,7 +48,7 @@ namespace {
 static dynfu::optional<program_options> get_program_options (int argc, char ** argv) {
 
 	boost::program_options::options_description desc("Command line flags");
-	desc.add_options()("dataset",boost::program_options::value<std::string>(),"Path to depth frames")("help,?","Display usage information");
+	desc.add_options()("dataset",boost::program_options::value<std::string>(),"Path to depth frames")("max-frames",boost::program_options::value<std::size_t>(),"Max frames to process")("help,?","Display usage information");
 
 	boost::program_options::variables_map vm;
 	boost::program_options::store(boost::program_options::parse_command_line(argc,argv,desc),vm);
@@ -62,6 +64,7 @@ static dynfu::optional<program_options> get_program_options (int argc, char ** a
 	program_options retr;
 
 	if (vm.count("dataset")) retr.dataset.emplace(vm["dataset"].as<std::string>());
+	if (vm.count("max-frames")) retr.max_frames.emplace(vm["max-frames"].as<std::size_t>());
 
 	return retr;
 
@@ -140,7 +143,13 @@ static void main_impl (int argc, char ** argv) {
 		std::cout << "Surface prediction took " << std::chrono::duration_cast<std::chrono::milliseconds>(kf.surface_prediction_pipeline_block_elapsed()).count() << "ms" << std::endl;
 		std::cout << "Frame took " << e.count() << "ms" << std::endl;
 		total+=e.count();
-		++frames;
+
+		if (options.max_frames) {
+
+			std::cout << "Finished frame " << ++frames << " / " << *options.max_frames << std::endl;
+			if (frames == *options.max_frames) break;
+
+		}
 		
 	}
 	
@@ -148,6 +157,56 @@ static void main_impl (int argc, char ** argv) {
 	std::size_t avg=(frames==0) ? 0 : (total/frames);
 	std::cout << "Average time per frame: " << avg << "ms" << std::endl;
 	
+	auto && tsdf = kf.truncated_signed_distance_function().get();
+
+	float tsdf_extent = 3.0;
+	std::size_t tsdf_size(256);
+
+	float px,py,pz;
+    Eigen::MatrixXi SF;
+    Eigen::MatrixXd SV;
+    Eigen::VectorXd S_(tsdf_size*tsdf_size*tsdf_size);
+    Eigen::MatrixXd GV(tsdf_size*tsdf_size*tsdf_size,3);
+    std::size_t abs_idx(0);
+
+    for(std::size_t zi(0); zi < tsdf_size; ++zi) {
+
+        pz = (float(zi)+0.5f) * tsdf_extent/tsdf_size;
+
+        for(std::size_t yi(0); yi < tsdf_size; ++yi) {
+
+            py = (float(yi)+0.5f) * tsdf_extent/tsdf_size;
+
+            for(std::size_t xi(0); xi < tsdf_size; ++xi) {
+
+                px = (float(xi)+0.5f) * tsdf_extent/tsdf_size;
+               
+                std::size_t vox_idx(xi + tsdf_size * (yi + tsdf_size * zi));
+
+                GV.row(vox_idx) = Eigen::RowVector3d(px,py,pz);
+
+				if (std::isnan(tsdf[vox_idx])) {
+					S_(abs_idx) = 1.0f;
+				} else {
+ 					S_(abs_idx) = tsdf[vox_idx];
+				}
+               
+                abs_idx++;
+
+            }
+
+        }
+
+        std::cout << "Export Progress: "  << (zi + 1) << " / " << tsdf_size << std::endl;
+
+    }
+
+
+    std::cout << "Running Marching Cubes..." << std::endl;
+
+    dynfu::libigl::marching_cubes(S_,GV,tsdf_size,tsdf_size,tsdf_size,SV,SF);
+    dynfu::libigl::viewer(SV,SF);
+
 }
 
 

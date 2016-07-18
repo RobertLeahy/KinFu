@@ -160,10 +160,11 @@ namespace dynfu {
 		value_type t_gk_minus_one
 	) {
 		
+		using pv_type=cpu_pipeline_value<sensor_pose_estimation_type>;
 		if (!(prev_v && prev_n && t_gk_minus_one)) {
-			auto ptr=std::make_unique<cpu_pipeline_value<sensor_pose_estimation_type>>();
-			ptr->emplace(t_gk_initial_);
-			return ptr;
+			t_gk_minus_one=std::make_unique<pv_type>();
+			static_cast<pv_type &>(*t_gk_minus_one).emplace(t_gk_initial_);
+			return t_gk_minus_one;
 		}
 
 		Eigen::Matrix4f t_frame_frame = Eigen::Matrix4f::Identity();

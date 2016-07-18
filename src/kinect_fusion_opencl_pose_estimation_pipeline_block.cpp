@@ -138,10 +138,10 @@ namespace dynfu {
 	
 		if (!(t_gk_minus_one && prev_v && prev_n)) {
 
-			auto ptr=std::make_unique<pv_type>();
-			ptr->emplace(t_gk_initial_);
+			t_gk_minus_one=std::make_unique<pv_type>();
+			static_cast<pv_type &>(*t_gk_minus_one).emplace(t_gk_initial_);
 
-			return ptr;
+			return t_gk_minus_one;
 
 		}
 
@@ -165,8 +165,8 @@ namespace dynfu {
 		k.transposeInPlace();
 		q_.enqueue_write_buffer(k_,0,sizeof(k),&k);
 
-		std::uint32_t threshold(frame_height_*frame_width_);
-		threshold/=10U;
+		std::uint32_t threshold (frame_height_*frame_width_*0.9f);// can have up to 90% rejected
+
 
 		for (std::size_t i=0;i<numit_;++i) {
 
