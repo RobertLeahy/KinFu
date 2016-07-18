@@ -168,7 +168,7 @@ static void main_impl (int argc, char ** argv) {
     Eigen::VectorXd S_(tsdf_size*tsdf_size*tsdf_size);
     Eigen::MatrixXd GV(tsdf_size*tsdf_size*tsdf_size,3);
     std::size_t abs_idx(0);
-	std::size_t nans(0);
+
     for(std::size_t zi(0); zi < tsdf_size; ++zi) {
 
         pz = (float(zi)+0.5f) * tsdf_extent/tsdf_size;
@@ -186,7 +186,6 @@ static void main_impl (int argc, char ** argv) {
                 GV.row(vox_idx) = Eigen::RowVector3d(px,py,pz);
 
 				if (std::isnan(tsdf[vox_idx])) {
-					++nans;
 					S_(abs_idx) = 1.0f;
 				} else {
  					S_(abs_idx) = tsdf[vox_idx];
@@ -202,7 +201,6 @@ static void main_impl (int argc, char ** argv) {
 
     }
 
-	std::cout << "NaN's detected: " << nans << std::endl;
 
     std::cout << "Running Marching Cubes..." << std::endl;
 
