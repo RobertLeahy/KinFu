@@ -143,7 +143,13 @@ static void main_impl (int argc, char ** argv) {
 		std::cout << "Surface prediction took " << std::chrono::duration_cast<std::chrono::milliseconds>(kf.surface_prediction_pipeline_block_elapsed()).count() << "ms" << std::endl;
 		std::cout << "Frame took " << e.count() << "ms" << std::endl;
 		total+=e.count();
-		if (options.max_frames && ++frames == *options.max_frames) break;
+
+		if (options.max_frames) {
+
+			std::cout << "Finished frame " << ++frames << " / " << *options.max_frames << std::endl;
+			if (frames == *options.max_frames) break;
+
+		}
 		
 	}
 	
