@@ -4,6 +4,7 @@
 #include <dynfu/kinect_fusion_opencl_pose_estimation_pipeline_block.hpp>
 #include <dynfu/opencl_program_factory.hpp>
 #include <dynfu/opencl_vector_pipeline_value.hpp>
+#include <dynfu/scope.hpp>
 #include <Eigen/Dense>
 #include <cstddef>
 #include <cstdint>
@@ -163,8 +164,8 @@ namespace dynfu {
 		Eigen::Matrix4f t_z(Eigen::Matrix4f::Identity());
 
 		k.transposeInPlace();
-		q_.enqueue_write_buffer(k_,0,sizeof(k),&k);
-
+		auto kw=q_.enqueue_write_buffer_async(k_,0,sizeof(k),&k);
+		auto kwg=make_scope_exit([&] () noexcept {	kw.wait();	});
 
 		//	Allow up to 90% of points to be rejected
 		std::uint32_t threshold(frame_height_*frame_width_);
@@ -175,23 +176,20 @@ namespace dynfu {
 
 			//	Upload matrices to the GPU
 			t_frame_frame.transposeInPlace();
-			q_.enqueue_write_buffer(t_frame_frame_,0,sizeof(t_frame_frame),&t_frame_frame);
+			auto tffw=q_.enqueue_write_buffer_async(t_frame_frame_,0,sizeof(t_frame_frame),&t_frame_frame);
+			auto tffwg=make_scope_exit([&] () noexcept {	tffw.wait();	});
 			t_z.transposeInPlace();
-			q_.enqueue_write_buffer(t_z_,0,sizeof(t_z),&t_z);
+			auto tzw=q_.enqueue_write_buffer_async(t_z_,0,sizeof(t_z),&t_z);
+			auto tzwg=make_scope_exit([&] () noexcept {	tzw.wait();	});
 
 			//	Enqueue correspondences kernel
 			std::uint32_t count(0);
-			q_.enqueue_write_buffer(count_,0,sizeof(count),&count);
+			auto cw=q_.enqueue_write_buffer_async(count_,0,sizeof(count),&count);
+			auto cwg=make_scope_exit([&] () noexcept {	cw.wait();	});
 			std::size_t extent []={frame_width_,frame_height_};
 			q_.enqueue_nd_range_kernel(corr_,2,nullptr,extent,nullptr);
-			q_.enqueue_read_buffer(count_,0,sizeof(count),&count);
-			if (count>threshold) {
-
-				std::ostringstream ss;
-				ss << "Tracking lost: Could not find correspondences for " << count << "/" << (frame_height_*frame_width_) << " points (maximum allowable is " << threshold << ")";
-				throw tracking_lost_error(ss.str());
-
-			}
+			auto cr=q_.enqueue_read_buffer_async(count_,0,sizeof(count),&count);
+			auto crg=make_scope_exit([&] () noexcept {	cr.wait();	});
 
 			//	Map
 			map_.set_arg(0,vb);
@@ -206,9 +204,27 @@ namespace dynfu {
 
 			//	Download results
 			Eigen::Matrix<float,6,6> a;
-			q_.enqueue_read_buffer(a_,0,sizeof(a),&a);
+			auto ar=q_.enqueue_read_buffer_async(a_,0,sizeof(a),&a);
+			auto arg=make_scope_exit([&] () noexcept {	ar.wait();	});
 			Eigen::Matrix<float,6,1> b;
-			q_.enqueue_read_buffer(b_,0,sizeof(b),&b);
+			auto br=q_.enqueue_read_buffer_async(b_,0,sizeof(b),&b);
+			auto brg=make_scope_exit([&] () noexcept {	br.wait();	});
+
+			//	Make sure there were enough correspondences
+			cr.wait();
+			crg.release();
+			if (count>threshold) {
+
+				std::ostringstream ss;
+				ss << "Tracking lost: Could not find correspondences for " << count << "/" << (frame_height_*frame_width_) << " points (maximum allowable is " << threshold << ")";
+				throw tracking_lost_error(ss.str());
+
+			}
+
+			ar.wait();
+			arg.release();
+			br.wait();
+			brg.release();
 
 			//	Solve system
 			Eigen::Matrix<float,6,1> x=a.colPivHouseholderQr().solve(b);
