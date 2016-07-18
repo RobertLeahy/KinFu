@@ -70,6 +70,7 @@ kernel void tsdf_kernel(__global float * src, __global float* dest,
 	// check if the current voxel projects into the depth frame
 	if (x_tild.x < 0 || x_tild.x > frame_width || x_tild.y < 0 || x_tild.y > frame_height || x_ndc.z < 0.0f) {
 
+		dest[idx] = NAN;
 		return;
 
 	}
@@ -100,12 +101,12 @@ kernel void tsdf_kernel(__global float * src, __global float* dest,
 		
 		if (avg != NAN) {
 
-
 			dest[idx] = (avg*(float)n + new_val) / ((float)n+1);
 
-
 		} else {
+
 			dest[idx] = new_val;
+		
 		}
 
 	} else {
