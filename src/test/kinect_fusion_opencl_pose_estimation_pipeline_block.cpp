@@ -102,6 +102,33 @@ namespace {
 }
 
 
+SCENARIO_METHOD(fixture,"dynfu::kinect_fusion_opencl_pose_estimation_pipeline_block objects return the matrix passed to their constructor on their first invocation","[dynfu][pose_estimation_pipeline_block][kinect_fusion_opencl_pose_estimation_pipeline_block]") {
+
+	GIVEN("A dynfu::kinect_fusion_opencl_pose_estimation_pipeline_block object") {
+
+		dynfu::kinect_fusion_opencl_pose_estimation_pipeline_block pepb(pf,q,0.10f,std::sin(20.0f*3.14159f/180.0f),width,height,t_gk_initial);
+
+		WHEN("It is invoked for the first time (i.e. passed NULL as the 3rd, 4th, and 5th arguments to dynfu::kinect_fusion_opencl_pose_estimation_pipeline_block::operator ())") {
+
+			auto frame_ptr=dd();
+			auto t=mpb(*frame_ptr,width,height,k);
+			auto && v=std::get<0>(t);
+			auto && n=std::get<1>(t);
+			auto ptr=pepb(*v,*n,nullptr,nullptr,k,{});
+
+			THEN("The T_gk matrix provided to its constructor is returned") {
+
+				CHECK(ptr->get()==t_gk_initial);
+
+			}
+
+		}
+
+	}
+
+}
+
+
 SCENARIO_METHOD(fixture,"dynfu::kinect_fusion_opencl_pose_estimation_pipeline_block objects derive a transformation matrix between two identical frames that is the identity matrix with some set, constant, initial translation","[dynfu][pose_estimation_pipeline_block][kinect_fusion_opencl_pose_estimation_pipeline_block]") {
 
 	GIVEN("A dynfu::kinect_fusion_opencl_pose_estimation_pipeline_block object") {
