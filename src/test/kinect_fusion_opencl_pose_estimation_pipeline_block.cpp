@@ -9,6 +9,7 @@
 #include <dynfu/kinect_fusion_opencl_measurement_pipeline_block.hpp>
 #include <dynfu/msrc_file_system_depth_device.hpp>
 #include <dynfu/path.hpp>
+#include <dynfu/pose_estimation_pipeline_block.hpp>
 #include <Eigen/Dense>
 #include <algorithm>
 #include <cmath>
@@ -241,6 +242,33 @@ SCENARIO_METHOD(fixture,"Between consecutive frames dynfu::kinect_fusion_opencl_
 
 			}
 
+		}
+
+	}
+
+}
+
+
+SCENARIO_METHOD(fixture,"When a minimum number of point-to-point correspondences cannot be made dynfu::kinect_fusion_opencl_pose_estimation_pipeline_block objects throw a dynfu::pose_estimation_pipeline_block::tracking_lost_error","[dynfu][kinect_fusion_opencl_pose_estimation_pipeline_block][pose_estimation_pipeline_block]") {
+
+	GIVEN("A dynfu::kinect_fusion_opencl_pose_estimation_pipeline_block object") {
+
+		dynfu::kinect_fusion_opencl_pose_estimation_pipeline_block pepb(pf,q,0.10f,std::sin(20.0f*3.14159f/180.0f),width,height,t_gk_initial);
+
+		THEN("Invoking it on two non-consecutive frames results in a dynfu::pose_estimation_pipeline_block::tracking_lost_error") {
+
+			auto frame_ptr=dd();	//	Frame 00
+			auto t1=mpb(*frame_ptr,width,height,k);
+			frame_ptr=dd(std::move(frame_ptr));	//	Frame 01
+			frame_ptr=dd(std::move(frame_ptr));	//	Frame 23
+			auto t2=mpb(*frame_ptr,width,height,k);
+			auto && v1=std::get<0>(t1);
+			auto && n1=std::get<1>(t1);
+			auto ptr=pepb(*v1,*n1,nullptr,nullptr,k,{});
+			auto && v2=std::get<0>(t2);
+			auto && n2=std::get<1>(t2);
+			CHECK_THROWS_AS(pepb(*v2,*n2,v1.get(),n1.get(),k,std::move(ptr)),dynfu::pose_estimation_pipeline_block::tracking_lost_error);
+			
 		}
 
 	}
