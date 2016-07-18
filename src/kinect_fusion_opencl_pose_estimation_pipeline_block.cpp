@@ -3,7 +3,6 @@
 #include <dynfu/cpu_pipeline_value.hpp>
 #include <dynfu/kinect_fusion_opencl_pose_estimation_pipeline_block.hpp>
 #include <dynfu/opencl_program_factory.hpp>
-#include <dynfu/opencl_vector_pipeline_value.hpp>
 #include <dynfu/scope.hpp>
 #include <Eigen/Dense>
 #include <cstddef>
@@ -84,6 +83,10 @@ namespace dynfu {
 			b_(q_.get_context(),sizeof_b,CL_MEM_WRITE_ONLY|CL_MEM_HOST_READ_ONLY),
 			count_(q_.get_context(),sizeof(std::uint32_t)),
 			k_(q_.get_context(),sizeof(Eigen::Matrix3f),CL_MEM_READ_ONLY|CL_MEM_HOST_WRITE_ONLY),
+			v_e_(q_),
+			n_e_(q_),
+			pv_e_(q_),
+			pn_e_(q_),
 			epsilon_d_(epsilon_d),
 			epsilon_theta_(epsilon_theta),
 			frame_width_(frame_width),
@@ -147,17 +150,13 @@ namespace dynfu {
 		}
 
 		//	Get input vectors and bind parameters
-		opencl_vector_pipeline_value_extractor<measurement_pipeline_block::vertex_value_type::element_type::type::value_type> v_e(q_);
-		auto && vb=v_e(v);
+		auto && vb=v_e_(v);
 		corr_.set_arg(0,vb);
-		opencl_vector_pipeline_value_extractor<measurement_pipeline_block::normal_value_type::element_type::type::value_type> n_e(q_);
-		auto && nb=n_e(n);
+		auto && nb=n_e_(n);
 		corr_.set_arg(1,nb);
-		opencl_vector_pipeline_value_extractor<measurement_pipeline_block::vertex_value_type::element_type::type::value_type> pv_e(q_);
-		auto && pvb=pv_e(*prev_v);
+		auto && pvb=pv_e_(*prev_v);
 		corr_.set_arg(2,pvb);
-		opencl_vector_pipeline_value_extractor<measurement_pipeline_block::normal_value_type::element_type::type::value_type> pn_e(q_);
-		auto && pnb=pn_e(*prev_n);
+		auto && pnb=pn_e_(*prev_n);
 		corr_.set_arg(3,pnb);
 
 		Eigen::Matrix4f t_frame_frame(Eigen::Matrix4f::Identity());

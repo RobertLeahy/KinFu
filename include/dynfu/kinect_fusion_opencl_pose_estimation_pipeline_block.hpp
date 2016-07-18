@@ -12,6 +12,7 @@
 #include <boost/compute/kernel.hpp>
 #include <dynfu/measurement_pipeline_block.hpp>
 #include <dynfu/opencl_program_factory.hpp>
+#include <dynfu/opencl_vector_pipeline_value.hpp>
 #include <dynfu/pose_estimation_pipeline_block.hpp>
 #include <Eigen/Dense>
 #include <cstddef>
@@ -41,6 +42,10 @@ namespace dynfu {
 			boost::compute::buffer b_;
 			boost::compute::buffer count_;
 			boost::compute::buffer k_;
+			opencl_vector_pipeline_value_extractor<measurement_pipeline_block::vertex_value_type::element_type::type::value_type> v_e_;
+			opencl_vector_pipeline_value_extractor<measurement_pipeline_block::normal_value_type::element_type::type::value_type> n_e_;
+			opencl_vector_pipeline_value_extractor<measurement_pipeline_block::vertex_value_type::element_type::type::value_type> pv_e_;
+			opencl_vector_pipeline_value_extractor<measurement_pipeline_block::normal_value_type::element_type::type::value_type> pn_e_;
 			float epsilon_d_;
 			float epsilon_theta_;
 			std::size_t frame_width_;
