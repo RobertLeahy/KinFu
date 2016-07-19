@@ -10,8 +10,10 @@
 #include <dynfu/path.hpp>
 #include <dynfu/file_system_opencl_program_factory.hpp>
 #include <Eigen/Dense>
+#include <opencv2/opencv.hpp>
 #include <algorithm>
 #include <cstddef>
+#include <cmath>
 #include <iostream>
 #include <tuple>
 #include <utility>
@@ -111,48 +113,28 @@ SCENARIO_METHOD(fixture, "A dynfu::kinect_fusion_opencl_surface_prediction_pipel
 					auto && vs=v->get();
 					auto && ns=n->get();
 
+					std::cout << std::count_if(vs.begin(),vs.end(),[] (const auto & v) {
 
-					Eigen::MatrixXd V(640*480,3);
+						return std::isnan(v(0));
 
-					std::size_t nans(0);
-					std::size_t i(0);
-					for (auto && vertex : vs) {
-						V.row(i++) = vertex.cast<double>();
-						if (std::isnan(vertex[0])) ++nans;
-						if (i%100==0) std::cout << i << "/" << 640*480 << std::endl;
-					}
+					}) << std::endl;
 
-					std::cout << "# of Nans:" << nans << std::endl;
+					cv::Mat m(480,640,CV_32FC3);
+					std::size_t idx(0);
+					for (std::size_t i=0;i<480;++i) {
 
-					igl::viewer::Viewer viewer;
-					viewer.data.add_points(V,Eigen::RowVector3d(1.0f,0.0f,0.0f));
+						for (std::size_t j=0;j<640;++j,++idx) {
 
-					viewer.data.add_points(Eigen::RowVector3d(1.5,1.5,1.5), Eigen::RowVector3d(0.0f,0.0f,1.0f) );
+							auto && v=vs[idx];
+							if (idx<100) std::cout << "[" << v(0) << ", " << v(1) << ", " << v(2) << "]" << std::endl;
+							m.at<Eigen::Vector3f>(cv::Point(j,i))=ns[idx].cwiseAbs();
 
-					Eigen::MatrixXd to(3,3);
-					to <<
-					1,0,0,
-					0,1,0,
-					0,0,1;
-					Eigen::MatrixXd color(3,3);
-					color<<
-					1,0,0,
-					0,1,0,
-					0,0,1;
-
-					Eigen::RowVector3d z(0,0,0);
-					for (unsigned i = 0; i < 3; i++) {
-					
-						viewer.data.add_edges(z, to.row(i), color.row(i));
+						}
 
 					}
 
-
-					viewer.launch();
-
-					
-
-
+					cv::imshow("depth",m);
+					cv::waitKey();
 
 			};
 
