@@ -29,6 +29,12 @@ namespace dynfu {
 		
 		
 		public:
+
+
+			/**
+			 *	The type of value represented.
+			 */
+			using type=T;
 		
 		
 			pipeline_value () = default;

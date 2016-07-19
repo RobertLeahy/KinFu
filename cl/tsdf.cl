@@ -22,7 +22,7 @@ kernel void tsdf_kernel(__global float * src, __global float* dest,
  const unsigned int tsdf_width, const unsigned int tsdf_height, const unsigned int tsdf_depth,
  __global const float* proj_view, __global const float* K, __global const float* K_inv, 
  __global const float* t_gk, const float mu, const unsigned int frame_width, const unsigned int frame_height, 
- const float tsdf_extent_w, const float tsdf_extent_h, const float tsdf_extent_d) {
+ const float tsdf_extent_w, const float tsdf_extent_h, const float tsdf_extent_d, const unsigned int n) {
 
  	// get the x, y, z of the current voxel from memory
 	unsigned int x = get_global_id(0);
@@ -70,7 +70,7 @@ kernel void tsdf_kernel(__global float * src, __global float* dest,
 	// check if the current voxel projects into the depth frame
 	if (x_tild.x < 0 || x_tild.x > frame_width || x_tild.y < 0 || x_tild.y > frame_height || x_ndc.z < 0.0f) {
 
-		dest[idx] = 1.0f;
+		if (n==0) dest[idx] = NAN;
 		return;
 
 	}
@@ -95,7 +95,19 @@ kernel void tsdf_kernel(__global float * src, __global float* dest,
 	
 	if (nu >= -mu) {
 
-		dest[idx] = -fmin(1.0f, nu/mu);
+		float new_val = -fmin(1.0f, nu/mu);
+
+		float avg = dest[idx];
+		
+		if (avg != NAN) {
+
+			dest[idx] = (avg*(float)n + new_val) / ((float)n+1);
+
+		} else {
+
+			dest[idx] = new_val;
+		
+		}
 
 	} else {
 

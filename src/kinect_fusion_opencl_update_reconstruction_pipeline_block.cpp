@@ -1,5 +1,6 @@
 #include <dynfu/kinect_fusion_opencl_update_reconstruction_pipeline_block.hpp>
 #include <dynfu/opencl_vector_pipeline_value.hpp>
+#include <dynfu/pose_estimation_pipeline_block.hpp>
 #include <Eigen/Dense>
 #include <cstddef>
 #include <memory>
@@ -35,7 +36,8 @@ namespace dynfu {
 			mu_(mu),
 			tsdf_width_(tsdf_width),
 			tsdf_height_(tsdf_height),
-			tsdf_depth_(tsdf_depth)
+			tsdf_depth_(tsdf_depth),
+			invk_(0)
 	{
 
 		tsdf_kernel_.set_arg(5,proj_view_buf_);
@@ -55,13 +57,13 @@ namespace dynfu {
 		std::size_t frame_width,
 		std::size_t frame_height,
 		Eigen::Matrix3f k,
-		Eigen::Matrix4f t_g_k,
+		pose_estimation_pipeline_block::value_type::element_type & T_g_k,
 		value_type v
 	) {
 		
 		auto && depth_frame = ve_(frame);
 		auto q = ve_.command_queue();
-
+		auto t_g_k=T_g_k.get();
 
 		if (t_g_k_ != t_g_k) {
 			
@@ -126,6 +128,8 @@ namespace dynfu {
 		tsdf_kernel_.set_arg(9, mu_);
 		tsdf_kernel_.set_arg(10, std::uint32_t(frame_width));
 		tsdf_kernel_.set_arg(11, std::uint32_t(frame_height));
+		tsdf_kernel_.set_arg(15, std::uint32_t(invk_++));
+
 		
 		// Ready to run the kernel
 		std::size_t tsdf_extent[] = {tsdf_width_, tsdf_height_, tsdf_depth_};

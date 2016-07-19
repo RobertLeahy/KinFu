@@ -14,6 +14,7 @@
 #include <dynfu/opencl_program_factory.hpp>
 #include <dynfu/opencl_vector_pipeline_value.hpp>
 #include <dynfu/optional.hpp>
+#include <dynfu/pose_estimation_pipeline_block.hpp>
 #include <dynfu/update_reconstruction_pipeline_block.hpp>
 #include <Eigen/Dense>
 #include <cstddef>
@@ -48,6 +49,7 @@ namespace dynfu {
 			std::size_t tsdf_height_;
 			std::size_t tsdf_depth_;
 			
+			std::size_t invk_;
 		
 		public:
 			
@@ -84,15 +86,15 @@ namespace dynfu {
 				boost::compute::command_queue q,
 				opencl_program_factory & opf,
 				float mu,
-				std::size_t tsdf_width=512,
-				std::size_t tsdf_height=512,
-				std::size_t tsdf_depth=512,
+				std::size_t tsdf_width=256,
+				std::size_t tsdf_height=256,
+				std::size_t tsdf_depth=256,
 				float tsdf_extent_w=3.0f,
 				float tsdf_extent_h=3.0f,
 				float tsdf_extent_d=3.0f
 			);
 			
-			virtual value_type operator () (depth_device::value_type::element_type & frame, std::size_t width, std::size_t height, Eigen::Matrix3f k, Eigen::Matrix4f T_g_k, value_type v=value_type{});
+			virtual value_type operator () (depth_device::value_type::element_type & frame, std::size_t width, std::size_t height, Eigen::Matrix3f k, pose_estimation_pipeline_block::value_type::element_type & T_g_k, value_type v=value_type{});
 			 
 	};
 	

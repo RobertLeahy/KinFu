@@ -6,6 +6,7 @@
 #pragma once
 
 #include <dynfu/pose_estimation_pipeline_block.hpp>
+#include <Eigen/Dense>
 #include <cstddef>
 
 
@@ -27,10 +28,13 @@ namespace dynfu {
 			std::size_t frame_width_;
 			std::size_t frame_height_;
 			std::size_t numit_;
+			Eigen::Matrix4f t_gk_initial_;
 
 			Eigen::Matrix4f iterate(
-				measurement_pipeline_block::value_type &,
-				surface_prediction_pipeline_block::value_type &,
+				measurement_pipeline_block::vertex_value_type::element_type &,
+				measurement_pipeline_block::normal_value_type::element_type &,
+				measurement_pipeline_block::vertex_value_type::element_type *,
+				measurement_pipeline_block::normal_value_type::element_type *,
 				Eigen::Matrix3f,
 				Eigen::Matrix4f,
 				Eigen::Matrix4f
@@ -53,6 +57,9 @@ namespace dynfu {
 			 *  \param [in] frame_height
 			 *      The height of the depth frame
 			 *
+			 *	\param [in] t_gk_initial
+			 *		The \f$T_{g,k}\f$ to return from the first invocation.
+			 *
 			 *  \param [in] numit
 			 *      The number of iterations to use
 			 *
@@ -62,14 +69,17 @@ namespace dynfu {
 				float epsilon_theta,
 				std::size_t frame_width,
 				std::size_t frame_height,
+				Eigen::Matrix4f t_gk_initial,
 				std::size_t numit=15
 			);
 
 			virtual value_type operator () (
-				measurement_pipeline_block::value_type & live_vn,
-				surface_prediction_pipeline_block::value_type & predicted_previous_vn,
+				measurement_pipeline_block::vertex_value_type::element_type & v,
+				measurement_pipeline_block::normal_value_type::element_type & n,
+				measurement_pipeline_block::vertex_value_type::element_type * prev_v,
+				measurement_pipeline_block::normal_value_type::element_type * prev_n,
 				Eigen::Matrix3f k,
-				Eigen::Matrix4f t_gk_minus_one
+				value_type t_gk_minus_one
 			) override;
 
 

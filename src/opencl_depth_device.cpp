@@ -18,8 +18,8 @@ namespace dynfu {
 	
 	opencl_depth_device::value_type opencl_depth_device::operator () (value_type v) {
 		
-		using type=opencl_vector_pipeline_value<buffer_type::value_type>;
-		class pipeline_value final : public type {
+		using base_type=opencl_vector_pipeline_value<buffer_type::value_type>;
+		class pipeline_value final : public base_type {
 			
 			
 			public:
@@ -29,7 +29,7 @@ namespace dynfu {
 				boost::compute::future<boost::compute::vector<buffer_type::value_type>::iterator> future;
 				
 				
-				using type::type;
+				using base_type::base_type;
 				
 				
 				~pipeline_value () noexcept {
