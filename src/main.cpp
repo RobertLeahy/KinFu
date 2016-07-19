@@ -37,6 +37,8 @@ namespace {
 
 			dynfu::optional<dynfu::filesystem::path> dataset;
 			dynfu::optional<std::size_t> max_frames;
+			dynfu::optional<dynfu::filesystem::path> save_off;
+			dynfu::optional<dynfu::filesystem::path> read_off;
 
 
 	};
@@ -48,7 +50,11 @@ namespace {
 static dynfu::optional<program_options> get_program_options (int argc, char ** argv) {
 
 	boost::program_options::options_description desc("Command line flags");
-	desc.add_options()("dataset",boost::program_options::value<std::string>(),"Path to depth frames")("max-frames",boost::program_options::value<std::size_t>(),"Max frames to process")("help,?","Display usage information");
+	desc.add_options()("dataset",boost::program_options::value<std::string>(),"Path to depth frames")
+		("max-frames",boost::program_options::value<std::size_t>(),"Max frames to process")
+		("save-off",boost::program_options::value<std::string>(),"Save the generated mesh to this .off file")
+		("read-off",boost::program_options::value<std::string>(),"Read the generated mesh to this .off file and exit")
+		("help,?","Display usage information");
 
 	boost::program_options::variables_map vm;
 	boost::program_options::store(boost::program_options::parse_command_line(argc,argv,desc),vm);
@@ -65,11 +71,23 @@ static dynfu::optional<program_options> get_program_options (int argc, char ** a
 
 	if (vm.count("dataset")) retr.dataset.emplace(vm["dataset"].as<std::string>());
 	if (vm.count("max-frames")) retr.max_frames.emplace(vm["max-frames"].as<std::size_t>());
+	if (vm.count("save-off")) retr.save_off.emplace(vm["save-off"].as<std::string>());
+	if (vm.count("read-off")) retr.read_off.emplace(vm["read-off"].as<std::string>());
 
 	return retr;
 
 }
 
+
+static void display_off(dynfu::filesystem::path path) {
+
+    Eigen::MatrixXi SF;
+    Eigen::MatrixXd SV;
+
+    dynfu::libigl::readOFF(path.string(), SV, SF);
+    dynfu::libigl::viewer(SV,SF);
+
+}
 
 static void main_impl (int argc, char ** argv) {
 
@@ -77,6 +95,14 @@ static void main_impl (int argc, char ** argv) {
 	if (!opt) return;
 	auto && options=*opt;
 	
+
+	if (options.read_off) {
+
+		display_off(*options.read_off);
+		return;
+
+	}
+
 	auto d=boost::compute::system::default_device();
 	boost::compute::context ctx(d);
 	boost::compute::command_queue q(ctx,d);
@@ -205,6 +231,12 @@ static void main_impl (int argc, char ** argv) {
     std::cout << "Running Marching Cubes..." << std::endl;
 
     dynfu::libigl::marching_cubes(S_,GV,tsdf_size,tsdf_size,tsdf_size,SV,SF);
+
+	if (options.save_off) {
+		std::cout << "Writing mesh to " << options.save_off->string() << std::endl;
+		dynfu::libigl::writeOFF(options.save_off->string(), SV, SF);
+	}
+
     dynfu::libigl::viewer(SV,SF);
 
 }
