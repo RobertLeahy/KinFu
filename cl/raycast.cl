@@ -23,31 +23,31 @@ int3 getVoxel (const float3 pos, const float extent, const size_t size) {
 }
 
 
+int isVoxelValidAndOffBorder (const int3 vox, const size_t size, const size_t dist) {
+
+    if (size < dist) return false;
+    int upper = size - dist;
+    int lower = dist;
+    return !(
+        (vox.x < lower) || (vox.x >= upper) ||
+        (vox.y < lower) || (vox.y >= upper) ||
+        (vox.z < lower) || (vox.z >= upper)
+    );
+
+}
+
+
 int isVoxelValid (const int3 vox, const size_t size) {
 
-    return !(
-        (vox.x < 0) || (vox.x >= size) ||
-        (vox.y < 0) || (vox.y >= size) ||
-        (vox.z < 0) || (vox.z >= size)
-    );
+    return isVoxelValidAndOffBorder(vox, size, 0);
 
 }
 
 
-int isVoxelValidAndOffBorder (const int3 vox, const size_t size) {
+float triLerp (const float3 p, const __global float * tsdf, const float extent, const size_t size) {
 
-    return !(
-        (vox.x <= 0) || (vox.x >= (size - 1)) ||
-        (vox.y <= 0) || (vox.y >= (size - 1)) ||
-        (vox.z <= 0) || (vox.z >= (size - 1))
-    );
-
-}
-
-
-float triLerp (const int3 vox, const float3 p, const __global float * tsdf, const float extent, const size_t size) {
-
-    if (!isVoxelValidAndOffBorder(vox,size)) return NAN;
+    int3 vox = getVoxel(p, extent, size);
+    if (!isVoxelValidAndOffBorder(vox,size,1)) return NAN;
 
     float flt_size = size;
     float voxel_size = extent / flt_size;
@@ -162,6 +162,8 @@ float triLerp (const int3 vox, const float3 p, const __global float * tsdf, cons
 
     }
     float tsdf_val = getTsdfValue(vox, tsdf, tsdf_size);
+    float flt_size = tsdf_size;
+    float cell_size = extent / flt_size;
     //  We have to start STEP_SIZE away because we need
     //  two samples to detect a sign change
     for (float dist = STEP_SIZE; dist < KINECT_MAX_DIST; dist += STEP_SIZE) {
@@ -183,22 +185,44 @@ float triLerp (const int3 vox, const float3 p, const __global float * tsdf, cons
 
         //  Good sign change
 
-        float ftdt = triLerp(vox, where, tsdf, extent, tsdf_size);
+        float ftdt = triLerp(where, tsdf, extent, tsdf_size);
         if (isnan(ftdt)) break;
 
         float3 last = where - (ray_dir * STEP_SIZE);
-        int3 last_vox = getVoxel(last, extent, tsdf_size);
-        float ft = triLerp(last_vox, last, tsdf, extent, tsdf_size);
+        float ft = triLerp(last, tsdf, extent, tsdf_size);
         if (isnan(ft)) break;
 
         float t_star = dist - (STEP_SIZE * ft) / (ftdt - ft);
 
-        vstore3(camera_pos + (ray_dir * t_star), idx, vmap);
+        if (!isVoxelValidAndOffBorder(getVoxel(last, extent, tsdf_size), tsdf_size, 2)) break;
 
-        //  This is bullshit but we need to store something
-        //  so we just choose a vector pointing back towards
-        //  us
-        vstore3(-ray_dir, idx, nmap);
+        //  Store computed vertex position
+        float3 v = camera_pos + (ray_dir * t_star);
+        vstore3(v, idx, vmap);
+
+        float3 t = v;
+        t.x += cell_size;
+        float fx1 = triLerp(t, tsdf, extent, tsdf_size);
+        t = v;
+        t.x -= cell_size;
+        float fx2 = triLerp(t, tsdf, extent, tsdf_size);
+
+        t = v;
+        t.y += cell_size;
+        float fy1 = triLerp(t, tsdf, extent, tsdf_size);
+        t = v;
+        t.y -= cell_size;
+        float fy2 = triLerp(t, tsdf, extent, tsdf_size);
+
+        t = v;
+        t.z += cell_size;
+        float fz1 = triLerp(t, tsdf, extent, tsdf_size);
+        t = v;
+        t.z -= cell_size;
+        float fz2 = triLerp(t, tsdf, extent, tsdf_size);
+
+        float3 n = (float3) (fx1 - fx2, fy1 - fy2, fz1 - fz2);
+        vstore3(normalize(n), idx, nmap);
 
         return;
 
