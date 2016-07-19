@@ -5,16 +5,20 @@
 
 float getTsdfValue (const int3 vox, const __global float * tsdf, const size_t size) {
 
-    return tsdf[vox.x + vox.y * (size + vox.z * size)];
+    return tsdf[vox.x + vox.y * size + vox.z * size * size];
 
 }
 
 
 int3 getVoxel (const float3 pos, const float extent, const size_t size) {
 
-    float flt_size=size;
-    float3 retr = round((pos * (flt_size / extent)) - 0.5f);
-    return (int3)(retr.x, retr.y, retr.z);
+    float flt_size = size;
+    float one_over_voxel_size = flt_size / extent;
+    return (int3)(
+        floor(pos.x * one_over_voxel_size),
+        floor(pos.y * one_over_voxel_size),
+        floor(pos.z * one_over_voxel_size)
+    );
 
 }
 
