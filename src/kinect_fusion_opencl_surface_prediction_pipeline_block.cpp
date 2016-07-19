@@ -48,15 +48,21 @@ namespace dynfu {
 	
 	
 	kinect_fusion_opencl_surface_prediction_pipeline_block::value_type kinect_fusion_opencl_surface_prediction_pipeline_block::operator () (
-		update_reconstruction_pipeline_block::value_type tsdf,
+		update_reconstruction_pipeline_block::value_type::element_type & tsdf,
+		std::size_t,
+		std::size_t,
+		std::size_t,
+		pose_estimation_pipeline_block::value_type::element_type & t_g_k_pv,
 		Eigen::Matrix3f k,
-		Eigen::Matrix4f t_g_k,
-		kinect_fusion_opencl_surface_prediction_pipeline_block::value_type v
+		measurement_pipeline_block::vertex_value_type::element_type &,
+		measurement_pipeline_block::normal_value_type::element_type &,
+		value_type v
 	) {
 
 		auto q = ve_.command_queue();
 
 
+		auto t_g_k = t_g_k_pv.get();
 		if (t_g_k_ != t_g_k) {
 			
 			t_g_k_ = t_g_k;
@@ -90,12 +96,8 @@ namespace dynfu {
 		vmap.resize(num_depth_px, q);
 		nmap.resize(num_depth_px, q);
 
-
-		auto && tsdf_ptr = tsdf.buffer;
-		using tsdf_type = opencl_vector_pipeline_value<float>;
-		if (!tsdf_ptr) tsdf_ptr = std::make_unique<tsdf_type>(q);
-		auto && tsdf_buf = dynamic_cast<tsdf_type &>(*tsdf_ptr).vector();
-		//tsdf_buf.resize(tsdf_width_*tsdf_height_*tsdf_depth_, q);
+		opencl_vector_pipeline_value_extractor<float> tsdf_e(q);
+		auto && tsdf_buf=tsdf_e(tsdf);
 
 		raycast_kernel_.set_arg(0,tsdf_buf);
 		raycast_kernel_.set_arg(1,vmap);

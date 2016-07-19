@@ -96,11 +96,17 @@ SCENARIO_METHOD(fixture, "A dynfu::kinect_fusion_opencl_surface_prediction_pipel
 		dynfu::file_system_depth_device ddi(pp/".."/"data/test/tsdf_viewer/",ff,&f);
 		dynfu::opencl_depth_device dd(ddi,q);
 
-		auto && tsdf=kfourpb(*dd(), width, height, k, t_g_k);
+		dynfu::cpu_pipeline_value<Eigen::Matrix4f> t_g_k_pv;
+		t_g_k_pv.emplace(t_g_k);
+		auto && tsdf=kfourpb(*dd(), width, height, k, t_g_k_pv);
 
 		THEN("Invoking it and downloading the produced V and N maps does not fail and produces V and N maps which are remotely sane") {
 
-			auto && vnmap = kfosppb(std::move(tsdf), k, t_g_k);
+			dynfu::cpu_pipeline_value<std::vector<Eigen::Vector3f>> prev_v;
+			prev_v.emplace();
+			dynfu::cpu_pipeline_value<std::vector<Eigen::Vector3f>> prev_n;
+			prev_n.emplace();
+			auto && vnmap = kfosppb(*tsdf.buffer, tsdf.width, tsdf.height, tsdf.depth, t_g_k_pv, k, prev_v, prev_n, {});
 			auto && v=std::get<0>(vnmap);
 			auto && n=std::get<1>(vnmap);
 			auto && vs=v->get();

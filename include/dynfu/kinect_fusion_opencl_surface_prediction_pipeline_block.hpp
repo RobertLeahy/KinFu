@@ -11,9 +11,11 @@
 #include <boost/compute/container/vector.hpp>
 #include <boost/compute/kernel.hpp>
 #include <dynfu/depth_device.hpp>
+#include <dynfu/measurement_pipeline_block.hpp>
 #include <dynfu/opencl_program_factory.hpp>
 #include <dynfu/opencl_vector_pipeline_value.hpp>
 #include <dynfu/optional.hpp>
+#include <dynfu/pose_estimation_pipeline_block.hpp>
 #include <dynfu/surface_prediction_pipeline_block.hpp>
 #include <dynfu/update_reconstruction_pipeline_block.hpp>
 #include <Eigen/Dense>
@@ -84,7 +86,17 @@ namespace dynfu {
 				std::size_t frame_height=480
 			);
 			
-			virtual value_type operator () (update_reconstruction_pipeline_block::value_type tsdf, Eigen::Matrix3f k, Eigen::Matrix4f T_g_k, value_type v=value_type{});
+			virtual value_type operator () (
+				update_reconstruction_pipeline_block::value_type::element_type &,
+				std::size_t,
+				std::size_t,
+				std::size_t,
+				pose_estimation_pipeline_block::value_type::element_type &,
+				Eigen::Matrix3f,
+				measurement_pipeline_block::vertex_value_type::element_type &,
+				measurement_pipeline_block::normal_value_type::element_type &,
+				value_type
+			) override;
 			 
 	};
 	
