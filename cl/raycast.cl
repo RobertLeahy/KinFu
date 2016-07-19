@@ -1,52 +1,31 @@
-
-#define idx(t) \
-    ( (int)(t.x + t.y*(tsdf_size + t.z*tsdf_size)) )
-
-#define toVoxel(t) \
-    ( (round( ((float)tsdf_size/extent) * t - 0.5f)) )
-
 #define KINECT_MAX_DIST (8.0f)
 #define KINECT_MIN_DIST (0.4f)
 #define STEP_SIZE (0.002f)
 
-float triLerp (const float3 p, const unsigned int tsdf_size, const float extent, __global const float * tsdf) {
 
-    float3 vox = toVoxel(p);
+float getTsdfValue (const int3 vox, const __global float * tsdf, const size_t size) {
 
-    float cell_size = extent / tsdf_size;
+    return tsdf[vox.x + vox.y * (size + vox.z * size)];
 
-    if (vox.x <= 0 || vox.x >= tsdf_size - 1) return NAN;
-    if (vox.y <= 0 || vox.y >= tsdf_size - 1) return NAN;
-    if (vox.z <= 0 || vox.z >= tsdf_size - 1) return NAN;
+}
 
-    float3 vox_world = (vox + 0.5) * cell_size;
 
-    vox.x = (p.x < vox_world.x) ? (vox.x - 1) : vox.x;
-    vox.y = (p.y < vox_world.y) ? (vox.y - 1) : vox.y;
-    vox.z = (p.z < vox_world.z) ? (vox.z - 1) : vox.z;
+int3 getVoxel (const float3 pos, const float extent, const size_t size) {
 
-    float a = (p.x - (vox.x + 0.5f) * cell_size) / cell_size;
-    float b = (p.y - (vox.y + 0.5f) * cell_size) / cell_size;
-    float c = (p.z - (vox.z + 0.5f) * cell_size) / cell_size;
+    float flt_size=size;
+    float3 retr = round((pos * (flt_size / extent)) - 0.5f);
+    return (int3)(retr.x, retr.y, retr.z);
 
-    float3 v000 = (float3)(vox.x + 0, vox.y + 0, vox.z + 0);
-    float3 v001 = (float3)(vox.x + 0, vox.y + 0, vox.z + 1);
-    float3 v010 = (float3)(vox.x + 0, vox.y + 1, vox.z + 0);
-    float3 v011 = (float3)(vox.x + 0, vox.y + 1, vox.z + 1);
-    float3 v100 = (float3)(vox.x + 1, vox.y + 0, vox.z + 0);
-    float3 v101 = (float3)(vox.x + 1, vox.y + 0, vox.z + 1);
-    float3 v110 = (float3)(vox.x + 1, vox.y + 1, vox.z + 0);
-    float3 v111 = (float3)(vox.x + 1, vox.y + 1, vox.z + 1);
- 
-    return \
-        tsdf[(int)(idx(v000))] * (1-a) * (1-b) * (1-c) + 
-        tsdf[(int)(idx(v001))] * (1-a) * (1-b) * c +
-        tsdf[(int)(idx(v010))] * (1-a) * b * (1-c) + 
-        tsdf[(int)(idx(v011))] * (1-a) * b * c + 
-        tsdf[(int)(idx(v100))] * a * (1-b) * (1-c)+ 
-        tsdf[(int)(idx(v101))] * a * (1-b) * c + 
-        tsdf[(int)(idx(v110))] * a * b * (1-c) + 
-        tsdf[(int)(idx(v111))] * a * b * c;
+}
+
+
+int isVoxelValid (const int3 vox, const size_t size) {
+
+    return !(
+        (vox.x < 0) || (vox.x >= size) ||
+        (vox.y < 0) || (vox.y >= size) ||
+        (vox.z < 0) || (vox.z >= size)
+    );
 
 }
 
@@ -65,113 +44,99 @@ float triLerp (const float3 p, const unsigned int tsdf_size, const float extent,
  *  frame_width - The width of the depth frame
  */
  kernel void raycast(
-    __global float * tsdf,
+    const __global float * tsdf,
     __global float * vmap,
     __global float * nmap,
-    __global const float * T_g_k,
-    __global const float * Kinv,
+    const __global float * T_g_k,
+    const __global float * Kinv,
     const float mu,
     const float extent,
     const unsigned int tsdf_size,
     const unsigned int frame_width
  ) {
 
- 	// get the u,v coords of this pixel
-	unsigned int u = get_global_id(0);
-	unsigned int v = get_global_id(1);
+	size_t u = get_global_id(0);
+	size_t v = get_global_id(1);
+    size_t idx = (v * frame_width) + u;
 
-    // now we need to compute the ray from this u,v
-
+    //  This is where the camera is in world space
     float3 camera_pos = (float3)(T_g_k[3], T_g_k[7], T_g_k[11]);
 
-
-
+    //  We now compute where the pixel is in NDC
     float4 uv_sensor;
     uv_sensor.x = Kinv[0]*u + Kinv[1]*v  + Kinv[2];
     uv_sensor.y = Kinv[3]*u + Kinv[4]*v  + Kinv[5];
     uv_sensor.z = Kinv[6]*u + Kinv[7]*v  + Kinv[8];
     uv_sensor.w = 1.0f;
-    
-    //float4 uv_sensor2 = (float4)((u-640.0f/2.0f)/585.0f, (v-480.0f/2.0f)/585.0f, 1.0f, 1.0f );
 
-    
-
+    //  We now compute a point which relative to the camera's
+    //  position in world space gives us the direction along
+    //  which we must trace to obtain the value for this pixel 
     float3 uv_world;
     uv_world.x = T_g_k[0]*uv_sensor.x + T_g_k[1]*uv_sensor.y + T_g_k[2]*uv_sensor.z + T_g_k[3]*uv_sensor.w;
     uv_world.y = T_g_k[4]*uv_sensor.x + T_g_k[5]*uv_sensor.y + T_g_k[6]*uv_sensor.z + T_g_k[7]*uv_sensor.w;
     uv_world.z = T_g_k[8]*uv_sensor.x + T_g_k[9]*uv_sensor.y + T_g_k[10]*uv_sensor.z + T_g_k[11]*uv_sensor.w;
-    //uv_world.w = T_g_k[12]*uv_sensor.x + T_g_k[13]*uv_sensor.y + T_g_k[14]*uv_sensor.z + T_g_k[15]*uv_sensor.w;
 
-    // compute this ray and normalize it
+    //  Obtain the direction and normalize it
+    //
+    //  TODO: If this is the null vector what happens?  Can
+    //  that happen?  Do we need to check?  How would we
+    //  handle that?
     float3 ray_dir = normalize(uv_world - camera_pos);
 
-    if (ray_dir.z < 0.0f) {
-        vstore3(NAN, v*frame_width + u, vmap);
+    //  This gives us the position from which we will begin
+    //  our search (i.e. this position is on the near plane)
+    float3 initial_ray = camera_pos + KINECT_MIN_DIST * ray_dir;
+
+    //  We trace the ray by starting on the near plane (see
+    //  above) and stepping in STEP_SIZE increments until
+    //  we find a surface intersection or until we exit the
+    //  TSDF volume
+    int3 vox = getVoxel(initial_ray, extent, tsdf_size);
+    if (!isVoxelValid(vox, tsdf_size)) {
+
+        vstore3(NAN, idx, vmap);
+        vstore3(NAN, idx, nmap);
+
         return;
+
+    }
+    float tsdf_val = getTsdfValue(vox, tsdf, tsdf_size);
+    //  We have to start STEP_SIZE away because we need
+    //  two samples to detect a sign change
+    for (float dist = STEP_SIZE; dist < KINECT_MAX_DIST; dist += STEP_SIZE) {
+
+        float3 where = initial_ray + (ray_dir * dist);
+
+        //  Get current TSDF value
+        float tsdf_val_prev = tsdf_val;
+        vox = getVoxel(where, extent, tsdf_size);
+        if (!isVoxelValid(vox, tsdf_size)) break;
+        tsdf_val = getTsdfValue(vox, tsdf, tsdf_size);
+
+        int p = signbit(tsdf_val_prev);
+        int c = signbit(tsdf_val);
+        if (p == c) continue;
+
+        //  Detect backface: From negative to positive
+        //if (p) break;
+
+        //  WE ARE CURRENTLY APPROXIMATING AND NOT USING
+        //  TRILINEAR INTERPOLATION
+        //
+        //  TODO
+        vstore3(where, idx, vmap);
+        //  This is bullshit but we need to store something
+        //  so we just choose a vector pointing back towards
+        //  us
+        vstore3(-ray_dir, idx, nmap);
+
+        return;
+
     }
 
-    // TODO: Do we need to worry if ray = 0?
-
-    // Sample the TSDF at uv_world position.
-    float3 initial_ray = camera_pos + KINECT_MIN_DIST*ray_dir;
-
-    float tsdf_val = tsdf[idx(toVoxel(initial_ray))];
-    float tsdf_val_prev;
-    float dist;
-
-    for (dist = KINECT_MIN_DIST; dist < KINECT_MAX_DIST; dist += STEP_SIZE) {
-
-        tsdf_val_prev = tsdf_val;
-
-        float3 vox = toVoxel(camera_pos + (dist+STEP_SIZE)*ray_dir);
-
-        // No intersection, outside of the TSDF volume
-        if (vox.x < 0 || vox.x > tsdf_size ||
-            vox.y < 0 || vox.z > tsdf_size ||
-            vox.z < 0 || vox.z > tsdf_size)  {
-
-            break;
-        }
-
-        tsdf_val = tsdf[idx(vox)];
-
-        if (tsdf_val > 0.0f && tsdf_val_prev < 0.0f) {
-            // Backface
-            break;
-        }
-
-        if ( tsdf_val < 0.0f && tsdf_val_prev > 0.0f) {
-            // Good sign change - we've walked over the level set
-
-            vstore3(camera_pos + (dist+STEP_SIZE) * ray_dir, v*frame_width + u, vmap);
-            return;
-
-            // TODO: trilinearly interpolate this!
-
-            float Ftdt = triLerp(camera_pos + (dist+STEP_SIZE) * ray_dir, tsdf_size, extent, tsdf);
-            if (isnan(Ftdt)) break;
-
-            float Ft = triLerp(camera_pos + dist*ray_dir, tsdf_size, extent, tsdf);
-            if (isnan(Ft)) break;
-
-            float t_star = dist - STEP_SIZE * Ft / (Ftdt - Ft);
-
-            // calculate vertex!
-            float3 vertex = camera_pos + ray_dir * t_star;
-
-            vstore3(vertex, v*frame_width + u, vmap);
-            return;
-
-            // TODO: get the normal now
-
-        }
-
-
-        // TODO: Are we going to infinitely loop?
-    }
-
-    vstore3(NAN, v*frame_width + u, vmap);
-    vstore3(NAN, v*frame_width + u, nmap);
+    vstore3(NAN, idx, vmap);
+    vstore3(NAN, idx, nmap);
 
 }
 
