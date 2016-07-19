@@ -34,6 +34,54 @@ int isVoxelValid (const int3 vox, const size_t size) {
 }
 
 
+int isVoxelValidAndOffBorder (const int3 vox, const size_t size) {
+
+    return !(
+        (vox.x <= 0) || (vox.x >= (size - 1)) ||
+        (vox.y <= 0) || (vox.y >= (size - 1)) ||
+        (vox.z <= 0) || (vox.z >= (size - 1))
+    );
+
+}
+
+
+float triLerp (const int3 vox, const float3 p, const __global float * tsdf, const float extent, const size_t size) {
+
+    if (!isVoxelValidAndOffBorder(vox,size)) return NAN;
+
+    float flt_size = size;
+    float voxel_size = extent / flt_size;
+    float3 vox_flt = (float3)(vox.x, vox.y, vox.z);
+    float3 vox_world = (vox_flt + 0.5f) * voxel_size;
+
+    if (p.x < vox_world.x) --vox.x;
+    if (p.y < vox_world.y) --vox.y;
+    if (p.z < vox_world.z) --vox.z;
+
+    float3 rs = (p - vox_world) / voxel_size;
+
+    int3 v000 = (int3)(vox.x, vox.y, vox.z);
+    int3 v001 = (int3)(vox.x, vox.y, vox.z + 1);
+    int3 v010 = (int3)(vox.x, vox.y + 1, vox.z);
+    int3 v011 = (int3)(vox.x, vox.y + 1, vox.z + 1);
+    int3 v100 = (int3)(vox.x + 1, vox.y, vox.z);
+    int3 v101 = (int3)(vox.x + 1, vox.y, vox.z + 1);
+    int3 v110 = (int3)(vox.x + 1, vox.y + 1, vox.z);
+    int3 v111 = (int3)(vox.x + 1, vox.y + 1, vox.z + 1);
+
+    return
+        getTsdfValue(v000, tsdf, size) * (1 - rs.x) * (1 - rs.y) * (1 - rs.z) +
+        getTsdfValue(v001, tsdf, size) * (1 - rs.x) * (1 - rs.y) * rs.z +
+        getTsdfValue(v010, tsdf, size) * (1 - rs.x) * rs.y * (1 - rs.z) +
+        getTsdfValue(v011, tsdf, size) * (1 - rs.x) * rs.y * rs.z +
+        getTsdfValue(v100, tsdf, size) * rs.x * (1 - rs.y) * (1 - rs.z) +
+        getTsdfValue(v101, tsdf, size) * rs.x * (1 - rs.y) * rs.z +
+        getTsdfValue(v110, tsdf, size) * rs.x * rs.y * (1 - rs.z) +
+        getTsdfValue(v111, tsdf, size) * rs.x * rs.y * rs.z;
+
+}
+
+
 /**
  *	Params:
  *
@@ -133,11 +181,20 @@ int isVoxelValid (const int3 vox, const size_t size) {
         //  Detect backface: From negative to positive
         if (p) break;
 
-        //  WE ARE CURRENTLY APPROXIMATING AND NOT USING
-        //  TRILINEAR INTERPOLATION
-        //
-        //  TODO
-        vstore3(where, idx, vmap);
+        //  Good sign change
+
+        float ftdt = triLerp(vox, where, tsdf, extent, tsdf_size);
+        if (isnan(ftdt)) break;
+
+        float3 last = where - (ray_dir * STEP_SIZE);
+        int3 last_vox = getVoxel(last, extent, tsdf_size);
+        float ft = triLerp(last_vox, last, tsdf, extent, tsdf_size);
+        if (isnan(ft)) break;
+
+        float t_star = dist - (STEP_SIZE * ft) / (ftdt - ft);
+
+        vstore3(camera_pos + (ray_dir * t_star), idx, vmap);
+
         //  This is bullshit but we need to store something
         //  so we just choose a vector pointing back towards
         //  us
