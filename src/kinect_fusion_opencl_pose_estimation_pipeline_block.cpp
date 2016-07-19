@@ -3,7 +3,7 @@
 #include <dynfu/cpu_pipeline_value.hpp>
 #include <dynfu/kinect_fusion_opencl_pose_estimation_pipeline_block.hpp>
 #include <dynfu/opencl_program_factory.hpp>
-#include <dynfu/opencl_vector_pipeline_value.hpp>
+#include <dynfu/scope.hpp>
 #include <Eigen/Dense>
 #include <cstddef>
 #include <cstdint>
@@ -73,16 +73,20 @@ namespace dynfu {
 			map_(get_map_kernel(pf)),
 			reduce_a_(get_reduce_a_kernel(pf)),
 			reduce_b_(get_reduce_b_kernel(pf)),
-			t_frame_frame_(q_.get_context(),sizeof(Eigen::Matrix4f)),
-			t_z_(q_.get_context(),sizeof(Eigen::Matrix4f)),
+			t_frame_frame_(q_.get_context(),sizeof(Eigen::Matrix4f),CL_MEM_READ_ONLY|CL_MEM_HOST_WRITE_ONLY),
+			t_z_(q_.get_context(),sizeof(Eigen::Matrix4f),CL_MEM_READ_ONLY|CL_MEM_HOST_WRITE_ONLY),
 			corr_pv_(frame_width*frame_height,q_.get_context()),
 			corr_pn_(frame_width*frame_height,q_.get_context()),
 			ais_(q_.get_context(),frame_width*frame_height*sizeof_a),
 			bis_(q_.get_context(),frame_width*frame_height*sizeof_b),
-			a_(q_.get_context(),sizeof_a),
-			b_(q_.get_context(),sizeof_b),
+			a_(q_.get_context(),sizeof_a,CL_MEM_WRITE_ONLY|CL_MEM_HOST_READ_ONLY),
+			b_(q_.get_context(),sizeof_b,CL_MEM_WRITE_ONLY|CL_MEM_HOST_READ_ONLY),
 			count_(q_.get_context(),sizeof(std::uint32_t)),
-			k_(q_.get_context(),sizeof(Eigen::Matrix3f)),
+			k_(q_.get_context(),sizeof(Eigen::Matrix3f),CL_MEM_READ_ONLY|CL_MEM_HOST_WRITE_ONLY),
+			v_e_(q_),
+			n_e_(q_),
+			pv_e_(q_),
+			pn_e_(q_),
 			epsilon_d_(epsilon_d),
 			epsilon_theta_(epsilon_theta),
 			frame_width_(frame_width),
@@ -146,49 +150,45 @@ namespace dynfu {
 		}
 
 		//	Get input vectors and bind parameters
-		opencl_vector_pipeline_value_extractor<measurement_pipeline_block::vertex_value_type::element_type::type::value_type> v_e(q_);
-		auto && vb=v_e(v);
+		auto && vb=v_e_(v);
 		corr_.set_arg(0,vb);
-		opencl_vector_pipeline_value_extractor<measurement_pipeline_block::normal_value_type::element_type::type::value_type> n_e(q_);
-		auto && nb=n_e(n);
+		auto && nb=n_e_(n);
 		corr_.set_arg(1,nb);
-		opencl_vector_pipeline_value_extractor<measurement_pipeline_block::vertex_value_type::element_type::type::value_type> pv_e(q_);
-		auto && pvb=pv_e(*prev_v);
+		auto && pvb=pv_e_(*prev_v);
 		corr_.set_arg(2,pvb);
-		opencl_vector_pipeline_value_extractor<measurement_pipeline_block::normal_value_type::element_type::type::value_type> pn_e(q_);
-		auto && pnb=pn_e(*prev_n);
+		auto && pnb=pn_e_(*prev_n);
 		corr_.set_arg(3,pnb);
 
 		Eigen::Matrix4f t_frame_frame(Eigen::Matrix4f::Identity());
 		Eigen::Matrix4f t_z(Eigen::Matrix4f::Identity());
 
 		k.transposeInPlace();
-		q_.enqueue_write_buffer(k_,0,sizeof(k),&k);
+		auto kw=q_.enqueue_write_buffer_async(k_,0,sizeof(k),&k);
+		auto kwg=make_scope_exit([&] () noexcept {	kw.wait();	});
 
-		std::uint32_t threshold (frame_height_*frame_width_*0.9f);// can have up to 90% rejected
-
+		//	Allow up to 90% of points to be rejected
+		std::uint32_t threshold(frame_height_*frame_width_);
+		threshold/=10U;
+		threshold*=9U;
 
 		for (std::size_t i=0;i<numit_;++i) {
 
 			//	Upload matrices to the GPU
 			t_frame_frame.transposeInPlace();
-			q_.enqueue_write_buffer(t_frame_frame_,0,sizeof(t_frame_frame),&t_frame_frame);
+			auto tffw=q_.enqueue_write_buffer_async(t_frame_frame_,0,sizeof(t_frame_frame),&t_frame_frame);
+			auto tffwg=make_scope_exit([&] () noexcept {	tffw.wait();	});
 			t_z.transposeInPlace();
-			q_.enqueue_write_buffer(t_z_,0,sizeof(t_z),&t_z);
+			auto tzw=q_.enqueue_write_buffer_async(t_z_,0,sizeof(t_z),&t_z);
+			auto tzwg=make_scope_exit([&] () noexcept {	tzw.wait();	});
 
 			//	Enqueue correspondences kernel
 			std::uint32_t count(0);
-			q_.enqueue_write_buffer(count_,0,sizeof(count),&count);
+			auto cw=q_.enqueue_write_buffer_async(count_,0,sizeof(count),&count);
+			auto cwg=make_scope_exit([&] () noexcept {	cw.wait();	});
 			std::size_t extent []={frame_width_,frame_height_};
 			q_.enqueue_nd_range_kernel(corr_,2,nullptr,extent,nullptr);
-			q_.enqueue_read_buffer(count_,0,sizeof(count),&count);
-			if (count>threshold) {
-
-				std::ostringstream ss;
-				ss << "Tracking lost: Could not find correspondences for " << count << "/" << (frame_height_*frame_width_) << " points (maximum allowable is " << threshold << ")";
-				throw tracking_lost_error(ss.str());
-
-			}
+			auto cr=q_.enqueue_read_buffer_async(count_,0,sizeof(count),&count);
+			auto crg=make_scope_exit([&] () noexcept {	cr.wait();	});
 
 			//	Map
 			map_.set_arg(0,vb);
@@ -203,9 +203,27 @@ namespace dynfu {
 
 			//	Download results
 			Eigen::Matrix<float,6,6> a;
-			q_.enqueue_read_buffer(a_,0,sizeof(a),&a);
+			auto ar=q_.enqueue_read_buffer_async(a_,0,sizeof(a),&a);
+			auto arg=make_scope_exit([&] () noexcept {	ar.wait();	});
 			Eigen::Matrix<float,6,1> b;
-			q_.enqueue_read_buffer(b_,0,sizeof(b),&b);
+			auto br=q_.enqueue_read_buffer_async(b_,0,sizeof(b),&b);
+			auto brg=make_scope_exit([&] () noexcept {	br.wait();	});
+
+			//	Make sure there were enough correspondences
+			cr.wait();
+			crg.release();
+			if (count>threshold) {
+
+				std::ostringstream ss;
+				ss << "Tracking lost: Could not find correspondences for " << count << "/" << (frame_height_*frame_width_) << " points (maximum allowable is " << threshold << ")";
+				throw tracking_lost_error(ss.str());
+
+			}
+
+			ar.wait();
+			arg.release();
+			br.wait();
+			brg.release();
 
 			//	Solve system
 			Eigen::Matrix<float,6,1> x=a.colPivHouseholderQr().solve(b);
