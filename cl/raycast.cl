@@ -131,7 +131,7 @@ int isVoxelValid (const int3 vox, const size_t size) {
         if (p == c) continue;
 
         //  Detect backface: From negative to positive
-        //if (p) break;
+        if (p) break;
 
         //  WE ARE CURRENTLY APPROXIMATING AND NOT USING
         //  TRILINEAR INTERPOLATION
