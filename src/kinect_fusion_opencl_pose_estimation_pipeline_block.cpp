@@ -5,6 +5,7 @@
 #include <dynfu/opencl_program_factory.hpp>
 #include <dynfu/scope.hpp>
 #include <Eigen/Dense>
+#include <Eigen/QR>
 #include <cstddef>
 #include <cstdint>
 #include <memory>
@@ -207,10 +208,12 @@ namespace dynfu {
 			q_.enqueue_nd_range_kernel(reduce_b_,1,nullptr,a_extent,nullptr);
 
 			//	Download results
-			Eigen::Matrix<float,6,6> a;
+			using a_type=Eigen::Matrix<float,6,6>;
+			a_type a;
 			auto ar=q_.enqueue_read_buffer_async(a_,0,sizeof(a),&a);
 			auto arg=make_scope_exit([&] () noexcept {	ar.wait();	});
-			Eigen::Matrix<float,6,1> b;
+			using b_type=Eigen::Matrix<float,6,1>;
+			b_type b;
 			auto br=q_.enqueue_read_buffer_async(b_,0,sizeof(b),&b);
 			auto brg=make_scope_exit([&] () noexcept {	br.wait();	});
 
@@ -226,7 +229,8 @@ namespace dynfu {
 			brg.release();
 
 			//	Solve system
-			Eigen::Matrix<float,6,1> x=a.colPivHouseholderQr().solve(b);
+			Eigen::FullPivHouseholderQR<a_type> solver(a);
+			b_type x=solver.solve(b);
 
 			float alpha=x(0);
 			float beta=x(1);
