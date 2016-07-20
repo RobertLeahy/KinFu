@@ -190,15 +190,13 @@ static void main_impl (int argc, char ** argv) {
 	
 	auto && tsdf = kf.truncated_signed_distance_function().get();
 
-	float tsdf_extent = 3.0;
-	std::size_t tsdf_size(256);
-
 	float px,py,pz;
     Eigen::MatrixXi SF;
     Eigen::MatrixXd SV;
     Eigen::VectorXd S_(tsdf_size*tsdf_size*tsdf_size);
     Eigen::MatrixXd GV(tsdf_size*tsdf_size*tsdf_size,3);
     std::size_t abs_idx(0);
+	std::size_t num_nans(0);
 
     for(std::size_t zi(0); zi < tsdf_size; ++zi) {
 
@@ -218,6 +216,7 @@ static void main_impl (int argc, char ** argv) {
 
 				if (std::isnan(tsdf[vox_idx])) {
 					S_(abs_idx) = 1.0f;
+					num_nans++;
 				} else {
  					S_(abs_idx) = tsdf[vox_idx];
 				}
@@ -232,7 +231,7 @@ static void main_impl (int argc, char ** argv) {
 
     }
 
-
+	std::cout << "Num NaN: " << num_nans << std::endl;
     std::cout << "Running Marching Cubes..." << std::endl;
 
     dynfu::libigl::marching_cubes(S_,GV,tsdf_size,tsdf_size,tsdf_size,SV,SF);
