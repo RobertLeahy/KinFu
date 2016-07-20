@@ -9,7 +9,6 @@ namespace dynfu {
 	std::pair<Eigen::Vector2i,float> to_pixel (Eigen::Vector3f camera, Eigen::Matrix3f k) noexcept {
 
 		Eigen::Vector3f pixel(k*camera);
-		Eigen::Vector2f uv(pixel(0)/pixel(2),pixel(1)/pixel(2));
 		Eigen::Vector2i retr(std::round(pixel(0)/pixel(2)),std::round(pixel(1)/pixel(2)));
 		return std::make_pair(retr,pixel(2));
 
