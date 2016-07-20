@@ -5,9 +5,9 @@
 #include <dynfu/file_system_opencl_program_factory.hpp>
 #include <dynfu/filesystem.hpp>
 #include <dynfu/kinect_fusion.hpp>
-#include <dynfu/kinect_fusion_opencl_frame_to_frame_surface_prediction_pipeline_block.hpp>
+#include <dynfu/kinect_fusion_opencl_surface_prediction_pipeline_block.hpp>
 #include <dynfu/kinect_fusion_opencl_measurement_pipeline_block.hpp>
-#include <dynfu/kinect_fusion_opencl_pose_estimation_pipeline_block.hpp>
+#include <dynfu/kinect_fusion_eigen_pose_estimation_pipeline_block.hpp>
 #include <dynfu/kinect_fusion_opencl_update_reconstruction_pipeline_block.hpp>
 #include <dynfu/libigl.hpp>
 #include <dynfu/msrc_file_system_depth_device.hpp>
@@ -131,16 +131,21 @@ static void main_impl (int argc, char ** argv) {
 
 	dynfu::filesystem::path pp(dynfu::current_executable_parent_path());
 
+	float tsdf_extent = 3.0;
+	std::size_t tsdf_size(256);
+	float mu = 0.03f;
+
 	dynfu::file_system_opencl_program_factory opf(pp/".."/"cl",ctx);
 	dynfu::kinect_fusion_opencl_measurement_pipeline_block mpb(q,opf,20,2.0f,1.0f);
 	Eigen::Matrix4f t_g_k(Eigen::Matrix4f::Identity());
 	t_g_k(0,3)=1.5f;
 	t_g_k(1,3)=1.5f;
 	t_g_k(2,3)=1.5f;
-	dynfu::kinect_fusion_opencl_pose_estimation_pipeline_block pepb(opf,q,0.1f,std::sin(20.0f*3.14159254f/180.0f),dd.width(),dd.height(),t_g_k);
-	dynfu::kinect_fusion_opencl_update_reconstruction_pipeline_block urpb(q,opf,0.03f);
-	dynfu::kinect_fusion_opencl_frame_to_frame_surface_prediction_pipeline_block sppb(q);
-	
+	dynfu::kinect_fusion_eigen_pose_estimation_pipeline_block pepb(0.1f,std::sin(20.0f*3.14159254f/180.0f),dd.width(),dd.height(),t_g_k);
+	dynfu::kinect_fusion_opencl_update_reconstruction_pipeline_block urpb(q,opf,mu);
+	dynfu::kinect_fusion_opencl_surface_prediction_pipeline_block sppb(q,opf,mu,tsdf_size, tsdf_extent, dd.width(), dd.height());
+
+
 	dynfu::kinect_fusion kf;
 	kf.depth_device(dd);
 	kf.measurement_pipeline_block(mpb);
