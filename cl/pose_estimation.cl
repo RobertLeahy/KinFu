@@ -37,7 +37,7 @@ kernel void correspondences(
 	const __global float * pn,	//	3
 	const unsigned int width,	//	4
 	const unsigned int height,	//	5
-	const __global float * t_frame_frame,	//	6
+	const __global float * t_gk_prev_inverse,	//	6
 	const __global float * t_z,	//	7
 	float epsilon_d,	//	8
 	float epsilon_theta,	//	9
@@ -51,13 +51,13 @@ kernel void correspondences(
 	size_t y=get_global_id(1);
 	size_t idx=(y*width)+x;
 
-	float3 curr_v=vload3(idx,v);
-	float4 curr_v_homo=(float4)(curr_v,1);
-	
-	float4 v_cp_h=matrixmul4(t_frame_frame,curr_v_homo);
-	
-	float3 v_cp=(float3)(v_cp_h.x, v_cp_h.y, v_cp_h.z);
-	float3 uv3=matrixmul3(k,v_cp);
+	float3 curr_pv=vload3(idx,pv);
+	float4 curr_pv_homo=(float4)(curr_pv,1);
+
+	float4 v_pcp_h=matrixmul4(t_gk_prev_inverse,curr_pv_homo);
+
+	float3 v_pcp=(float3)(v_pcp_h.x, v_pcp_h.y, v_pcp_h.z);
+	float3 uv3=matrixmul3(k,v_pcp);
 
 	int2 u=(int2)(round(uv3.x/uv3.z),round(uv3.y/uv3.z));
 
@@ -72,9 +72,10 @@ kernel void correspondences(
 
 	}
 
-	float3 curr_n=vload3(idx,n);
-	float3 curr_pv=vload3(lin_idx,pv);
-	float3 curr_pn=vload3(lin_idx,pn);
+	float3 curr_pn=vload3(idx,pn);
+	//	These are in current camera space
+	float3 curr_n=vload3(lin_idx,n);
+	float3 curr_v=vload3(lin_idx,v);
 	//	TODO: Should we be checking the current normal?
 	if (!(is_finite(curr_v) && is_finite(curr_pv) && is_finite(curr_pn))) {
 
@@ -84,7 +85,7 @@ kernel void correspondences(
 
 	}
 
-	float4 curr_pv_homo=(float4)(curr_pv,1);
+	float4 curr_v_homo=(float4)(curr_v,1);
 	float4 t_z_curr_v_homo=matrixmul4(t_z,curr_v_homo);
 	float4 t_z_curr_v_homo_curr_pv_homo=t_z_curr_v_homo-curr_pv_homo;
 	if (dot(t_z_curr_v_homo_curr_pv_homo,t_z_curr_v_homo_curr_pv_homo)>(epsilon_d*epsilon_d)) {
