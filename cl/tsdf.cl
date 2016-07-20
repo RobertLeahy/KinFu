@@ -22,7 +22,9 @@ kernel void tsdf_kernel(__global float * src, __global float* dest,
  const unsigned int tsdf_width, const unsigned int tsdf_height, const unsigned int tsdf_depth,
  __global const float* proj_view, __global const float* K, __global const float* K_inv, 
  __global const float* t_gk, const float mu, const unsigned int frame_width, const unsigned int frame_height, 
- const float tsdf_extent_w, const float tsdf_extent_h, const float tsdf_extent_d, const unsigned int n) {
+ const float tsdf_extent_w, const float tsdf_extent_h, const float tsdf_extent_d, const unsigned int n,
+ __global unsigned int * weight) {
+
 
  	// get the x, y, z of the current voxel from memory
 	unsigned int x = get_global_id(0);
@@ -36,6 +38,7 @@ kernel void tsdf_kernel(__global float * src, __global float* dest,
 	// OOB
 	if (x > tsdf_width || y > tsdf_height || z > tsdf_depth ) {
 		 dest[idx] = NAN; // TODO: what case do we have here?
+		 weight[idx] = 0;
 		 return;
 	} 	
 
@@ -71,7 +74,10 @@ kernel void tsdf_kernel(__global float * src, __global float* dest,
 	// check if the current voxel projects into the depth frame
 	if (x_tild.x < 0 || x_tild.x >= frame_width || x_tild.y < 0 || x_tild.y >= frame_height || plane.z < 0.0f) {
 
-		if (n==0) dest[idx] = NAN;
+		if (n==0) {
+			dest[idx] = NAN;
+			weight[idx] = 0;
+		}
 		return;
 
 	}
@@ -96,23 +102,24 @@ kernel void tsdf_kernel(__global float * src, __global float* dest,
 	
 	if (nu >= -mu) {
 
-		float new_val = -fmin(1.0f, nu/mu);
+		float new_val = fmin(1.0f, nu/mu);
 
-		float avg = dest[idx];
-		
-		if (avg != NAN) {
+		float prev_scalar = dest[idx];
+		unsigned int prev_weight = weight[idx];
 
-			dest[idx] = (avg*(float)n + new_val) / ((float)n+1);
+		// if curr_weight is equal to zero, then dest[idx] = new_val; and weight++;
+		// otherwise we average
+		dest[idx] = (prev_scalar*(float)prev_weight + new_val) / ((float)prev_weight+1);
+		weight[idx] = prev_weight+1;
 
-		} else {
-
-			dest[idx] = new_val;
-		
-		}
 
 	} else {
 
-		dest[idx] = NAN; // Don't integrate if we get here
+		if (n==0) {
+			dest[idx] = NAN; // Don't integrate if we get here
+			weight[idx] = 0;
+		}
+		
 
 	}
 	

@@ -33,6 +33,7 @@ namespace dynfu {
 			ik_buf_(ve_.command_queue().get_context(),sizeof(Eigen::Matrix3f),CL_MEM_READ_ONLY),
 			k_buf_(ve_.command_queue().get_context(),sizeof(Eigen::Matrix3f),CL_MEM_READ_ONLY),
 			proj_view_buf_(ve_.command_queue().get_context(),sizeof(Eigen::Matrix4f),CL_MEM_READ_ONLY),
+			weights_(tsdf_width*tsdf_height*tsdf_depth,ve_.command_queue().get_context()),
 			mu_(mu),
 			tsdf_width_(tsdf_width),
 			tsdf_height_(tsdf_height),
@@ -47,6 +48,7 @@ namespace dynfu {
 		tsdf_kernel_.set_arg(12, tsdf_extent_w);
 		tsdf_kernel_.set_arg(13, tsdf_extent_h);
 		tsdf_kernel_.set_arg(14, tsdf_extent_d);
+		tsdf_kernel_.set_arg(16, weights_);
 
 
 	}
