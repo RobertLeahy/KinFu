@@ -2,6 +2,8 @@
 #define l2_norm(t) \
 	( sqrt(t.x*t.x + t.y*t.y + t.z*t.z) )
 
+
+#define MAX_WEIGHT (256U)
 /**
  *	Params:
  *
@@ -35,10 +37,15 @@ kernel void tsdf_kernel(__global float * src, __global float* dest,
 	// From http://stackoverflow.com/questions/10903149/how-do-i-compute-the-linear-index-of-a-3d-coordinate-and-vice-versa
 	unsigned int idx = x + (tsdf_width)*y + ((tsdf_width) * (tsdf_height))*z;
 
+
+	if (n==0) {
+		dest[idx] = NAN;
+		weight[idx] = 0;
+	}
+
 	// OOB
 	if (x > tsdf_width || y > tsdf_height || z > tsdf_depth ) {
-		 dest[idx] = NAN; // TODO: what case do we have here?
-		 weight[idx] = 0;
+
 		 return;
 	} 	
 
@@ -74,54 +81,59 @@ kernel void tsdf_kernel(__global float * src, __global float* dest,
 	// check if the current voxel projects into the depth frame
 	if (x_tild.x < 0 || x_tild.x >= frame_width || x_tild.y < 0 || x_tild.y >= frame_height || plane.z < 0.0f) {
 
-		if (n==0) {
-			dest[idx] = NAN;
-			weight[idx] = 0;
-		}
 		return;
 
 	}
 
 	// Compute Eqn (7)
 	float3 K_inv_x;
-	K_inv_x.x = (x_tild.x - K[2]) / K[0];
-	K_inv_x.y = (x_tild.y - K[5]) / K[4];
-	K_inv_x.z = 1;
-	
+	K_inv_x.x = x_tild.x * K_inv[0] + x_tild.y * K_inv[1] + K_inv[2];
+	K_inv_x.y = x_tild.x * K_inv[3] + x_tild.y * K_inv[4] + K_inv[5];
+	K_inv_x.z = x_tild.x * K_inv[6] + x_tild.y * K_inv[7] + K_inv[8];
+
+
+
 	float lambda = l2_norm(K_inv_x);
 
 	// Compute Eqn (6)
 
 	// R_k(x)
+	// Depth from frame at the current pixel
 	float R_k = src[x_tild.y * frame_width + x_tild.x];
 	
 	// t_gk - p
+	// Compute the vector from the center of this voxel to the camera position
 	float3 t_gk_p = (float3)(t_gk[0] - p_x, t_gk[1] - p_y, t_gk[2] - p_z);
 	
-	float nu = (1.0/lambda) * l2_norm(t_gk_p) - R_k;
+	// First, scale the length of the vector from the center of this voxel
+	// to the camera position by lambda and then take the difference in 
+	float sdf = (1.0f/lambda) * l2_norm(t_gk_p) - R_k;
 	
-	if (nu >= -mu) {
 
-		float new_val = fmin(1.0f, nu/mu);
-
-		float prev_scalar = dest[idx];
-		unsigned int prev_weight = weight[idx];
-
-		// if curr_weight is equal to zero, then dest[idx] = new_val; and weight++;
-		// otherwise we average
-		dest[idx] = (prev_scalar*(float)prev_weight + new_val) / ((float)prev_weight+1);
-		weight[idx] = prev_weight+1;
-
-
+/*	float tsdf;
+	if (sdf > 0.0f ) {
+		tsdf = fmin(1.0f, sdf/mu);
 	} else {
+		tsdf = fmax(-1.0f, sdf/mu);
+	}*/
 
-		if (n==0) {
-			dest[idx] = NAN; // Don't integrate if we get here
-			weight[idx] = 0;
-		}
-		
+	if (sdf >= -mu) {
 
+		float tsdf = fmin(1.0f, sdf/mu);
+
+		float prev_tsdf = dest[idx];
+
+		if (isnan(prev_tsdf)) prev_tsdf = 0;
+
+		uint prev_weight = weight[idx];
+
+		// if we haven't had a valid measurement, 
+		// then the prev_tsdf is NAN and prev_weight = 0
+		uint new_weight = min(MAX_WEIGHT, prev_weight + 1);
+		weight[idx] = new_weight;
+
+		dest[idx] = (prev_tsdf * prev_weight + tsdf * new_weight) / (prev_weight + new_weight);
+ 
 	}
-	
 }
 
