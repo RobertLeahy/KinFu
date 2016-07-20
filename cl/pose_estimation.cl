@@ -54,16 +54,17 @@ kernel void correspondences(
 	float3 curr_v=vload3(idx,v);
 	float4 curr_v_homo=(float4)(curr_v,1);
 	
-	float4 persp=matrixmul4(t_frame_frame,curr_v_homo);
-	float3 persp_div=(float3)(curr_v_homo.x/curr_v_homo.w,curr_v_homo.y/curr_v_homo.w,curr_v_homo.z/curr_v_homo.w);
+	float4 v_cp_h=matrixmul4(t_frame_frame,curr_v_homo);
+	
+	float3 v_cp=(float3)(v_cp_h.x, v_cp_h.y, v_cp_h.z);
+	float3 uv3=matrixmul3(k,v_cp);
 
-	float3 image_plane=matrixmul3(k,persp_div);
-	uint2 u=(uint2)(round(image_plane.x/image_plane.z),round(image_plane.y/image_plane.z));
+	int2 u=(int2)(round(uv3.x/uv3.z),round(uv3.y/uv3.z));
 
-	size_t lin_idx=u.x+u.y*width;
+	int lin_idx=u.x+u.y*width;
 
 	float3 nullv=(float3)(0,0,0);
-	if (lin_idx>=(width*height)) {
+	if (lin_idx>=(width*height) || lin_idx<0) {
 
 		vstore3(nullv,idx,corr_pn);
 		atomic_add(count,1);

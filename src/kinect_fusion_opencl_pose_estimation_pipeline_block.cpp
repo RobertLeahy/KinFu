@@ -160,7 +160,7 @@ namespace dynfu {
 		corr_.set_arg(3,pnb);
 
 		Eigen::Matrix4f t_frame_frame(Eigen::Matrix4f::Identity());
-		Eigen::Matrix4f t_z(t_gk_minus_one->get().inverse());
+		Eigen::Matrix4f t_z(t_gk_minus_one->get());
 
 		k.transposeInPlace();
 		auto kw=q_.enqueue_write_buffer_async(k_,0,sizeof(k),&k);
@@ -212,13 +212,8 @@ namespace dynfu {
 			//	Make sure there were enough correspondences
 			cr.wait();
 			crg.release();
-			if (count>threshold) {
 
-				std::ostringstream ss;
-				ss << "Tracking lost: Could not find correspondences for " << count << "/" << (frame_height_*frame_width_) << " points (maximum allowable is " << threshold << ")";
-				throw tracking_lost_error(ss.str());
-
-			}
+			std::cout << "Count: " << count << std::endl;
 
 			ar.wait();
 			arg.release();
@@ -228,20 +223,27 @@ namespace dynfu {
 			//	Solve system
 			Eigen::Matrix<float,6,1> x=a.colPivHouseholderQr().solve(b);
 
-			t_z << 	1.0f, x(0), -x(2), x(3),
-					-x(0), 1.0f, x(1), x(4),
-					x(2), -x(1), 1.0f, x(5),
-					0.0f, 0.0f, 0.0f, 1.0f;
-			t_frame_frame=t_gk_minus_one->get() * t_z;
+			float alpha=x(0);
+			float beta=x(1);
+			float gamma=x(2);
+			float tx=x(3);
+			float ty=x(4);
+			float tz=x(5);
 
+			t_z <<  1.0f, -gamma, beta, tx,
+					 gamma, 1.0f, -alpha, ty,
+				 	 -beta, alpha, 1.0f, tz,
+					 0.0f, 0.0f, 0.0f, 1.0f;
+			t_frame_frame=t_gk_minus_one->get().inverse() * t_z;
+
+			std::cout << "T_z " << std::endl << t_z << std::endl;
 
 		}
 
 
 
 		auto && pv=dynamic_cast<pv_type &>(*t_gk_minus_one);
-		auto prev=pv.get();
-		pv.emplace(prev * t_z.inverse());
+		pv.emplace(t_z);
 
 		return t_gk_minus_one;
 	
