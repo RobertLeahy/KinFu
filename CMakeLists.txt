@@ -81,6 +81,7 @@ if (WIN32)
 endif()
 
 add_library(dynfu SHARED
+	src/camera.cpp
 	src/depth_device.cpp
 	src/depth_device_decorator.cpp
 	src/file_system_depth_device.cpp
@@ -128,6 +129,7 @@ add_executable(client src/main.cpp)
 target_link_libraries(client dynfu dynfu_libigl boost_program_options)
 
 add_executable(tests
+	src/test/camera.cpp
 	src/test/cpu_pipeline_value.cpp
 	src/test/file_system_depth_device.cpp
 	src/test/file_system_opencl_program_factory.cpp
