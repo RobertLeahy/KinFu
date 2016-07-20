@@ -139,14 +139,6 @@ float triLerp (const float3 p, const __global float * tsdf, const float extent, 
     //  that happen?  Do we need to check?  How would we
     //  handle that?
     float3 ray_dir = normalize(uv_world - camera_pos);
-    //  Camera looks in negative Z, this orients it
-    //  properly, see: https://strawlab.org/2011/11/05/augmented-reality-with-OpenGL
-    //  vis-à-vis the update reconstruction pipeline block
-    //  implementation
-    ray_dir *= (float3)(1, 1, -1);
-    //  For some reason without this the image is upside
-    //  down
-    ray_dir *= (float3)(1, -1, 1);
 
     //  This gives us the position from which we will begin
     //  our search (i.e. this position is on the near plane)

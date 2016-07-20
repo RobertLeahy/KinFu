@@ -41,34 +41,35 @@ kernel void tsdf_kernel(__global float * src, __global float* dest,
 
 	// x,y,z give the voxel id, but we need to compute the position in 3D space.
 
-	// volume extends from origin to tsdf_extent
+	// Compute the world coordinates of the center of this voxel
 	float p_x = ((float)x + 0.5) * tsdf_extent_w/tsdf_width;
 	float p_y = ((float)y + 0.5) * tsdf_extent_h/tsdf_height;
 	float p_z = ((float)z + 0.5) * tsdf_extent_d/tsdf_depth;
 	float4 p = (float4)(p_x, p_y, p_z, 1);
 
-	// project into normalized device coordinates (NDC)
-	float4 x_ndc;
-	x_ndc.x = proj_view[0]*p.x + proj_view[1]*p.y + proj_view[2]*p.z + proj_view[3]*p.w;
-	x_ndc.y = proj_view[4]*p.x + proj_view[5]*p.y + proj_view[6]*p.z + proj_view[7]*p.w;
-	x_ndc.z = proj_view[8]*p.x + proj_view[9]*p.y + proj_view[10]*p.z + proj_view[11]*p.w;
-	x_ndc.w = proj_view[12]*p.x + proj_view[13]*p.y + proj_view[14]*p.z + proj_view[15]*p.w;
+	// Multiplying by T_g_k.inverse() here. This takes us to camera space.
+	float4 cam;
+	cam.x = proj_view[0]*p.x + proj_view[1]*p.y + proj_view[2]*p.z + proj_view[3]*p.w;
+	cam.y = proj_view[4]*p.x + proj_view[5]*p.y + proj_view[6]*p.z + proj_view[7]*p.w;
+	cam.z = proj_view[8]*p.x + proj_view[9]*p.y + proj_view[10]*p.z + proj_view[11]*p.w;
+	cam.w = 1.0f;
 
-	// perspective division
-	float3 x_dot_glob = (float3)(x_ndc.x/x_ndc.w, x_ndc.y/x_ndc.w, x_ndc.z/x_ndc.w);
-	
-	// convert from NDC to image coords
-	float3 x_dot;
-	x_dot.x = (x_dot_glob.x + 1.0f) * K[2];
-	x_dot.y = (x_dot_glob.y + 1.0f) * K[5]; 
+	float3 plane;
+	plane.x = cam.x * K[0] + cam.y * K[1] + cam.z * K[2];
+	plane.y = cam.x * K[3] + cam.y * K[4] + cam.z * K[5];
+	plane.z = cam.x * K[6] + cam.y * K[7] + cam.z * K[8];
+
+	float2 uv;
+	uv.x = plane.x / plane.z;
+	uv.y = plane.y / plane.z;
 
 	// take nearest neighbour in image
 	int2 x_tild;
-	x_tild.x = round(x_dot.x);
-	x_tild.y = round(x_dot.y);
+	x_tild.x = round(uv.x);
+	x_tild.y = round(uv.y);
 
 	// check if the current voxel projects into the depth frame
-	if (x_tild.x < 0 || x_tild.x > frame_width || x_tild.y < 0 || x_tild.y > frame_height || x_ndc.z < 0.0f) {
+	if (x_tild.x < 0 || x_tild.x >= frame_width || x_tild.y < 0 || x_tild.y >= frame_height || plane.z < 0.0f) {
 
 		if (n==0) dest[idx] = NAN;
 		return;
