@@ -1,6 +1,6 @@
 #define KINECT_MAX_DIST (8.0f)
 #define KINECT_MIN_DIST (0.0001f)
-#define STEP_SIZE (0.024) // mu *0.8
+#define STEP_SIZE (0.024f) // mu *0.8
 
 
 float getTsdfValue (const int3 vox, const __global float * tsdf, const size_t size) {
