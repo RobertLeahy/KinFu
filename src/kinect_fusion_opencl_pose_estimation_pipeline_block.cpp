@@ -160,7 +160,7 @@ namespace dynfu {
 		corr_.set_arg(3,pnb);
 
 		Eigen::Matrix4f t_frame_frame(Eigen::Matrix4f::Identity());
-		Eigen::Matrix4f t_z(Eigen::Matrix4f::Identity());
+		Eigen::Matrix4f t_z(t_gk_minus_one->get().inverse());
 
 		k.transposeInPlace();
 		auto kw=q_.enqueue_write_buffer_async(k_,0,sizeof(k),&k);
@@ -232,13 +232,16 @@ namespace dynfu {
 					-x(0), 1.0f, x(1), x(4),
 					x(2), -x(1), 1.0f, x(5),
 					0.0f, 0.0f, 0.0f, 1.0f;
-			t_frame_frame=t_z;
+			t_frame_frame=t_gk_minus_one->get() * t_z;
+
 
 		}
 
+
+
 		auto && pv=dynamic_cast<pv_type &>(*t_gk_minus_one);
 		auto prev=pv.get();
-		pv.emplace(t_z*prev);
+		pv.emplace(prev * t_z.inverse());
 
 		return t_gk_minus_one;
 	
