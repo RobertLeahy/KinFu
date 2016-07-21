@@ -88,6 +88,7 @@ kernel void correspondences(
 	float4 curr_v_homo=(float4)(curr_v,1);
 	float4 t_z_curr_v_homo=matrixmul4(t_z,curr_v_homo);
 	float4 t_z_curr_v_homo_curr_pv_homo=t_z_curr_v_homo-curr_pv_homo;
+	float3 t_z_curr_v=(float3)(t_z_curr_v_homo.x,t_z_curr_v_homo.y,t_z_curr_v_homo.z);
 	if (dot(t_z_curr_v_homo_curr_pv_homo,t_z_curr_v_homo_curr_pv_homo)>(epsilon_d*epsilon_d)) {
 
 		vstore3(nullv,idx,corr_pn);
@@ -118,7 +119,7 @@ kernel void correspondences(
 
 	}
 
-	vstore3(curr_v,idx,corr_v);
+	vstore3(t_z_curr_v,idx,corr_v);
 	vstore3(curr_pn,idx,corr_pn);
 
 }

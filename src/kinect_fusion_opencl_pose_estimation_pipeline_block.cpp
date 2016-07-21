@@ -237,10 +237,13 @@ namespace dynfu {
 			float ty=x(4);
 			float tz=x(5);
 
-			t_z <<  1.0f, -gamma, beta, tx,
+			Eigen::Matrix4f t_inc;
+			t_inc <<  1.0f, -gamma, beta, tx,
 					 gamma, 1.0f, -alpha, ty,
 				 	 -beta, alpha, 1.0f, tz,
 					 0.0f, 0.0f, 0.0f, 1.0f;
+			t_z.transposeInPlace();
+			t_z=t_inc*t_z;
 
 		}
 
