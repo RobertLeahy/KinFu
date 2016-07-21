@@ -33,6 +33,7 @@ namespace dynfu {
 			ik_buf_(ve_.command_queue().get_context(),sizeof(Eigen::Matrix3f),CL_MEM_READ_ONLY),
 			k_buf_(ve_.command_queue().get_context(),sizeof(Eigen::Matrix3f),CL_MEM_READ_ONLY),
 			proj_view_buf_(ve_.command_queue().get_context(),sizeof(Eigen::Matrix4f),CL_MEM_READ_ONLY),
+			weights_(tsdf_width*tsdf_height*tsdf_depth,ve_.command_queue().get_context()),
 			mu_(mu),
 			tsdf_width_(tsdf_width),
 			tsdf_height_(tsdf_height),
@@ -47,6 +48,7 @@ namespace dynfu {
 		tsdf_kernel_.set_arg(12, tsdf_extent_w);
 		tsdf_kernel_.set_arg(13, tsdf_extent_h);
 		tsdf_kernel_.set_arg(14, tsdf_extent_d);
+		tsdf_kernel_.set_arg(16, weights_);
 
 
 	}
@@ -68,24 +70,9 @@ namespace dynfu {
 		if (t_g_k_ != t_g_k) {
 			
 			t_g_k_ = std::move(t_g_k);
-			
-			// generate the projection matrix
-			Eigen::Matrix4f proj = Eigen::Matrix4f::Zero();
-			float near_plane = 0.30f; // 30 cm (kinect only can read > 0.4m)
-			float far_plane  = 3.0f; // 3 meters
-
-			// From https://strawlab.org/2011/11/05/augmented-reality-with-OpenGL
-			proj(0,0) = 2.0f * k(0,0) / frame_width;
-			proj(0,1) = -2.0 * k(0,1) / frame_width;
-			proj(0,2) = (frame_width - 2 * k(0,2)) / frame_width;
-			proj(1,1) = -2.0f * k(1,1) / frame_height;
-			proj(1,2) = (frame_height - 2 * k(1,2)) / frame_height;
-			proj(2,2) = -far_plane - near_plane / (far_plane - near_plane);
-			proj(2,3) = -2.0f * far_plane * near_plane / (far_plane - near_plane);
-			proj(3,2) = -1.0f;
 
 			// enqueue the proj_view matrix
-			Eigen::Matrix4f proj_view = proj *  t_g_k_->inverse();
+			Eigen::Matrix4f proj_view = t_g_k_->inverse();
 			proj_view.transposeInPlace();
 
 			q.enqueue_write_buffer(proj_view_buf_, 0, sizeof(proj_view), proj_view.data());

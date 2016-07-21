@@ -5,9 +5,10 @@
 #include <dynfu/file_system_opencl_program_factory.hpp>
 #include <dynfu/filesystem.hpp>
 #include <dynfu/kinect_fusion.hpp>
-#include <dynfu/kinect_fusion_opencl_frame_to_frame_surface_prediction_pipeline_block.hpp>
+#include <dynfu/kinect_fusion_opencl_surface_prediction_pipeline_block.hpp>
 #include <dynfu/kinect_fusion_opencl_measurement_pipeline_block.hpp>
 #include <dynfu/kinect_fusion_opencl_pose_estimation_pipeline_block.hpp>
+#include <dynfu/kinect_fusion_eigen_pose_estimation_pipeline_block.hpp>
 #include <dynfu/kinect_fusion_opencl_update_reconstruction_pipeline_block.hpp>
 #include <dynfu/libigl.hpp>
 #include <dynfu/msrc_file_system_depth_device.hpp>
@@ -131,16 +132,21 @@ static void main_impl (int argc, char ** argv) {
 
 	dynfu::filesystem::path pp(dynfu::current_executable_parent_path());
 
+	float tsdf_extent = 3.0;
+	std::size_t tsdf_size(256);
+	float mu = 0.03f;
+
 	dynfu::file_system_opencl_program_factory opf(pp/".."/"cl",ctx);
 	dynfu::kinect_fusion_opencl_measurement_pipeline_block mpb(q,opf,20,2.0f,1.0f);
 	Eigen::Matrix4f t_g_k(Eigen::Matrix4f::Identity());
 	t_g_k(0,3)=1.5f;
 	t_g_k(1,3)=1.5f;
 	t_g_k(2,3)=1.5f;
-	dynfu::kinect_fusion_opencl_pose_estimation_pipeline_block pepb(opf,q,0.1f,std::sin(20.0f*3.14159254f/180.0f),dd.width(),dd.height(),t_g_k);
-	dynfu::kinect_fusion_opencl_update_reconstruction_pipeline_block urpb(q,opf,0.03f);
-	dynfu::kinect_fusion_opencl_frame_to_frame_surface_prediction_pipeline_block sppb(q);
-	
+	dynfu::kinect_fusion_opencl_pose_estimation_pipeline_block pepb(opf,q,0.1f,std::sin(20.0f*3.14159254f/180.0f),dd.width(),dd.height(),t_g_k,15);
+	dynfu::kinect_fusion_opencl_update_reconstruction_pipeline_block urpb(q,opf,mu);
+	dynfu::kinect_fusion_opencl_surface_prediction_pipeline_block sppb(q,opf,mu,tsdf_size, tsdf_extent, dd.width(), dd.height());
+
+
 	dynfu::kinect_fusion kf;
 	kf.depth_device(dd);
 	kf.measurement_pipeline_block(mpb);
@@ -185,15 +191,13 @@ static void main_impl (int argc, char ** argv) {
 	
 	auto && tsdf = kf.truncated_signed_distance_function().get();
 
-	float tsdf_extent = 3.0;
-	std::size_t tsdf_size(256);
-
 	float px,py,pz;
     Eigen::MatrixXi SF;
     Eigen::MatrixXd SV;
     Eigen::VectorXd S_(tsdf_size*tsdf_size*tsdf_size);
     Eigen::MatrixXd GV(tsdf_size*tsdf_size*tsdf_size,3);
     std::size_t abs_idx(0);
+	std::size_t num_nans(0);
 
     for(std::size_t zi(0); zi < tsdf_size; ++zi) {
 
@@ -213,6 +217,7 @@ static void main_impl (int argc, char ** argv) {
 
 				if (std::isnan(tsdf[vox_idx])) {
 					S_(abs_idx) = 1.0f;
+					num_nans++;
 				} else {
  					S_(abs_idx) = tsdf[vox_idx];
 				}
@@ -227,7 +232,7 @@ static void main_impl (int argc, char ** argv) {
 
     }
 
-
+	std::cout << "Num NaN: " << num_nans << std::endl;
     std::cout << "Running Marching Cubes..." << std::endl;
 
     dynfu::libigl::marching_cubes(S_,GV,tsdf_size,tsdf_size,tsdf_size,SV,SF);

@@ -73,7 +73,7 @@ namespace dynfu {
 		
 		Eigen::Matrix3f k;
 		k << 585.0f, 0.0f, 320.0f,
-		     0.0f, 585.0f, 240.0f,
+		     0.0f, -585.0f, 240.0f,
 		     0.0f, 0.0f, 1.0f;
 		
 		return k;

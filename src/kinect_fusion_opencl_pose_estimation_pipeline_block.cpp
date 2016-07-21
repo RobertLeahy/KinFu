@@ -5,6 +5,7 @@
 #include <dynfu/opencl_program_factory.hpp>
 #include <dynfu/scope.hpp>
 #include <Eigen/Dense>
+#include <Eigen/QR>
 #include <cstddef>
 #include <cstdint>
 #include <memory>
@@ -12,6 +13,8 @@
 #include <stdexcept>
 #include <utility>
 
+
+#include <iostream>
 
 namespace dynfu {
 
@@ -73,9 +76,9 @@ namespace dynfu {
 			map_(get_map_kernel(pf)),
 			reduce_a_(get_reduce_a_kernel(pf)),
 			reduce_b_(get_reduce_b_kernel(pf)),
-			t_frame_frame_(q_.get_context(),sizeof(Eigen::Matrix4f),CL_MEM_READ_ONLY|CL_MEM_HOST_WRITE_ONLY),
 			t_z_(q_.get_context(),sizeof(Eigen::Matrix4f),CL_MEM_READ_ONLY|CL_MEM_HOST_WRITE_ONLY),
-			corr_pv_(frame_width*frame_height,q_.get_context()),
+			t_gk_prev_inverse_(q_.get_context(),sizeof(Eigen::Matrix4f),CL_MEM_READ_ONLY|CL_MEM_HOST_WRITE_ONLY),
+			corr_v_(frame_width*frame_height,q_.get_context()),
 			corr_pn_(frame_width*frame_height,q_.get_context()),
 			ais_(q_.get_context(),frame_width*frame_height*sizeof_a),
 			bis_(q_.get_context(),frame_width*frame_height*sizeof_b),
@@ -100,17 +103,17 @@ namespace dynfu {
 		//	Correspondences arguments
 		corr_.set_arg(4,std::uint32_t(frame_width_));
 		corr_.set_arg(5,std::uint32_t(frame_height_));
-		corr_.set_arg(6,t_frame_frame_);
+		corr_.set_arg(6,t_gk_prev_inverse_);
 		corr_.set_arg(7,t_z_);
 		corr_.set_arg(8,epsilon_d_);
 		corr_.set_arg(9,epsilon_theta_);
 		corr_.set_arg(10,k_);
-		corr_.set_arg(11,corr_pv_);
+		corr_.set_arg(11,corr_v_);
 		corr_.set_arg(12,corr_pn_);
 		corr_.set_arg(13,count_);
 
 		//	Map arguments
-		map_.set_arg(1,corr_pv_);
+		map_.set_arg(1,corr_v_);
 		map_.set_arg(2,corr_pn_);
 		map_.set_arg(3,std::uint32_t(frame_width_));
 		map_.set_arg(4,std::uint32_t(frame_height_));
@@ -159,8 +162,14 @@ namespace dynfu {
 		auto && pnb=pn_e_(*prev_n);
 		corr_.set_arg(3,pnb);
 
-		Eigen::Matrix4f t_frame_frame(Eigen::Matrix4f::Identity());
-		Eigen::Matrix4f t_z(Eigen::Matrix4f::Identity());
+		auto && pv=dynamic_cast<pv_type &>(*t_gk_minus_one);
+		auto t_gk_minus_one_m=pv.get();
+		Eigen::Matrix4f t_z(t_gk_minus_one_m);
+		Eigen::Matrix4f t_gk_prev_inverse(t_gk_minus_one_m.inverse());
+
+		t_gk_prev_inverse.transposeInPlace();
+		auto tgkw=q_.enqueue_write_buffer_async(t_gk_prev_inverse_,0,sizeof(t_gk_prev_inverse),&t_gk_prev_inverse);
+		auto tgkwg=make_scope_exit([&] () noexcept {	tgkw.wait();	});
 
 		k.transposeInPlace();
 		auto kw=q_.enqueue_write_buffer_async(k_,0,sizeof(k),&k);
@@ -173,10 +182,7 @@ namespace dynfu {
 
 		for (std::size_t i=0;i<numit_;++i) {
 
-			//	Upload matrices to the GPU
-			t_frame_frame.transposeInPlace();
-			auto tffw=q_.enqueue_write_buffer_async(t_frame_frame_,0,sizeof(t_frame_frame),&t_frame_frame);
-			auto tffwg=make_scope_exit([&] () noexcept {	tffw.wait();	});
+			//	Upload current estimate to the GPU
 			t_z.transposeInPlace();
 			auto tzw=q_.enqueue_write_buffer_async(t_z_,0,sizeof(t_z),&t_z);
 			auto tzwg=make_scope_exit([&] () noexcept {	tzw.wait();	});
@@ -191,7 +197,7 @@ namespace dynfu {
 			auto crg=make_scope_exit([&] () noexcept {	cr.wait();	});
 
 			//	Map
-			map_.set_arg(0,vb);
+			map_.set_arg(0,pvb);
 			q_.enqueue_nd_range_kernel(map_,2,nullptr,extent,nullptr);
 
 			//	Reduce
@@ -202,23 +208,18 @@ namespace dynfu {
 			q_.enqueue_nd_range_kernel(reduce_b_,1,nullptr,a_extent,nullptr);
 
 			//	Download results
-			Eigen::Matrix<float,6,6> a;
+			using a_type=Eigen::Matrix<float,6,6>;
+			a_type a;
 			auto ar=q_.enqueue_read_buffer_async(a_,0,sizeof(a),&a);
 			auto arg=make_scope_exit([&] () noexcept {	ar.wait();	});
-			Eigen::Matrix<float,6,1> b;
+			using b_type=Eigen::Matrix<float,6,1>;
+			b_type b;
 			auto br=q_.enqueue_read_buffer_async(b_,0,sizeof(b),&b);
 			auto brg=make_scope_exit([&] () noexcept {	br.wait();	});
 
 			//	Make sure there were enough correspondences
 			cr.wait();
 			crg.release();
-			if (count>threshold) {
-
-				std::ostringstream ss;
-				ss << "Tracking lost: Could not find correspondences for " << count << "/" << (frame_height_*frame_width_) << " points (maximum allowable is " << threshold << ")";
-				throw tracking_lost_error(ss.str());
-
-			}
 
 			ar.wait();
 			arg.release();
@@ -226,19 +227,24 @@ namespace dynfu {
 			brg.release();
 
 			//	Solve system
-			Eigen::Matrix<float,6,1> x=a.colPivHouseholderQr().solve(b);
+			Eigen::FullPivHouseholderQR<a_type> solver(a);
+			b_type x=solver.solve(b);
 
-			t_z << 	1.0f, x(0), -x(2), x(3),
-					-x(0), 1.0f, x(1), x(4),
-					x(2), -x(1), 1.0f, x(5),
-					0.0f, 0.0f, 0.0f, 1.0f;
-			t_frame_frame=t_z;
+			float alpha=x(0);
+			float beta=x(1);
+			float gamma=x(2);
+			float tx=x(3);
+			float ty=x(4);
+			float tz=x(5);
+
+			t_z <<  1.0f, -gamma, beta, tx,
+					 gamma, 1.0f, -alpha, ty,
+				 	 -beta, alpha, 1.0f, tz,
+					 0.0f, 0.0f, 0.0f, 1.0f;
 
 		}
 
-		auto && pv=dynamic_cast<pv_type &>(*t_gk_minus_one);
-		auto prev=pv.get();
-		pv.emplace(t_z*prev);
+		pv.emplace(t_z);
 
 		return t_gk_minus_one;
 	

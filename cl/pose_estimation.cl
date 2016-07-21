@@ -37,12 +37,12 @@ kernel void correspondences(
 	const __global float * pn,	//	3
 	const unsigned int width,	//	4
 	const unsigned int height,	//	5
-	const __global float * t_frame_frame,	//	6
+	const __global float * t_gk_prev_inverse,	//	6
 	const __global float * t_z,	//	7
 	float epsilon_d,	//	8
 	float epsilon_theta,	//	9
 	const __global float * k,	//	10
-	__global float * corr_pv,	//	11
+	__global float * corr_v,	//	11
 	__global float * corr_pn,	//	12
 	volatile __global unsigned int * count	//	13
 ) {
@@ -51,19 +51,20 @@ kernel void correspondences(
 	size_t y=get_global_id(1);
 	size_t idx=(y*width)+x;
 
-	float3 curr_v=vload3(idx,v);
-	float4 curr_v_homo=(float4)(curr_v,1);
-	
-	float4 persp=matrixmul4(t_frame_frame,curr_v_homo);
-	float3 persp_div=(float3)(curr_v_homo.x/curr_v_homo.w,curr_v_homo.y/curr_v_homo.w,curr_v_homo.z/curr_v_homo.w);
+	float3 curr_pv=vload3(idx,pv);
+	float4 curr_pv_homo=(float4)(curr_pv,1);
 
-	float3 image_plane=matrixmul3(k,persp_div);
-	uint2 u=(uint2)(round(image_plane.x/image_plane.z),round(image_plane.y/image_plane.z));
+	float4 v_pcp_h=matrixmul4(t_gk_prev_inverse,curr_pv_homo);
 
-	size_t lin_idx=u.x+u.y*width;
+	float3 v_pcp=(float3)(v_pcp_h.x, v_pcp_h.y, v_pcp_h.z);
+	float3 uv3=matrixmul3(k,v_pcp);
+
+	int2 u=(int2)(round(uv3.x/uv3.z),round(uv3.y/uv3.z));
+
+	int lin_idx=u.x+u.y*width;
 
 	float3 nullv=(float3)(0,0,0);
-	if (lin_idx>=(width*height)) {
+	if (lin_idx>=(width*height) || lin_idx<0) {
 
 		vstore3(nullv,idx,corr_pn);
 		atomic_add(count,1);
@@ -71,9 +72,10 @@ kernel void correspondences(
 
 	}
 
-	float3 curr_n=vload3(idx,n);
-	float3 curr_pv=vload3(lin_idx,pv);
-	float3 curr_pn=vload3(lin_idx,pn);
+	float3 curr_pn=vload3(idx,pn);
+	//	These are in current camera space
+	float3 curr_n=vload3(lin_idx,n);
+	float3 curr_v=vload3(lin_idx,v);
 	//	TODO: Should we be checking the current normal?
 	if (!(is_finite(curr_v) && is_finite(curr_pv) && is_finite(curr_pn))) {
 
@@ -83,7 +85,7 @@ kernel void correspondences(
 
 	}
 
-	float4 curr_pv_homo=(float4)(curr_pv,1);
+	float4 curr_v_homo=(float4)(curr_v,1);
 	float4 t_z_curr_v_homo=matrixmul4(t_z,curr_v_homo);
 	float4 t_z_curr_v_homo_curr_pv_homo=t_z_curr_v_homo-curr_pv_homo;
 	if (dot(t_z_curr_v_homo_curr_pv_homo,t_z_curr_v_homo_curr_pv_homo)>(epsilon_d*epsilon_d)) {
@@ -116,15 +118,15 @@ kernel void correspondences(
 
 	}
 
-	vstore3(curr_pv,idx,corr_pv);
+	vstore3(curr_v,idx,corr_v);
 	vstore3(curr_pn,idx,corr_pn);
 
 }
 
 
 kernel void map(
-	const __global float * v,	//	0
-	const __global float * corr_pv,	//	1
+	const __global float * pv,	//	0
+	const __global float * corr_v,	//	1
 	const __global float * corr_pn,	//	2
 	const unsigned int width,	//	3
 	const unsigned int height,	//	4
@@ -159,8 +161,8 @@ kernel void map(
 
 	}
 
-	float3 p=vload3(idx,v);
-	float3 q=vload3(idx,corr_pv);
+	float3 q=vload3(idx,pv);
+	float3 p=vload3(idx,corr_v);
 
 	float3 c=cross(p,n);
 	float pqn=dot(p-q,n);

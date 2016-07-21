@@ -119,17 +119,6 @@ SCENARIO_METHOD(fixture, "A dynfu::kinect_fusion_opencl_measurement_pipeline_blo
 			auto && n=std::get<1>(t);
 			auto && vs=v->get();
 			auto && ns=n->get();
-			
-			/**
-
-			Useful for making new ground truth...
-
-			std::cout << "Vertices:" << std::endl;
-			for (auto && vertex : vs) std::cout<<"{"<<vertex[0]<<", "<<vertex[1]<<", "<<vertex[2]<<"},"<<std::endl;
-			std::cout << "Normals:" << std:: endl;
-			for  (auto && normal : ns) std::cout<<"{"<<normal[0]<<", "<<normal[1]<<", "<<normal[2]<<"},"<<std::endl;
-
-			**/
 
 			THEN("The returned normals are all either exactly 0 or close to 1 in length") {
 				

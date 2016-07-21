@@ -1,11 +1,13 @@
 #define KINECT_MAX_DIST (8.0f)
 #define KINECT_MIN_DIST (0.4f)
-#define STEP_SIZE (0.08f)
+#define STEP_SIZE (0.0005f) // mu *0.8
 
 
 float getTsdfValue (const int3 vox, const __global float * tsdf, const size_t size) {
 
-    return tsdf[vox.x + vox.y * size + vox.z * size * size];
+    float val = tsdf[vox.x + vox.y * size + vox.z * size * size];
+
+    return val;
 
 }
 
@@ -135,14 +137,6 @@ float triLerp (const float3 p, const __global float * tsdf, const float extent, 
     //  that happen?  Do we need to check?  How would we
     //  handle that?
     float3 ray_dir = normalize(uv_world - camera_pos);
-    //  Camera looks in negative Z, this orients it
-    //  properly, see: https://strawlab.org/2011/11/05/augmented-reality-with-OpenGL
-    //  vis-à-vis the update reconstruction pipeline block
-    //  implementation
-    ray_dir *= (float3)(1, 1, -1);
-    //  For some reason without this the image is upside
-    //  down
-    ray_dir *= (float3)(1, -1, 1);
 
     //  This gives us the position from which we will begin
     //  our search (i.e. this position is on the near plane)
@@ -176,6 +170,9 @@ float triLerp (const float3 p, const __global float * tsdf, const float extent, 
         if (!isVoxelValid(vox, tsdf_size)) break;
         tsdf_val = getTsdfValue(vox, tsdf, tsdf_size);
 
+        if (isnan(tsdf_val)) continue;
+        if (isnan(tsdf_val_prev)) continue;
+
         int p = signbit(tsdf_val_prev);
         int c = signbit(tsdf_val);
         if (p == c) continue;
@@ -195,7 +192,7 @@ float triLerp (const float3 p, const __global float * tsdf, const float extent, 
         float t_star = dist - (STEP_SIZE * ft) / (ftdt - ft);
 
         //  Store computed vertex position
-        float3 v = camera_pos + (ray_dir * t_star);
+        float3 v = initial_ray + (ray_dir * t_star);
         vstore3(v, idx, vmap);
 
         //  Check to see if we can even compute a normal

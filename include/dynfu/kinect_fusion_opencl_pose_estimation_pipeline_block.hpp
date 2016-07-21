@@ -32,9 +32,9 @@ namespace dynfu {
 			boost::compute::kernel map_;
 			boost::compute::kernel reduce_a_;
 			boost::compute::kernel reduce_b_;
-			boost::compute::buffer t_frame_frame_;
 			boost::compute::buffer t_z_;
-			boost::compute::vector<Eigen::Vector3f> corr_pv_;
+			boost::compute::buffer t_gk_prev_inverse_;
+			boost::compute::vector<Eigen::Vector3f> corr_v_;
 			boost::compute::vector<Eigen::Vector3f> corr_pn_;
 			boost::compute::buffer ais_;
 			boost::compute::buffer bis_;
