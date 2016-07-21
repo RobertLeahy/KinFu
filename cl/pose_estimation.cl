@@ -42,7 +42,7 @@ kernel void correspondences(
 	float epsilon_d,	//	8
 	float epsilon_theta,	//	9
 	const __global float * k,	//	10
-	__global float * corr_pv,	//	11
+	__global float * corr_v,	//	11
 	__global float * corr_pn,	//	12
 	volatile __global unsigned int * count	//	13
 ) {
@@ -118,15 +118,15 @@ kernel void correspondences(
 
 	}
 
-	vstore3(curr_pv,idx,corr_pv);
+	vstore3(curr_v,idx,corr_v);
 	vstore3(curr_pn,idx,corr_pn);
 
 }
 
 
 kernel void map(
-	const __global float * v,	//	0
-	const __global float * corr_pv,	//	1
+	const __global float * pv,	//	0
+	const __global float * corr_v,	//	1
 	const __global float * corr_pn,	//	2
 	const unsigned int width,	//	3
 	const unsigned int height,	//	4
@@ -161,8 +161,8 @@ kernel void map(
 
 	}
 
-	float3 p=vload3(idx,v);
-	float3 q=vload3(idx,corr_pv);
+	float3 q=vload3(idx,pv);
+	float3 p=vload3(idx,corr_v);
 
 	float3 c=cross(p,n);
 	float pqn=dot(p-q,n);

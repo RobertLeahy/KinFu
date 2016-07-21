@@ -78,7 +78,7 @@ namespace dynfu {
 			reduce_b_(get_reduce_b_kernel(pf)),
 			t_z_(q_.get_context(),sizeof(Eigen::Matrix4f),CL_MEM_READ_ONLY|CL_MEM_HOST_WRITE_ONLY),
 			t_gk_prev_inverse_(q_.get_context(),sizeof(Eigen::Matrix4f),CL_MEM_READ_ONLY|CL_MEM_HOST_WRITE_ONLY),
-			corr_pv_(frame_width*frame_height,q_.get_context()),
+			corr_v_(frame_width*frame_height,q_.get_context()),
 			corr_pn_(frame_width*frame_height,q_.get_context()),
 			ais_(q_.get_context(),frame_width*frame_height*sizeof_a),
 			bis_(q_.get_context(),frame_width*frame_height*sizeof_b),
@@ -108,12 +108,12 @@ namespace dynfu {
 		corr_.set_arg(8,epsilon_d_);
 		corr_.set_arg(9,epsilon_theta_);
 		corr_.set_arg(10,k_);
-		corr_.set_arg(11,corr_pv_);
+		corr_.set_arg(11,corr_v_);
 		corr_.set_arg(12,corr_pn_);
 		corr_.set_arg(13,count_);
 
 		//	Map arguments
-		map_.set_arg(1,corr_pv_);
+		map_.set_arg(1,corr_v_);
 		map_.set_arg(2,corr_pn_);
 		map_.set_arg(3,std::uint32_t(frame_width_));
 		map_.set_arg(4,std::uint32_t(frame_height_));
@@ -197,7 +197,7 @@ namespace dynfu {
 			auto crg=make_scope_exit([&] () noexcept {	cr.wait();	});
 
 			//	Map
-			map_.set_arg(0,vb);
+			map_.set_arg(0,pvb);
 			q_.enqueue_nd_range_kernel(map_,2,nullptr,extent,nullptr);
 
 			//	Reduce
