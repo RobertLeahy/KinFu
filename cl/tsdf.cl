@@ -39,7 +39,7 @@ kernel void tsdf_kernel(__global float * src, __global float* dest,
 
 
 	if (n==0) {
-		dest[idx] = NAN;
+		dest[idx] = 1.0f;
 		weight[idx] = 0;
 	}
 
@@ -106,8 +106,9 @@ kernel void tsdf_kernel(__global float * src, __global float* dest,
 	float3 t_gk_p = (float3)(t_gk[0] - p_x, t_gk[1] - p_y, t_gk[2] - p_z);
 	
 	// First, scale the length of the vector from the center of this voxel
-	// to the camera position by lambda and then take the difference in 
-	float sdf = (1.0f/lambda) * l2_norm(t_gk_p) - R_k;
+	// to the camera position by lambda and then take the difference between
+	// it and the depth measurement
+	float sdf = R_k - (1.0f/lambda) * l2_norm(t_gk_p);
 	
 
 /*	float tsdf;
@@ -120,6 +121,8 @@ kernel void tsdf_kernel(__global float * src, __global float* dest,
 	if (sdf >= -mu) {
 
 		float tsdf = fmin(1.0f, sdf/mu);
+
+		if (isnan(tsdf)) return;
 
 		float prev_tsdf = dest[idx];
 

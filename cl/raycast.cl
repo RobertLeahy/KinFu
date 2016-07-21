@@ -7,8 +7,6 @@ float getTsdfValue (const int3 vox, const __global float * tsdf, const size_t si
 
     float val = tsdf[vox.x + vox.y * size + vox.z * size * size];
 
-    if (!isfinite(val)) val = 1.0f;
-
     return val;
 
 }
@@ -171,6 +169,9 @@ float triLerp (const float3 p, const __global float * tsdf, const float extent, 
         vox = getVoxel(where, extent, tsdf_size);
         if (!isVoxelValid(vox, tsdf_size)) break;
         tsdf_val = getTsdfValue(vox, tsdf, tsdf_size);
+
+        if (isnan(tsdf_val)) continue;
+        if (isnan(tsdf_val_prev)) continue;
 
         int p = signbit(tsdf_val_prev);
         int c = signbit(tsdf_val);
