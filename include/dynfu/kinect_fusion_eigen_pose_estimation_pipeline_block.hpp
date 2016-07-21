@@ -18,6 +18,10 @@ namespace dynfu {
 	 *	that uses the Eigen math library to calculate a new sensor
 	 *	pose estimation.
 	 *
+	 *	This class is highly experimental, highly unstable, and
+	 *	extremely non-performant.  Do not use unless you know
+	 *	exactly what you are doing and why.
+	 *
 	 *	\sa kinect_fusion
 	 */
 	class kinect_fusion_eigen_pose_estimation_pipeline_block: public pose_estimation_pipeline_block {
