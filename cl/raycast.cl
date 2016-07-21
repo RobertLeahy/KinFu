@@ -1,6 +1,6 @@
 #define KINECT_MAX_DIST (8.0f)
-#define KINECT_MIN_DIST (0.0001f)
-#define STEP_SIZE (0.024f) // mu *0.8
+#define KINECT_MIN_DIST (0.4f)
+#define STEP_SIZE (0.0005f) // mu *0.8
 
 
 float getTsdfValue (const int3 vox, const __global float * tsdf, const size_t size) {
@@ -192,7 +192,7 @@ float triLerp (const float3 p, const __global float * tsdf, const float extent, 
         float t_star = dist - (STEP_SIZE * ft) / (ftdt - ft);
 
         //  Store computed vertex position
-        float3 v = camera_pos + (ray_dir * t_star);
+        float3 v = initial_ray + (ray_dir * t_star);
         vstore3(v, idx, vmap);
 
         //  Check to see if we can even compute a normal
