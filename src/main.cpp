@@ -142,7 +142,7 @@ static void main_impl (int argc, char ** argv) {
 	t_g_k(0,3)=1.5f;
 	t_g_k(1,3)=1.5f;
 	t_g_k(2,3)=1.5f;
-	dynfu::kinect_fusion_opencl_pose_estimation_pipeline_block pepb(opf,q,0.1f,std::sin(20.0f*3.14159254f/180.0f),dd.width(),dd.height(),t_g_k,50);
+	dynfu::kinect_fusion_opencl_pose_estimation_pipeline_block pepb(opf,q,0.1f,std::sin(20.0f*3.14159254f/180.0f),dd.width(),dd.height(),t_g_k,15);
 	dynfu::kinect_fusion_opencl_update_reconstruction_pipeline_block urpb(q,opf,mu);
 	dynfu::kinect_fusion_opencl_surface_prediction_pipeline_block sppb(q,opf,mu,tsdf_size, tsdf_extent, dd.width(), dd.height());
 
