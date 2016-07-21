@@ -58,11 +58,10 @@ kernel void tsdf_kernel(__global float * src, __global float* dest,
 	float4 p = (float4)(p_x, p_y, p_z, 1);
 
 	// Multiplying by T_g_k.inverse() here. This takes us to camera space.
-	float4 cam;
+	float3 cam;
 	cam.x = proj_view[0]*p.x + proj_view[1]*p.y + proj_view[2]*p.z + proj_view[3]*p.w;
 	cam.y = proj_view[4]*p.x + proj_view[5]*p.y + proj_view[6]*p.z + proj_view[7]*p.w;
 	cam.z = proj_view[8]*p.x + proj_view[9]*p.y + proj_view[10]*p.z + proj_view[11]*p.w;
-	cam.w = 1.0f;
 
 	float3 plane;
 	plane.x = cam.x * K[0] + cam.y * K[1] + cam.z * K[2];
@@ -85,38 +84,18 @@ kernel void tsdf_kernel(__global float * src, __global float* dest,
 
 	}
 
-	// Compute Eqn (7)
-	float3 K_inv_x;
-	K_inv_x.x = x_tild.x * K_inv[0] + x_tild.y * K_inv[1] + K_inv[2];
-	K_inv_x.y = x_tild.x * K_inv[3] + x_tild.y * K_inv[4] + K_inv[5];
-	K_inv_x.z = x_tild.x * K_inv[6] + x_tild.y * K_inv[7] + K_inv[8];
+	float v = src[x_tild.y * frame_width + x_tild.x];
+	float3 pix = (float3)(x_tild.x, x_tild.y, 1.0f);
+	float3 pix_k_inv;
+	pix_k_inv.x = dot ((float3)(K_inv[0], K_inv[1], K_inv[2]), pix);
+	pix_k_inv.y = dot ((float3)(K_inv[3], K_inv[4], K_inv[5]), pix);
+	pix_k_inv.z = dot ((float3)(K_inv[6], K_inv[7], K_inv[8]), pix);
+	pix_k_inv *= v;
 
+	float to_measurement = sqrt(dot(pix_k_inv, pix_k_inv));
+	float to_voxel = sqrt(dot(cam, cam));
 
-
-	float lambda = l2_norm(K_inv_x);
-
-	// Compute Eqn (6)
-
-	// R_k(x)
-	// Depth from frame at the current pixel
-	float R_k = src[x_tild.y * frame_width + x_tild.x];
-	
-	// t_gk - p
-	// Compute the vector from the center of this voxel to the camera position
-	float3 t_gk_p = (float3)(t_gk[0] - p_x, t_gk[1] - p_y, t_gk[2] - p_z);
-	
-	// First, scale the length of the vector from the center of this voxel
-	// to the camera position by lambda and then take the difference between
-	// it and the depth measurement
-	float sdf = R_k - (1.0f/lambda) * l2_norm(t_gk_p);
-	
-
-/*	float tsdf;
-	if (sdf > 0.0f ) {
-		tsdf = fmin(1.0f, sdf/mu);
-	} else {
-		tsdf = fmax(-1.0f, sdf/mu);
-	}*/
+	float sdf = to_measurement - to_voxel;
 
 	if (sdf >= -mu) {
 
