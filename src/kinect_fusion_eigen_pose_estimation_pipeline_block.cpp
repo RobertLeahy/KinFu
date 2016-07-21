@@ -190,7 +190,6 @@ namespace dynfu {
 
 		for (std::size_t i = 0; i < numit_; ++i) {
 			t_z = kinect_fusion_eigen_pose_estimation_pipeline_block::iterate(v, n, prev_v, prev_n, k, t_frame_to_frame, t_z);
-			std::cout << "T_z" << std::endl << t_z << std::endl;
 			t_frame_to_frame = t_gk_minus_one->get().inverse() * t_z;
 		}
 

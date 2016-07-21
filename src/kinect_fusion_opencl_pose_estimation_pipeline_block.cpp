@@ -221,8 +221,6 @@ namespace dynfu {
 			cr.wait();
 			crg.release();
 
-			std::cout << "Count: " << count << std::endl;
-
 			ar.wait();
 			arg.release();
 			br.wait();
@@ -243,8 +241,6 @@ namespace dynfu {
 					 gamma, 1.0f, -alpha, ty,
 				 	 -beta, alpha, 1.0f, tz,
 					 0.0f, 0.0f, 0.0f, 1.0f;
-
-			std::cout << "T_z " << std::endl << t_z << std::endl;
 
 		}
 
