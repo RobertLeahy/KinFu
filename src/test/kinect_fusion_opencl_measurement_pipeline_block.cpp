@@ -3,11 +3,14 @@
 
 #include <boost/compute.hpp>
 #include <dynfu/cpu_pipeline_value.hpp>
+#include <dynfu/file_system_depth_device.hpp>
 #include <dynfu/file_system_opencl_program_factory.hpp>
 #include <dynfu/filesystem.hpp>
+#include <dynfu/msrc_file_system_depth_device.hpp>
 #include <dynfu/path.hpp>
 #include <Eigen/Dense>
 #include <algorithm>
+#include <cmath>
 #include <cstddef>
 #include <tuple>
 #include <vector>
@@ -22,14 +25,32 @@ namespace {
 		
 		private:
 		
+			static dynfu::filesystem::path curr_dir () {
+
+				return dynfu::filesystem::path(dynfu::current_executable_parent_path());
+
+			}
+
+
 			static dynfu::filesystem::path cl_path () {
-				
-				dynfu::filesystem::path retr(dynfu::current_executable_parent_path());
+
+				auto retr=curr_dir();
 				retr/="..";
 				retr/="cl";
-				
+
 				return retr;
-				
+
+			}
+
+
+			static dynfu::filesystem::path frames_path () {
+
+				auto retr=curr_dir();
+				retr/="..";
+				retr/="data/test/kinect_fusion_eigen_pose_estimation_pipeline_block";
+
+				return retr;
+
 			}
 		
 		protected:
@@ -37,6 +58,9 @@ namespace {
 			boost::compute::device dev;
 			boost::compute::context ctx;
 			boost::compute::command_queue q;
+			dynfu::msrc_file_system_depth_device_frame_factory ff;
+			dynfu::msrc_file_system_depth_device_filter f;
+			dynfu::file_system_depth_device dd;
 			std::size_t width;
 			std::size_t height;
 			Eigen::Matrix3f k;
@@ -44,7 +68,15 @@ namespace {
 			
 		public:
 		
-			fixture () : dev(boost::compute::system::default_device()), ctx(dev), q(ctx,dev), width(4), height(4), fsopf(cl_path(),ctx) {
+			fixture ()
+				:	dev(boost::compute::system::default_device()),
+					ctx(dev),
+					q(ctx,dev),
+					dd(frames_path(),ff,&f),
+					width(4),
+					height(4),
+					fsopf(cl_path(),ctx)
+			{
 					
 				k << 585.0f, 0.0f, 320.0f,
 					 0.0f, -585.0f, 240.0f,
@@ -58,7 +90,7 @@ namespace {
 }
 
 
-SCENARIO_METHOD(fixture, "A dynfu::kinect_fusion_opencl_measurement_pipeline_block implements the measurement phase of the kinect fusion pipeline on the GPU using OpenCL","[dynfu][measurement_pipeline_block][kinect_fusion_opencl_measurement_pipeline_block]") {
+SCENARIO_METHOD(fixture, "A dynfu::kinect_fusion_opencl_measurement_pipeline_block implements the measurement phase of the kinect fusion pipeline on the GPU using OpenCL","[dynfu][measurement_pipeline_block][kinect_fusion_opencl_measurement_pipeline_block][!mayfail]") {
 	
 	GIVEN("A dynfu::kinect_fusion_opencl_measurement_pipeline_block") {		
 		
@@ -159,4 +191,45 @@ SCENARIO_METHOD(fixture, "A dynfu::kinect_fusion_opencl_measurement_pipeline_blo
 		
 	}
 	
+}
+
+
+SCENARIO_METHOD(fixture,"The vertices returned by a dynfu::kinect_fusion_opencl_measurement_pipeline_block may be deprojected back into pixel space","[dynfu][measurement_pipeline_block][kinect_fusion_opencl_measurement_pipeline_block]") {
+
+	GIVEN("A dynfu::kinect_fusion_opencl_measurement_pipeline_block") {
+
+		dynfu::kinect_fusion_opencl_measurement_pipeline_block kfompb(q, fsopf, 16, 2.0f, 1.0f);
+
+		WHEN("It is run on a depth frame") {
+
+			auto frame_ptr=dd();
+			auto k=dd.k();
+			auto t=kfompb(*frame_ptr,dd.width(),dd.height(),k);
+
+			THEN("The vertices of the returned vertex map may be deprojected back into pixel space") {
+
+				auto && v=std::get<0>(t)->get();
+				std::size_t idx(0);
+				for (int y=0;y<int(dd.height());++y) {
+
+					for (int x=0;x<int(dd.width());++x,++idx) {
+
+						Eigen::Vector3f curr=v[idx];
+						if (std::isnan(curr(0))) continue;
+						Eigen::Vector3f deproj(k*curr);
+						int dpx=std::round(deproj(0)/deproj(2));
+						CHECK(dpx==x);
+						int dpy=std::round(deproj(1)/deproj(2));
+						CHECK(dpy==y);
+
+					}
+
+				}
+
+			}
+
+		}
+
+	}
+
 }
