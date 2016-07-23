@@ -162,7 +162,6 @@ namespace dynfu {
 			auto tzwg=make_scope_exit([&] () noexcept {	tzw.wait();	});
 
 			//	Enqueue correspondences kernel
-			std::size_t extent []={frame_width_,frame_height_};
 			q_.enqueue_nd_range_kernel(corr_,2,nullptr,extent,nullptr);
 
 			//	Reduce
