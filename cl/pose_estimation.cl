@@ -30,27 +30,80 @@ int is_finite(float3 v) {
 }
 
 
-kernel void correspondences(
-	const __global float * v,	//	0
-	const __global float * n,	//	1
-	const __global float * pv,	//	2
-	const __global float * pn,	//	3
-	const unsigned int width,	//	4
-	const unsigned int height,	//	5
-	const __global float * t_gk_prev_inverse,	//	6
-	const __global float * t_z,	//	7
-	float epsilon_d,	//	8
-	float epsilon_theta,	//	9
-	const __global float * k,	//	10
-	__global float * corr_v,	//	11
-	__global float * corr_pn	//	12
+struct __attribute__((packed)) kernel_data {
+
+	float3 v;
+	float3 pv;
+	float3 pn;
+	int valid;
+	float a [36];
+	float b [6];
+
+};
+
+
+kernel void load_p(
+	__global struct kernel_data * data,	//	0
+	const __global float * v,	//	1
+	const __global float * n	//	2
 ) {
 
 	size_t x=get_global_id(0);
+	size_t width=get_global_size(0);
 	size_t y=get_global_id(1);
 	size_t idx=(y*width)+x;
 
-	float3 curr_pv=vload3(idx,pv);
+	global struct kernel_data * curr=data+idx;
+	curr->pv=vload3(idx,v);
+	curr->pn=vload3(idx,n);
+	
+}
+
+
+struct __attribute__((packed)) vertex_and_normal {
+
+	float3 v;
+	float3 n;
+
+};
+
+
+kernel void load_vn(
+	__global struct vertex_and_normal * vn,	//	0
+	const __global float * v,	//	1
+	const __global float * n	//	2
+) {
+
+	size_t x=get_global_id(0);
+	size_t width=get_global_size(0);
+	size_t y=get_global_id(1);
+	size_t idx=(y*width)+x;
+
+	global struct vertex_and_normal * curr=vn+idx;
+	curr->v=vload3(idx,v);
+	curr->n=vload3(idx,n);
+
+}
+
+
+kernel void correspondences(
+	__global struct kernel_data * data,	//	0
+	const __global struct vertex_and_normal * vn,	//	1
+	const __global float * t_gk_prev_inverse,	//	2
+	const __global float * t_z,	//	3
+	float epsilon_d,	//	4
+	float epsilon_theta,	//	5
+	const __global float * k,	//	6
+	__global float * corr_v,	//	7
+	__global float * corr_pn	//	8
+) {
+
+	size_t x=get_global_id(0);
+	size_t width=get_global_size(0);
+	size_t y=get_global_id(1);
+	size_t idx=(y*width)+x;
+
+	float3 curr_pv=data[idx].pv;
 	float4 curr_pv_homo=(float4)(curr_pv,1);
 
 	float4 v_pcp_h=matrixmul4(t_gk_prev_inverse,curr_pv_homo);
@@ -63,17 +116,17 @@ kernel void correspondences(
 	int lin_idx=u.x+u.y*width;
 
 	float3 nullv=(float3)(0,0,0);
-	if (lin_idx>=(width*height) || lin_idx<0) {
+	if (lin_idx>=(width*get_global_size(1)) || lin_idx<0) {
 
 		vstore3(nullv,idx,corr_pn);
 		return;
 
 	}
 
-	float3 curr_pn=vload3(idx,pn);
+	float3 curr_pn=data[idx].pn;
 	//	These are in current camera space
-	float3 curr_n=vload3(lin_idx,n);
-	float3 curr_v=vload3(lin_idx,v);
+	float3 curr_n=vn[lin_idx].n;
+	float3 curr_v=vn[lin_idx].v;
 	//	TODO: Should we be checking the current normal?
 	if (!(is_finite(curr_v) && is_finite(curr_pv) && is_finite(curr_pn))) {
 

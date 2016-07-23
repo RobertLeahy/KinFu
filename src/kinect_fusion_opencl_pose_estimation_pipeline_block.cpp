@@ -20,6 +20,8 @@ namespace dynfu {
 
 	constexpr std::size_t sizeof_b=6U*sizeof(float);
 	constexpr std::size_t sizeof_a=sizeof_b*6U;
+	constexpr std::size_t sizeof_kernel_data=sizeof_a+sizeof_b+sizeof(std::int32_t)+(sizeof(float)*4U*3U);
+	constexpr std::size_t sizeof_vertex_and_normal=sizeof(float)*4U*2U;
 
 
 	kinect_fusion_opencl_pose_estimation_pipeline_block::kinect_fusion_opencl_pose_estimation_pipeline_block (
@@ -42,6 +44,8 @@ namespace dynfu {
 			b_(q_.get_context(),sizeof_b,CL_MEM_WRITE_ONLY|CL_MEM_HOST_READ_ONLY),
 			count_(q_.get_context(),sizeof(std::uint32_t)),
 			k_(q_.get_context(),sizeof(Eigen::Matrix3f),CL_MEM_READ_ONLY|CL_MEM_HOST_WRITE_ONLY),
+			data_(q_.get_context(),sizeof_kernel_data*frame_height*frame_width),
+			vn_(q_.get_context(),sizeof_vertex_and_normal*frame_height*frame_width),
 			v_e_(q_),
 			n_e_(q_),
 			pv_e_(q_),
@@ -62,17 +66,23 @@ namespace dynfu {
 		reduce_a_=p.create_kernel("reduce_a");
 		reduce_b_=p.create_kernel("reduce_b");
 		count_k_=p.create_kernel("count");
+		load_p_=p.create_kernel("load_p");
+		load_=p.create_kernel("load_vn");
+
+		//	Load arguments
+		load_p_.set_arg(0,data_);
+		load_.set_arg(0,vn_);
 
 		//	Correspondences arguments
-		corr_.set_arg(4,std::uint32_t(frame_width_));
-		corr_.set_arg(5,std::uint32_t(frame_height_));
-		corr_.set_arg(6,t_gk_prev_inverse_);
-		corr_.set_arg(7,t_z_);
-		corr_.set_arg(8,epsilon_d_);
-		corr_.set_arg(9,epsilon_theta_);
-		corr_.set_arg(10,k_);
-		corr_.set_arg(11,corr_v_);
-		corr_.set_arg(12,corr_pn_);
+		corr_.set_arg(0,data_);
+		corr_.set_arg(1,vn_);
+		corr_.set_arg(2,t_gk_prev_inverse_);
+		corr_.set_arg(3,t_z_);
+		corr_.set_arg(4,epsilon_d_);
+		corr_.set_arg(5,epsilon_theta_);
+		corr_.set_arg(6,k_);
+		corr_.set_arg(7,corr_v_);
+		corr_.set_arg(8,corr_pn_);
 
 		//	Map arguments
 		map_.set_arg(1,corr_v_);
@@ -122,13 +132,16 @@ namespace dynfu {
 
 		//	Get input vectors and bind parameters
 		auto && vb=v_e_(v);
-		corr_.set_arg(0,vb);
+		load_.set_arg(1,vb);
 		auto && nb=n_e_(n);
-		corr_.set_arg(1,nb);
+		load_.set_arg(2,nb);
+		std::size_t extent []={frame_height_,frame_width_};
+		q_.enqueue_nd_range_kernel(load_,2,nullptr,extent,nullptr);
 		auto && pvb=pv_e_(*prev_v);
-		corr_.set_arg(2,pvb);
+		load_p_.set_arg(1,pvb);
 		auto && pnb=pn_e_(*prev_n);
-		corr_.set_arg(3,pnb);
+		load_p_.set_arg(2,pnb);
+		q_.enqueue_nd_range_kernel(load_p_,2,nullptr,extent,nullptr);
 
 		auto && pv=dynamic_cast<pv_type &>(*t_gk_minus_one);
 		auto t_gk_minus_one_m=pv.get();

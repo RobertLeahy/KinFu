@@ -34,6 +34,8 @@ namespace dynfu {
 			boost::compute::kernel reduce_a_;
 			boost::compute::kernel reduce_b_;
 			boost::compute::kernel count_k_;
+			boost::compute::kernel load_p_;
+			boost::compute::kernel load_;
 			boost::compute::buffer t_z_;
 			boost::compute::buffer t_gk_prev_inverse_;
 			boost::compute::vector<Eigen::Vector3f> corr_v_;
@@ -44,6 +46,8 @@ namespace dynfu {
 			boost::compute::buffer b_;
 			boost::compute::buffer count_;
 			boost::compute::buffer k_;
+			boost::compute::buffer data_;
+			boost::compute::buffer vn_;
 			opencl_vector_pipeline_value_extractor<measurement_pipeline_block::vertex_value_type::element_type::type::value_type> v_e_;
 			opencl_vector_pipeline_value_extractor<measurement_pipeline_block::normal_value_type::element_type::type::value_type> n_e_;
 			opencl_vector_pipeline_value_extractor<measurement_pipeline_block::vertex_value_type::element_type::type::value_type> pv_e_;
