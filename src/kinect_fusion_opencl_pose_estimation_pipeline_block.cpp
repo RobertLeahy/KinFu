@@ -20,53 +20,6 @@
 namespace dynfu {
 
 
-	static boost::compute::program get_program (opencl_program_factory & pf) {
-
-		return pf("pose_estimation");
-
-	}
-
-
-	static boost::compute::kernel get_correspondences_kernel (opencl_program_factory & pf) {
-
-		auto p=get_program(pf);
-		return boost::compute::kernel(p,"correspondences");
-
-	}
-
-
-	static boost::compute::kernel get_map_kernel (opencl_program_factory & pf) {
-
-		auto p=get_program(pf);
-		return boost::compute::kernel(p,"map");
-
-	}
-
-
-	static boost::compute::kernel get_reduce_a_kernel (opencl_program_factory & pf) {
-
-		auto p=get_program(pf);
-		return boost::compute::kernel(p,"reduce_a");
-
-	}
-
-
-	static boost::compute::kernel get_reduce_b_kernel (opencl_program_factory & pf) {
-
-		auto p=get_program(pf);
-		return boost::compute::kernel(p,"reduce_b");
-
-	}
-
-
-	static boost::compute::kernel get_count_kernel (opencl_program_factory & pf) {
-
-		auto p=get_program(pf);
-		return boost::compute::kernel(p,"count");
-
-	}
-
-
 	constexpr std::size_t sizeof_b=6U*sizeof(float);
 	constexpr std::size_t sizeof_a=sizeof_b*6U;
 
@@ -81,11 +34,6 @@ namespace dynfu {
 		Eigen::Matrix4f t_gk_initial,
 		std::size_t numit
 	)	:	q_(std::move(q)),
-			corr_(get_correspondences_kernel(pf)),
-			map_(get_map_kernel(pf)),
-			reduce_a_(get_reduce_a_kernel(pf)),
-			reduce_b_(get_reduce_b_kernel(pf)),
-			count_k_(get_count_kernel(pf)),
 			t_z_(q_.get_context(),sizeof(Eigen::Matrix4f),CL_MEM_READ_ONLY|CL_MEM_HOST_WRITE_ONLY),
 			t_gk_prev_inverse_(q_.get_context(),sizeof(Eigen::Matrix4f),CL_MEM_READ_ONLY|CL_MEM_HOST_WRITE_ONLY),
 			corr_v_(frame_width*frame_height,q_.get_context()),
@@ -109,6 +57,13 @@ namespace dynfu {
 	{
 
 		if (numit_==0) throw std::logic_error("Must iterate at least once");
+
+		auto p=pf("pose_estimation");
+		corr_=p.create_kernel("correspondences");
+		map_=p.create_kernel("map");
+		reduce_a_=p.create_kernel("reduce_a");
+		reduce_b_=p.create_kernel("reduce_b");
+		count_k_=p.create_kernel("count");
 
 		//	Correspondences arguments
 		corr_.set_arg(4,std::uint32_t(frame_width_));
