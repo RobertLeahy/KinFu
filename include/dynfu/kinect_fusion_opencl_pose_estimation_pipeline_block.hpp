@@ -32,7 +32,6 @@ namespace dynfu {
 			boost::compute::kernel corr_;
 			boost::compute::kernel reduce_a_;
 			boost::compute::kernel reduce_b_;
-			boost::compute::kernel count_k_;
 			boost::compute::kernel load_p_;
 			boost::compute::kernel load_;
 			boost::compute::buffer t_z_;
@@ -43,7 +42,6 @@ namespace dynfu {
 			boost::compute::buffer bis_;
 			boost::compute::buffer a_;
 			boost::compute::buffer b_;
-			boost::compute::buffer count_;
 			boost::compute::buffer k_;
 			boost::compute::buffer data_;
 			boost::compute::buffer vn_;
@@ -57,7 +55,6 @@ namespace dynfu {
 			std::size_t frame_height_;
 			Eigen::Matrix4f t_gk_initial_;
 			std::size_t numit_;
-			optional<std::size_t> threshold_;
 
 
 		public:
@@ -86,9 +83,6 @@ namespace dynfu {
 				Eigen::Matrix3f,
 				value_type
 			) override;
-
-
-			void check_correspondences (std::size_t threshold) noexcept;
 
 
 	};

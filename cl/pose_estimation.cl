@@ -286,24 +286,3 @@ kernel void reduce_b(
 	b[idx]=sum;
 
 }
-
-
-kernel void count(
-	const __global float * corr_pn,	//	0
-	const unsigned int width,	//	1
-	const unsigned int height,	//	2
-	__global unsigned int * count	//	3
-) {
-
-	unsigned int num=width*height;
-	unsigned int c=0;
-	for (unsigned int i=0;i<num;++i) {
-
-		float3 pn=vload3(i,corr_pn);
-		if ((pn.x==0) && (pn.y==0) && (pn.z==0)) ++c;
-
-	}
-
-	*count=c;
-
-}

@@ -42,7 +42,6 @@ namespace dynfu {
 			bis_(q_.get_context(),frame_width*frame_height*sizeof_b),
 			a_(q_.get_context(),sizeof_a,CL_MEM_WRITE_ONLY|CL_MEM_HOST_READ_ONLY),
 			b_(q_.get_context(),sizeof_b,CL_MEM_WRITE_ONLY|CL_MEM_HOST_READ_ONLY),
-			count_(q_.get_context(),sizeof(std::uint32_t)),
 			k_(q_.get_context(),sizeof(Eigen::Matrix3f),CL_MEM_READ_ONLY|CL_MEM_HOST_WRITE_ONLY),
 			data_(q_.get_context(),sizeof_kernel_data*frame_height*frame_width),
 			vn_(q_.get_context(),sizeof_vertex_and_normal*frame_height*frame_width),
@@ -64,7 +63,6 @@ namespace dynfu {
 		corr_=p.create_kernel("correspondences");
 		reduce_a_=p.create_kernel("reduce_a");
 		reduce_b_=p.create_kernel("reduce_b");
-		count_k_=p.create_kernel("count");
 		load_p_=p.create_kernel("load_p");
 		load_=p.create_kernel("load_vn");
 
@@ -93,12 +91,6 @@ namespace dynfu {
 		reduce_b_.set_arg(0,bis_);
 		reduce_b_.set_arg(1,b_);
 		reduce_b_.set_arg(2,length);
-
-		//	Count arguments
-		count_k_.set_arg(0,corr_pn_);
-		count_k_.set_arg(1,std::uint32_t(frame_width_));
-		count_k_.set_arg(2,std::uint32_t(frame_height_));
-		count_k_.set_arg(3,count_);
 
 	}
 
@@ -181,18 +173,6 @@ namespace dynfu {
 			auto br=q_.enqueue_read_buffer_async(b_,0,sizeof(b),&b);
 			auto brg=make_scope_exit([&] () noexcept {	br.wait();	});
 
-			//	Count if applicable/enabled
-			std::uint32_t count;
-			optional<boost::compute::event> cr;
-			auto crg=make_scope_exit([&] () noexcept {	if (cr) cr->wait();	});
-			if (threshold_) {
-
-				std::size_t count_extent=1;
-				q_.enqueue_nd_range_kernel(count_k_,1,nullptr,&count_extent,nullptr);
-				cr=q_.enqueue_read_buffer_async(count_,0,sizeof(count),&count);
-
-			}
-
 			ar.wait();
 			arg.release();
 			br.wait();
@@ -217,35 +197,12 @@ namespace dynfu {
 			t_z.transposeInPlace();
 			t_z=t_inc*t_z;
 
-			//	Check count if applicable
-			if (cr) {
-
-				cr->wait();
-				crg.release();
-
-				if (count>*threshold_) {
-
-					std::ostringstream ss;
-					ss << "Tracking lost: Could not find correspondences for " << count << "/" << (frame_height_*frame_width_) << " points (maximum allowable is " << *threshold_ << ")";
-					throw tracking_lost_error(ss.str());
-
-				}
-
-			}
-
 		}
 
 		pv.emplace(t_z);
 
 		return t_gk_minus_one;
 	
-	}
-
-
-	void kinect_fusion_opencl_pose_estimation_pipeline_block::check_correspondences (std::size_t threshold) noexcept {
-
-		threshold_=threshold;
-
 	}
 
 
