@@ -102,8 +102,9 @@ kernel void correspondences(
 	size_t width=get_global_size(0);
 	size_t y=get_global_id(1);
 	size_t idx=(y*width)+x;
+	global struct kernel_data * curr=data+idx;
 
-	float3 curr_pv=data[idx].pv;
+	float3 curr_pv=curr->pv;
 	float4 curr_pv_homo=(float4)(curr_pv,1);
 
 	float4 v_pcp_h=matrixmul4(t_gk_prev_inverse,curr_pv_homo);
@@ -123,10 +124,11 @@ kernel void correspondences(
 
 	}
 
-	float3 curr_pn=data[idx].pn;
+	float3 curr_pn=curr->pn;
 	//	These are in current camera space
-	float3 curr_n=vn[lin_idx].n;
-	float3 curr_v=vn[lin_idx].v;
+	global struct vertex_and_normal * curr_vn=vn+idx;
+	float3 curr_n=curr_vn->n;
+	float3 curr_v=curr_vn->v;
 	//	TODO: Should we be checking the current normal?
 	if (!(is_finite(curr_v) && is_finite(curr_pv) && is_finite(curr_pn))) {
 
