@@ -36,7 +36,6 @@ struct __attribute__((packed)) kernel_data {
 	float3 n;
 	float3 pv;
 	float3 pn;
-	int valid;
 	float a [36];
 	float b [6];
 
@@ -218,35 +217,41 @@ kernel void correspondences(
 }
 
 
-kernel void reduce_a(
-	const __global struct kernel_data * data,	//	0
-	__global float * a,	//	1
-	const unsigned int length	//	2
-) {
+void matrixadd6 (__global float * restrict a, const __global float * restrict b) {
 
-	size_t x=get_global_id(0);
-	size_t y=get_global_id(1);
-	size_t idx=(y*6)+x;
-
-	float sum=0;
-	for (size_t i=0;i<length;++i) sum+=data[i].a[idx];
-
-	a[idx]=sum;
+	#pragma unroll
+	for (size_t i=0;i<(6U*6U);++i) a[i]+=b[i];
 
 }
 
 
-kernel void reduce_b(
-	const __global struct kernel_data * data,	//	0
-	__global float * b,	//	1
-	const unsigned int length	//	2
+void vectoradd6 (__global float * restrict a, const __global float * restrict b) {
+
+	#pragma unroll
+	for (size_t i=0;i<6U;++i) a[i]+=b[i];
+
+}
+
+
+kernel void sum(
+	__global struct kernel_data * data,	//	0
+	unsigned int mul,	//	1
+	int last_odd	//	2
 ) {
 
-	size_t idx=get_global_id(0);
+	size_t i=get_global_id(0);
+	unsigned int stride=mul/2U;
+	size_t idx=i*mul;
+	global struct kernel_data * curr=data+idx;
+	global struct kernel_data * other=curr+stride;
 
-	float sum=0;
-	for (size_t i=0;i<length;++i) sum+=data[i].b[idx];
+	matrixadd6(curr->a,other->a);
+	vectoradd6(curr->b,other->b);
 
-	b[idx]=sum;
+	if (!(last_odd && (i==(get_global_size(0)-1U)))) return;
+
+	other+=stride;
+	matrixadd6(curr->a,other->a);
+	vectoradd6(curr->b,other->b);
 
 }

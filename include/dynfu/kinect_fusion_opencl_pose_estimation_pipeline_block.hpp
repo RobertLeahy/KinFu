@@ -29,13 +29,10 @@ namespace dynfu {
 
 			boost::compute::command_queue q_;
 			boost::compute::kernel corr_;
-			boost::compute::kernel reduce_a_;
-			boost::compute::kernel reduce_b_;
+			boost::compute::kernel sum_;
 			boost::compute::kernel load_;
 			boost::compute::buffer t_z_;
 			boost::compute::buffer t_gk_prev_inverse_;
-			boost::compute::buffer a_;
-			boost::compute::buffer b_;
 			boost::compute::buffer k_;
 			boost::compute::buffer data_;
 			opencl_vector_pipeline_value_extractor<measurement_pipeline_block::vertex_value_type::element_type::type::value_type> v_e_;

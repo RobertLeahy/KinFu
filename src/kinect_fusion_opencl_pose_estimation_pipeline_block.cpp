@@ -8,6 +8,7 @@
 #include <Eigen/Dense>
 #include <Eigen/QR>
 #include <cstddef>
+#include <cstring>
 #include <cstdint>
 #include <memory>
 #include <sstream>
@@ -20,7 +21,7 @@ namespace dynfu {
 
 	constexpr std::size_t sizeof_b=6U*sizeof(float);
 	constexpr std::size_t sizeof_a=sizeof_b*6U;
-	constexpr std::size_t sizeof_kernel_data=sizeof_a+sizeof_b+sizeof(std::int32_t)+(sizeof(float)*4U*4U);
+	constexpr std::size_t sizeof_kernel_data=sizeof_a+sizeof_b+(sizeof(float)*4U*4U);
 
 
 	kinect_fusion_opencl_pose_estimation_pipeline_block::kinect_fusion_opencl_pose_estimation_pipeline_block (
@@ -35,8 +36,6 @@ namespace dynfu {
 	)	:	q_(std::move(q)),
 			t_z_(q_.get_context(),sizeof(Eigen::Matrix4f),CL_MEM_READ_ONLY|CL_MEM_HOST_WRITE_ONLY),
 			t_gk_prev_inverse_(q_.get_context(),sizeof(Eigen::Matrix4f),CL_MEM_READ_ONLY|CL_MEM_HOST_WRITE_ONLY),
-			a_(q_.get_context(),sizeof_a,CL_MEM_WRITE_ONLY|CL_MEM_HOST_READ_ONLY),
-			b_(q_.get_context(),sizeof_b,CL_MEM_WRITE_ONLY|CL_MEM_HOST_READ_ONLY),
 			k_(q_.get_context(),sizeof(Eigen::Matrix3f),CL_MEM_READ_ONLY|CL_MEM_HOST_WRITE_ONLY),
 			data_(q_.get_context(),sizeof_kernel_data*frame_height*frame_width),
 			v_e_(q_),
@@ -55,8 +54,7 @@ namespace dynfu {
 
 		auto p=pf("pose_estimation");
 		corr_=p.create_kernel("correspondences");
-		reduce_a_=p.create_kernel("reduce_a");
-		reduce_b_=p.create_kernel("reduce_b");
+		sum_=p.create_kernel("sum");
 		load_=p.create_kernel("load");
 
 		//	Load arguments
@@ -70,14 +68,8 @@ namespace dynfu {
 		corr_.set_arg(4,epsilon_theta_);
 		corr_.set_arg(5,k_);
 
-		//	Reduce arguments
-		std::uint32_t length(frame_height_*frame_width_);
-		reduce_a_.set_arg(0,data_);
-		reduce_a_.set_arg(1,a_);
-		reduce_a_.set_arg(2,length);
-		reduce_b_.set_arg(0,data_);
-		reduce_b_.set_arg(1,b_);
-		reduce_b_.set_arg(2,length);
+		//	Sum arguments
+		sum_.set_arg(0,data_);
 
 	}
 
@@ -141,28 +133,25 @@ namespace dynfu {
 
 			//	Enqueue correspondences kernel
 			q_.enqueue_nd_range_kernel(corr_,2,nullptr,extent,nullptr);
+			//	Sum
+			for (std::size_t prev_length=frame_height_*frame_width_,length=prev_length/2U,mul=2U;length!=0;prev_length=length,length/=2U,mul*=2U) {
 
-			//	Reduce
-			std::size_t a_extent []={6,6};
-			q_.enqueue_nd_range_kernel(reduce_a_,2,nullptr,a_extent,nullptr);
-			//	Just use first element of a_extent for 1D range on
-			//	reducing b
-			q_.enqueue_nd_range_kernel(reduce_b_,1,nullptr,a_extent,nullptr);
+				sum_.set_arg(1,std::uint32_t(mul));
+				sum_.set_arg(2,std::int32_t((prev_length%2U)!=0));
+				q_.enqueue_nd_range_kernel(sum_,1,nullptr,&length,nullptr);
 
-			//	Download results
+			}
+
+			//	Collect results
+			float buffer [(6U*6U)+6U];
+			q_.enqueue_read_buffer(data_,sizeof(float)*4U*4U,sizeof(buffer),buffer);
 			using a_type=Eigen::Matrix<float,6,6>;
 			a_type a;
-			auto ar=q_.enqueue_read_buffer_async(a_,0,sizeof(a),&a);
-			auto arg=make_scope_exit([&] () noexcept {	ar.wait();	});
+			std::memcpy(&a,buffer,sizeof(a));
 			using b_type=Eigen::Matrix<float,6,1>;
 			b_type b;
-			auto br=q_.enqueue_read_buffer_async(b_,0,sizeof(b),&b);
-			auto brg=make_scope_exit([&] () noexcept {	br.wait();	});
+			std::memcpy(&b,buffer+(6U*6U),sizeof(b));
 
-			ar.wait();
-			arg.release();
-			br.wait();
-			brg.release();
 
 			//	Solve system
 			Eigen::FullPivHouseholderQR<a_type> solver(a);
