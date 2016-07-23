@@ -8,7 +8,6 @@
 
 #include <boost/compute/buffer.hpp>
 #include <boost/compute/command_queue.hpp>
-#include <boost/compute/container/vector.hpp>
 #include <boost/compute/kernel.hpp>
 #include <dynfu/measurement_pipeline_block.hpp>
 #include <dynfu/opencl_program_factory.hpp>
@@ -36,8 +35,6 @@ namespace dynfu {
 			boost::compute::kernel load_;
 			boost::compute::buffer t_z_;
 			boost::compute::buffer t_gk_prev_inverse_;
-			boost::compute::vector<Eigen::Vector3f> corr_v_;
-			boost::compute::vector<Eigen::Vector3f> corr_pn_;
 			boost::compute::buffer a_;
 			boost::compute::buffer b_;
 			boost::compute::buffer k_;

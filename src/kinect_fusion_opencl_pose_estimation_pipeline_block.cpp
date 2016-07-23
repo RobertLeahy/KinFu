@@ -36,8 +36,6 @@ namespace dynfu {
 	)	:	q_(std::move(q)),
 			t_z_(q_.get_context(),sizeof(Eigen::Matrix4f),CL_MEM_READ_ONLY|CL_MEM_HOST_WRITE_ONLY),
 			t_gk_prev_inverse_(q_.get_context(),sizeof(Eigen::Matrix4f),CL_MEM_READ_ONLY|CL_MEM_HOST_WRITE_ONLY),
-			corr_v_(frame_width*frame_height,q_.get_context()),
-			corr_pn_(frame_width*frame_height,q_.get_context()),
 			a_(q_.get_context(),sizeof_a,CL_MEM_WRITE_ONLY|CL_MEM_HOST_READ_ONLY),
 			b_(q_.get_context(),sizeof_b,CL_MEM_WRITE_ONLY|CL_MEM_HOST_READ_ONLY),
 			k_(q_.get_context(),sizeof(Eigen::Matrix3f),CL_MEM_READ_ONLY|CL_MEM_HOST_WRITE_ONLY),
@@ -76,8 +74,6 @@ namespace dynfu {
 		corr_.set_arg(4,epsilon_d_);
 		corr_.set_arg(5,epsilon_theta_);
 		corr_.set_arg(6,k_);
-		corr_.set_arg(7,corr_v_);
-		corr_.set_arg(8,corr_pn_);
 
 		//	Reduce arguments
 		std::uint32_t length(frame_height_*frame_width_);

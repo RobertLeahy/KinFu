@@ -162,9 +162,7 @@ kernel void correspondences(
 	const __global float * t_z,	//	3
 	float epsilon_d,	//	4
 	float epsilon_theta,	//	5
-	const __global float * k,	//	6
-	__global float * corr_v,	//	7
-	__global float * corr_pn	//	8
+	const __global float * k	//	6
 ) {
 
 	size_t x=get_global_id(0);
