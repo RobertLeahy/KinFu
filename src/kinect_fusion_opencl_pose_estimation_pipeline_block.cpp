@@ -119,11 +119,6 @@ namespace dynfu {
 		auto kw=q_.enqueue_write_buffer_async(k_,0,sizeof(k),&k);
 		auto kwg=make_scope_exit([&] () noexcept {	kw.wait();	});
 
-		//	Allow up to 90% of points to be rejected
-		std::uint32_t threshold(frame_height_*frame_width_);
-		threshold/=10U;
-		threshold*=9U;
-
 		for (std::size_t i=0;i<numit_;++i) {
 
 			//	Upload current estimate to the GPU
