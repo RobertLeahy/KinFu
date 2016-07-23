@@ -62,7 +62,6 @@ namespace dynfu {
 
 		auto p=pf("pose_estimation");
 		corr_=p.create_kernel("correspondences");
-		map_=p.create_kernel("map");
 		reduce_a_=p.create_kernel("reduce_a");
 		reduce_b_=p.create_kernel("reduce_b");
 		count_k_=p.create_kernel("count");
@@ -83,14 +82,8 @@ namespace dynfu {
 		corr_.set_arg(6,k_);
 		corr_.set_arg(7,corr_v_);
 		corr_.set_arg(8,corr_pn_);
-
-		//	Map arguments
-		map_.set_arg(1,corr_v_);
-		map_.set_arg(2,corr_pn_);
-		map_.set_arg(3,std::uint32_t(frame_width_));
-		map_.set_arg(4,std::uint32_t(frame_height_));
-		map_.set_arg(5,ais_);
-		map_.set_arg(6,bis_);
+		corr_.set_arg(9,ais_);
+		corr_.set_arg(10,bis_);
 
 		//	Reduce arguments
 		std::uint32_t length(frame_height_*frame_width_);
@@ -171,10 +164,6 @@ namespace dynfu {
 			//	Enqueue correspondences kernel
 			std::size_t extent []={frame_width_,frame_height_};
 			q_.enqueue_nd_range_kernel(corr_,2,nullptr,extent,nullptr);
-
-			//	Map
-			map_.set_arg(0,pvb);
-			q_.enqueue_nd_range_kernel(map_,2,nullptr,extent,nullptr);
 
 			//	Reduce
 			std::size_t a_extent []={6,6};

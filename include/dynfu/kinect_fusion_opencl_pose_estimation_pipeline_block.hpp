@@ -30,7 +30,6 @@ namespace dynfu {
 
 			boost::compute::command_queue q_;
 			boost::compute::kernel corr_;
-			boost::compute::kernel map_;
 			boost::compute::kernel reduce_a_;
 			boost::compute::kernel reduce_b_;
 			boost::compute::kernel count_k_;

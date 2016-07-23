@@ -86,6 +86,16 @@ kernel void load_vn(
 }
 
 
+void zero_ab (__global float * a, __global float * b) {
+
+	#pragma unroll
+	for (size_t i=0;i<(6*6);++i) a[i]=0;
+	#pragma unroll
+	for (size_t i=0;i<6;++i) b[i]=0;
+
+}
+
+
 kernel void correspondences(
 	__global struct kernel_data * data,	//	0
 	const __global struct vertex_and_normal * vn,	//	1
@@ -95,7 +105,9 @@ kernel void correspondences(
 	float epsilon_theta,	//	5
 	const __global float * k,	//	6
 	__global float * corr_v,	//	7
-	__global float * corr_pn	//	8
+	__global float * corr_pn,	//	8
+	__global float * ais,	//	9
+	__global float * bis	//	10
 ) {
 
 	size_t x=get_global_id(0);
@@ -103,6 +115,8 @@ kernel void correspondences(
 	size_t y=get_global_id(1);
 	size_t idx=(y*width)+x;
 	global struct kernel_data * curr=data+idx;
+	global float * a=ais+(idx*6U*6U);
+	global float * b=bis+(idx*6U);
 
 	float3 curr_pv=curr->pv;
 	float4 curr_pv_homo=(float4)(curr_pv,1);
@@ -116,10 +130,9 @@ kernel void correspondences(
 
 	int lin_idx=u.x+u.y*width;
 
-	float3 nullv=(float3)(0,0,0);
 	if (lin_idx>=(width*get_global_size(1)) || lin_idx<0) {
 
-		vstore3(nullv,idx,corr_pn);
+		zero_ab(a,b);
 		return;
 
 	}
@@ -132,7 +145,7 @@ kernel void correspondences(
 	//	TODO: Should we be checking the current normal?
 	if (!(is_finite(curr_v) && is_finite(curr_pv) && is_finite(curr_pn))) {
 
-		vstore3(nullv,idx,corr_pn);
+		zero_ab(a,b);
 		return;
 
 	}
@@ -143,7 +156,7 @@ kernel void correspondences(
 	float3 t_z_curr_v=(float3)(t_z_curr_v_homo.x,t_z_curr_v_homo.y,t_z_curr_v_homo.z);
 	if (dot(t_z_curr_v_homo_curr_pv_homo,t_z_curr_v_homo_curr_pv_homo)>(epsilon_d*epsilon_d)) {
 
-		vstore3(nullv,idx,corr_pn);
+		zero_ab(a,b);
 		return;
 
 	}
@@ -161,106 +174,73 @@ kernel void correspondences(
 		(t_z[8]*curr_n.x)+
 		(t_z[9]*curr_n.y)+
 		(t_z[10]*curr_n.z);
-	float3 c=cross(r_z_curr_n,curr_pn);
-	if (dot(c,c)>(epsilon_theta*epsilon_theta)) {
+	float3 crzcncpn=cross(r_z_curr_n,curr_pn);
+	if (dot(crzcncpn,crzcncpn)>(epsilon_theta*epsilon_theta)) {
 
-		vstore3(nullv,idx,corr_pn);
+		zero_ab(a,b);
 		return;
 
 	}
 
-	vstore3(t_z_curr_v,idx,corr_v);
-	vstore3(curr_pn,idx,corr_pn);
-
-}
-
-
-kernel void map(
-	const __global float * pv,	//	0
-	const __global float * corr_v,	//	1
-	const __global float * corr_pn,	//	2
-	const unsigned int width,	//	3
-	const unsigned int height,	//	4
-	__global float * ais,	//	5
-	__global float * bis	//	6
-) {
-
-	size_t x=get_global_id(0);
-	size_t y=get_global_id(1);
-	size_t idx=(y*width)+x;
-	size_t bi_idx=idx*6;
-	global float * bi=bis+bi_idx;
-	size_t ai_idx=bi_idx*6;
-	global float * ai=ais+ai_idx;
-
-	float3 n=vload3(idx,corr_pn);
-	if ((n.x==0) && (n.y==0) && (n.z==0)) {
-
-		#pragma unroll
-		for (size_t i=0;i<(6*6);++i) ai[i]=0;
-		#pragma unroll
-		for (size_t i=0;i<6;++i) bi[i]=0;
-
-		return;
-
-	}
-
-	float3 q=vload3(idx,pv);
-	float3 p=vload3(idx,corr_v);
+	//	Switch to notation from the Princeton ICP
+	//	paper: http://www.cs.princeton.edu/~smr/papers/icpstability.pdf
+	float3 p=t_z_curr_v;
+	float3 q=curr_pv;
+	float3 n=curr_pn;
 
 	float3 c=cross(p,n);
 	float pqn=dot(p-q,n);
 
 	//	First row
-	ai[0]=c.x*c.x;
-	ai[1]=c.x*c.y;
-	ai[2]=c.x*c.z;
-	ai[3]=c.x*n.x;
-	ai[4]=c.x*n.y;
-	ai[5]=c.x*n.z;
+	a[0]=c.x*c.x;
+	a[1]=c.x*c.y;
+	a[2]=c.x*c.z;
+	a[3]=c.x*n.x;
+	a[4]=c.x*n.y;
+	a[5]=c.x*n.z;
 	//	Second row
-	ai[6]=c.y*c.x;
-	ai[7]=c.y*c.y;
-	ai[8]=c.y*c.z;
-	ai[9]=c.y*n.x;
-	ai[10]=c.y*n.y;
-	ai[11]=c.y*n.z;
+	a[6]=c.y*c.x;
+	a[7]=c.y*c.y;
+	a[8]=c.y*c.z;
+	a[9]=c.y*n.x;
+	a[10]=c.y*n.y;
+	a[11]=c.y*n.z;
 	//	Third row
-	ai[12]=c.z*c.x;
-	ai[13]=c.z*c.y;
-	ai[14]=c.z*c.z;
-	ai[15]=c.z*n.x;
-	ai[16]=c.z*n.y;
-	ai[17]=c.z*n.z;
+	a[12]=c.z*c.x;
+	a[13]=c.z*c.y;
+	a[14]=c.z*c.z;
+	a[15]=c.z*n.x;
+	a[16]=c.z*n.y;
+	a[17]=c.z*n.z;
 	//	Fourth row
-	ai[18]=n.x*c.x;
-	ai[19]=n.x*c.y;
-	ai[20]=n.x*c.z;
-	ai[21]=n.x*n.x;
-	ai[22]=n.x*n.y;
-	ai[23]=n.x*n.z;
+	a[18]=n.x*c.x;
+	a[19]=n.x*c.y;
+	a[20]=n.x*c.z;
+	a[21]=n.x*n.x;
+	a[22]=n.x*n.y;
+	a[23]=n.x*n.z;
 	//	Fifth row
-	ai[24]=n.y*c.x;
-	ai[25]=n.y*c.y;
-	ai[26]=n.y*c.z;
-	ai[27]=n.y*n.x;
-	ai[28]=n.y*n.y;
-	ai[29]=n.y*n.z;
+	a[24]=n.y*c.x;
+	a[25]=n.y*c.y;
+	a[26]=n.y*c.z;
+	a[27]=n.y*n.x;
+	a[28]=n.y*n.y;
+	a[29]=n.y*n.z;
 	//	Sixth row
-	ai[30]=n.z*c.x;
-	ai[31]=n.z*c.y;
-	ai[32]=n.z*c.z;
-	ai[33]=n.z*n.x;
-	ai[34]=n.z*n.y;
-	ai[35]=n.z*n.z;
+	a[30]=n.z*c.x;
+	a[31]=n.z*c.y;
+	a[32]=n.z*c.z;
+	a[33]=n.z*n.x;
+	a[34]=n.z*n.y;
+	a[35]=n.z*n.z;
 
 	pqn*=-1;
-	bi[0]=c.x*pqn;
-	bi[1]=c.y*pqn;
-	bi[2]=c.z*pqn;
-	bi[3]=n.x*pqn;
-	bi[4]=n.y*pqn;
-	bi[5]=n.z*pqn;
+	b[0]=c.x*pqn;
+	b[1]=c.y*pqn;
+	b[2]=c.z*pqn;
+	b[3]=n.x*pqn;
+	b[4]=n.y*pqn;
+	b[5]=n.z*pqn;
 
 }
 
