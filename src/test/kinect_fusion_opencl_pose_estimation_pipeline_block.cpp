@@ -221,6 +221,12 @@ SCENARIO_METHOD(fixture,"Between consecutive frames dynfu::kinect_fusion_opencl_
 			pn.emplace(normals_to_global(n1->get()));
 			ptr=pepb(*v2,*n2,&pv,&pn,k,std::move(ptr));
 
+			THEN("The resulting T_gk matrix is not simply the initial T_gk matrix") {
+
+				CHECK(ptr->get()!=t_gk_initial);
+
+			}
+
 			THEN("The resulting T_gk matrix indicates a small change in camera pose") {
 
 				auto t_gk=ptr->get();
