@@ -38,8 +38,6 @@ namespace dynfu {
 			t_gk_prev_inverse_(q_.get_context(),sizeof(Eigen::Matrix4f),CL_MEM_READ_ONLY|CL_MEM_HOST_WRITE_ONLY),
 			corr_v_(frame_width*frame_height,q_.get_context()),
 			corr_pn_(frame_width*frame_height,q_.get_context()),
-			ais_(q_.get_context(),frame_width*frame_height*sizeof_a),
-			bis_(q_.get_context(),frame_width*frame_height*sizeof_b),
 			a_(q_.get_context(),sizeof_a,CL_MEM_WRITE_ONLY|CL_MEM_HOST_READ_ONLY),
 			b_(q_.get_context(),sizeof_b,CL_MEM_WRITE_ONLY|CL_MEM_HOST_READ_ONLY),
 			k_(q_.get_context(),sizeof(Eigen::Matrix3f),CL_MEM_READ_ONLY|CL_MEM_HOST_WRITE_ONLY),
@@ -80,15 +78,13 @@ namespace dynfu {
 		corr_.set_arg(6,k_);
 		corr_.set_arg(7,corr_v_);
 		corr_.set_arg(8,corr_pn_);
-		corr_.set_arg(9,ais_);
-		corr_.set_arg(10,bis_);
 
 		//	Reduce arguments
 		std::uint32_t length(frame_height_*frame_width_);
-		reduce_a_.set_arg(0,ais_);
+		reduce_a_.set_arg(0,data_);
 		reduce_a_.set_arg(1,a_);
 		reduce_a_.set_arg(2,length);
-		reduce_b_.set_arg(0,bis_);
+		reduce_b_.set_arg(0,data_);
 		reduce_b_.set_arg(1,b_);
 		reduce_b_.set_arg(2,length);
 

@@ -164,9 +164,7 @@ kernel void correspondences(
 	float epsilon_theta,	//	5
 	const __global float * k,	//	6
 	__global float * corr_v,	//	7
-	__global float * corr_pn,	//	8
-	__global float * ais,	//	9
-	__global float * bis	//	10
+	__global float * corr_pn	//	8
 ) {
 
 	size_t x=get_global_id(0);
@@ -174,8 +172,6 @@ kernel void correspondences(
 	size_t y=get_global_id(1);
 	size_t idx=(y*width)+x;
 	global struct kernel_data * curr=data+idx;
-	global float * a=ais+(idx*6U*6U);
-	global float * b=bis+(idx*6U);
 
 	float3 curr_pv=curr->pv;
 	float4 curr_pv_homo=(float4)(curr_pv,1);
@@ -191,7 +187,7 @@ kernel void correspondences(
 
 	if (lin_idx>=(width*get_global_size(1)) || lin_idx<0) {
 
-		zero_ab(a,b);
+		zero_ab(curr->a,curr->b);
 		return;
 
 	}
@@ -204,7 +200,7 @@ kernel void correspondences(
 	//	TODO: Should we be checking the current normal?
 	if (!(is_finite(curr_v) && is_finite(curr_pv) && is_finite(curr_pn))) {
 
-		zero_ab(a,b);
+		zero_ab(curr->a,curr->b);
 		return;
 
 	}
@@ -215,7 +211,7 @@ kernel void correspondences(
 	float3 t_z_curr_v=(float3)(t_z_curr_v_homo.x,t_z_curr_v_homo.y,t_z_curr_v_homo.z);
 	if (dot(t_z_curr_v_homo_curr_pv_homo,t_z_curr_v_homo_curr_pv_homo)>(epsilon_d*epsilon_d)) {
 
-		zero_ab(a,b);
+		zero_ab(curr->a,curr->b);
 		return;
 
 	}
@@ -236,18 +232,18 @@ kernel void correspondences(
 	float3 crzcncpn=cross(r_z_curr_n,curr_pn);
 	if (dot(crzcncpn,crzcncpn)>(epsilon_theta*epsilon_theta)) {
 
-		zero_ab(a,b);
+		zero_ab(curr->a,curr->b);
 		return;
 
 	}
 
-	icp(t_z_curr_v,curr_pv,curr_pn,a,b);
+	icp(t_z_curr_v,curr_pv,curr_pn,curr->a,curr->b);
 
 }
 
 
 kernel void reduce_a(
-	const __global float * ais,	//	0
+	const __global struct kernel_data * data,	//	0
 	__global float * a,	//	1
 	const unsigned int length	//	2
 ) {
@@ -257,19 +253,15 @@ kernel void reduce_a(
 	size_t idx=(y*6)+x;
 
 	float sum=0;
-	for (size_t i=0;i<length;++i) {
+	for (size_t i=0;i<length;++i) sum+=data[i].a[idx];
 
-		sum+=ais[idx];
-		ais+=6*6;
-
-	}
 	a[idx]=sum;
 
 }
 
 
 kernel void reduce_b(
-	const __global float * bis,	//	0
+	const __global struct kernel_data * data,	//	0
 	__global float * b,	//	1
 	const unsigned int length	//	2
 ) {
@@ -277,12 +269,8 @@ kernel void reduce_b(
 	size_t idx=get_global_id(0);
 
 	float sum=0;
-	for (size_t i=0;i<length;++i) {
+	for (size_t i=0;i<length;++i) sum+=data[i].b[idx];
 
-		sum+=bis[idx];
-		bis+=6;
-
-	}
 	b[idx]=sum;
 
 }

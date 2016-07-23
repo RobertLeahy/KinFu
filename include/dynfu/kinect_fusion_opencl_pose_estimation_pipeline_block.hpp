@@ -38,8 +38,6 @@ namespace dynfu {
 			boost::compute::buffer t_gk_prev_inverse_;
 			boost::compute::vector<Eigen::Vector3f> corr_v_;
 			boost::compute::vector<Eigen::Vector3f> corr_pn_;
-			boost::compute::buffer ais_;
-			boost::compute::buffer bis_;
 			boost::compute::buffer a_;
 			boost::compute::buffer b_;
 			boost::compute::buffer k_;
