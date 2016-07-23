@@ -281,11 +281,12 @@ SCENARIO_METHOD(fixture,"Between consecutive frames dynfu::kinect_fusion_opencl_
 }
 
 
-SCENARIO_METHOD(fixture,"When a minimum number of point-to-point correspondences cannot be made dynfu::kinect_fusion_opencl_pose_estimation_pipeline_block objects throw a dynfu::pose_estimation_pipeline_block::tracking_lost_error","[dynfu][kinect_fusion_opencl_pose_estimation_pipeline_block][pose_estimation_pipeline_block][!mayfail]") {
+SCENARIO_METHOD(fixture,"When a minimum number of point-to-point correspondences cannot be made dynfu::kinect_fusion_opencl_pose_estimation_pipeline_block objects throw a dynfu::pose_estimation_pipeline_block::tracking_lost_error","[dynfu][kinect_fusion_opencl_pose_estimation_pipeline_block][pose_estimation_pipeline_block]") {
 
 	GIVEN("A dynfu::kinect_fusion_opencl_pose_estimation_pipeline_block object") {
 
 		dynfu::kinect_fusion_opencl_pose_estimation_pipeline_block pepb(pf,q,0.10f,std::sin(20.0f*3.14159f/180.0f),width,height,t_gk_initial);
+		pepb.check_correspondences((307200U/10U)*9U);
 
 		THEN("Invoking it on two non-consecutive frames results in a dynfu::pose_estimation_pipeline_block::tracking_lost_error") {
 
