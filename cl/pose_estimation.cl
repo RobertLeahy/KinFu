@@ -33,6 +33,7 @@ int is_finite(float3 v) {
 struct __attribute__((packed)) kernel_data {
 
 	float3 v;
+	float3 n;
 	float3 pv;
 	float3 pn;
 	int valid;
@@ -42,10 +43,12 @@ struct __attribute__((packed)) kernel_data {
 };
 
 
-kernel void load_p(
+kernel void load(
 	__global struct kernel_data * data,	//	0
 	const __global float * v,	//	1
-	const __global float * n	//	2
+	const __global float * n,	//	2
+	const __global float * pv,	//	3
+	const __global float * pn	//	4
 ) {
 
 	size_t x=get_global_id(0);
@@ -54,34 +57,10 @@ kernel void load_p(
 	size_t idx=(y*width)+x;
 
 	global struct kernel_data * curr=data+idx;
-	curr->pv=vload3(idx,v);
-	curr->pn=vload3(idx,n);
-	
-}
-
-
-struct __attribute__((packed)) vertex_and_normal {
-
-	float3 v;
-	float3 n;
-
-};
-
-
-kernel void load_vn(
-	__global struct vertex_and_normal * vn,	//	0
-	const __global float * v,	//	1
-	const __global float * n	//	2
-) {
-
-	size_t x=get_global_id(0);
-	size_t width=get_global_size(0);
-	size_t y=get_global_id(1);
-	size_t idx=(y*width)+x;
-
-	global struct vertex_and_normal * curr=vn+idx;
 	curr->v=vload3(idx,v);
 	curr->n=vload3(idx,n);
+	curr->pv=vload3(idx,pv);
+	curr->pn=vload3(idx,pn);
 
 }
 
@@ -157,12 +136,11 @@ void icp (float3 p, float3 q, float3 n, __global float * a, __global float * b) 
 
 kernel void correspondences(
 	__global struct kernel_data * data,	//	0
-	const __global struct vertex_and_normal * vn,	//	1
-	const __global float * t_gk_prev_inverse,	//	2
-	const __global float * t_z,	//	3
-	float epsilon_d,	//	4
-	float epsilon_theta,	//	5
-	const __global float * k	//	6
+	const __global float * t_gk_prev_inverse,	//	1
+	const __global float * t_z,	//	2
+	float epsilon_d,	//	3
+	float epsilon_theta,	//	4
+	const __global float * k	//	5
 ) {
 
 	size_t x=get_global_id(0);
@@ -192,9 +170,9 @@ kernel void correspondences(
 
 	float3 curr_pn=curr->pn;
 	//	These are in current camera space
-	global struct vertex_and_normal * curr_vn=vn+idx;
-	float3 curr_n=curr_vn->n;
-	float3 curr_v=curr_vn->v;
+	global struct kernel_data * other=data+idx;
+	float3 curr_n=other->n;
+	float3 curr_v=other->v;
 	//	TODO: Should we be checking the current normal?
 	if (!(is_finite(curr_v) && is_finite(curr_pv) && is_finite(curr_pn))) {
 
