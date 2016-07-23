@@ -3,6 +3,7 @@
 #include <dynfu/cpu_pipeline_value.hpp>
 #include <dynfu/kinect_fusion_opencl_pose_estimation_pipeline_block.hpp>
 #include <dynfu/opencl_program_factory.hpp>
+#include <dynfu/optional.hpp>
 #include <dynfu/scope.hpp>
 #include <Eigen/Dense>
 #include <Eigen/QR>
@@ -58,6 +59,14 @@ namespace dynfu {
 	}
 
 
+	static boost::compute::kernel get_count_kernel (opencl_program_factory & pf) {
+
+		auto p=get_program(pf);
+		return boost::compute::kernel(p,"count");
+
+	}
+
+
 	constexpr std::size_t sizeof_b=6U*sizeof(float);
 	constexpr std::size_t sizeof_a=sizeof_b*6U;
 
@@ -76,6 +85,7 @@ namespace dynfu {
 			map_(get_map_kernel(pf)),
 			reduce_a_(get_reduce_a_kernel(pf)),
 			reduce_b_(get_reduce_b_kernel(pf)),
+			count_k_(get_count_kernel(pf)),
 			t_z_(q_.get_context(),sizeof(Eigen::Matrix4f),CL_MEM_READ_ONLY|CL_MEM_HOST_WRITE_ONLY),
 			t_gk_prev_inverse_(q_.get_context(),sizeof(Eigen::Matrix4f),CL_MEM_READ_ONLY|CL_MEM_HOST_WRITE_ONLY),
 			corr_v_(frame_width*frame_height,q_.get_context()),
@@ -110,7 +120,6 @@ namespace dynfu {
 		corr_.set_arg(10,k_);
 		corr_.set_arg(11,corr_v_);
 		corr_.set_arg(12,corr_pn_);
-		corr_.set_arg(13,count_);
 
 		//	Map arguments
 		map_.set_arg(1,corr_v_);
@@ -128,6 +137,12 @@ namespace dynfu {
 		reduce_b_.set_arg(0,bis_);
 		reduce_b_.set_arg(1,b_);
 		reduce_b_.set_arg(2,length);
+
+		//	Count arguments
+		count_k_.set_arg(0,corr_pn_);
+		count_k_.set_arg(1,std::uint32_t(frame_width_));
+		count_k_.set_arg(2,std::uint32_t(frame_height_));
+		count_k_.set_arg(3,count_);
 
 	}
 
@@ -188,13 +203,8 @@ namespace dynfu {
 			auto tzwg=make_scope_exit([&] () noexcept {	tzw.wait();	});
 
 			//	Enqueue correspondences kernel
-			std::uint32_t count(0);
-			auto cw=q_.enqueue_write_buffer_async(count_,0,sizeof(count),&count);
-			auto cwg=make_scope_exit([&] () noexcept {	cw.wait();	});
 			std::size_t extent []={frame_width_,frame_height_};
 			q_.enqueue_nd_range_kernel(corr_,2,nullptr,extent,nullptr);
-			auto cr=q_.enqueue_read_buffer_async(count_,0,sizeof(count),&count);
-			auto crg=make_scope_exit([&] () noexcept {	cr.wait();	});
 
 			//	Map
 			map_.set_arg(0,pvb);
@@ -217,9 +227,17 @@ namespace dynfu {
 			auto br=q_.enqueue_read_buffer_async(b_,0,sizeof(b),&b);
 			auto brg=make_scope_exit([&] () noexcept {	br.wait();	});
 
-			//	Make sure there were enough correspondences
-			cr.wait();
-			crg.release();
+			//	Count if applicable/enabled
+			std::uint32_t count;
+			optional<boost::compute::event> cr;
+			auto crg=make_scope_exit([&] () noexcept {	if (cr) cr->wait();	});
+			if (threshold_) {
+
+				std::size_t count_extent=1;
+				q_.enqueue_nd_range_kernel(count_k_,1,nullptr,&count_extent,nullptr);
+				cr=q_.enqueue_read_buffer_async(count_,0,sizeof(count),&count);
+
+			}
 
 			ar.wait();
 			arg.release();
@@ -237,10 +255,29 @@ namespace dynfu {
 			float ty=x(4);
 			float tz=x(5);
 
-			t_z <<  1.0f, -gamma, beta, tx,
+			Eigen::Matrix4f t_inc;
+			t_inc <<  1.0f, -gamma, beta, tx,
 					 gamma, 1.0f, -alpha, ty,
 				 	 -beta, alpha, 1.0f, tz,
 					 0.0f, 0.0f, 0.0f, 1.0f;
+			t_z.transposeInPlace();
+			t_z=t_inc*t_z;
+
+			//	Check count if applicable
+			if (cr) {
+
+				cr->wait();
+				crg.release();
+
+				if (count>*threshold_) {
+
+					std::ostringstream ss;
+					ss << "Tracking lost: Could not find correspondences for " << count << "/" << (frame_height_*frame_width_) << " points (maximum allowable is " << *threshold_ << ")";
+					throw tracking_lost_error(ss.str());
+
+				}
+
+			}
 
 		}
 
@@ -248,6 +285,13 @@ namespace dynfu {
 
 		return t_gk_minus_one;
 	
+	}
+
+
+	void kinect_fusion_opencl_pose_estimation_pipeline_block::check_correspondences (std::size_t threshold) noexcept {
+
+		threshold_=threshold;
+
 	}
 
 

@@ -43,8 +43,7 @@ kernel void correspondences(
 	float epsilon_theta,	//	9
 	const __global float * k,	//	10
 	__global float * corr_v,	//	11
-	__global float * corr_pn,	//	12
-	volatile __global unsigned int * count	//	13
+	__global float * corr_pn	//	12
 ) {
 
 	size_t x=get_global_id(0);
@@ -67,7 +66,6 @@ kernel void correspondences(
 	if (lin_idx>=(width*height) || lin_idx<0) {
 
 		vstore3(nullv,idx,corr_pn);
-		atomic_add(count,1);
 		return;
 
 	}
@@ -80,7 +78,6 @@ kernel void correspondences(
 	if (!(is_finite(curr_v) && is_finite(curr_pv) && is_finite(curr_pn))) {
 
 		vstore3(nullv,idx,corr_pn);
-		atomic_add(count,1);
 		return;
 
 	}
@@ -88,10 +85,10 @@ kernel void correspondences(
 	float4 curr_v_homo=(float4)(curr_v,1);
 	float4 t_z_curr_v_homo=matrixmul4(t_z,curr_v_homo);
 	float4 t_z_curr_v_homo_curr_pv_homo=t_z_curr_v_homo-curr_pv_homo;
+	float3 t_z_curr_v=(float3)(t_z_curr_v_homo.x,t_z_curr_v_homo.y,t_z_curr_v_homo.z);
 	if (dot(t_z_curr_v_homo_curr_pv_homo,t_z_curr_v_homo_curr_pv_homo)>(epsilon_d*epsilon_d)) {
 
 		vstore3(nullv,idx,corr_pn);
-		atomic_add(count,1);
 		return;
 
 	}
@@ -113,12 +110,11 @@ kernel void correspondences(
 	if (dot(c,c)>(epsilon_theta*epsilon_theta)) {
 
 		vstore3(nullv,idx,corr_pn);
-		atomic_add(count,1);
 		return;
 
 	}
 
-	vstore3(curr_v,idx,corr_v);
+	vstore3(t_z_curr_v,idx,corr_v);
 	vstore3(curr_pn,idx,corr_pn);
 
 }
@@ -142,13 +138,6 @@ kernel void map(
 	size_t ai_idx=bi_idx*6;
 	global float * ai=ais+ai_idx;
 
-
-	//	We check to make sure that this was a valid
-	//	correspondence, if not we count it and
-	//	bail out
-	//
-	//	Counting invalid correspondences suggested
-	//	by Jordan as a way to minimize atomic adds
 	float3 n=vload3(idx,corr_pn);
 	if ((n.x==0) && (n.y==0) && (n.z==0)) {
 
@@ -259,5 +248,26 @@ kernel void reduce_b(
 
 	}
 	b[idx]=sum;
+
+}
+
+
+kernel void count(
+	const __global float * corr_pn,	//	0
+	const unsigned int width,	//	1
+	const unsigned int height,	//	2
+	__global unsigned int * count	//	3
+) {
+
+	unsigned int num=width*height;
+	unsigned int c=0;
+	for (unsigned int i=0;i<num;++i) {
+
+		float3 pn=vload3(i,corr_pn);
+		if ((pn.x==0) && (pn.y==0) && (pn.z==0)) ++c;
+
+	}
+
+	*count=c;
 
 }

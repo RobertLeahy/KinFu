@@ -13,6 +13,7 @@
 #include <dynfu/measurement_pipeline_block.hpp>
 #include <dynfu/opencl_program_factory.hpp>
 #include <dynfu/opencl_vector_pipeline_value.hpp>
+#include <dynfu/optional.hpp>
 #include <dynfu/pose_estimation_pipeline_block.hpp>
 #include <Eigen/Dense>
 #include <cstddef>
@@ -32,6 +33,7 @@ namespace dynfu {
 			boost::compute::kernel map_;
 			boost::compute::kernel reduce_a_;
 			boost::compute::kernel reduce_b_;
+			boost::compute::kernel count_k_;
 			boost::compute::buffer t_z_;
 			boost::compute::buffer t_gk_prev_inverse_;
 			boost::compute::vector<Eigen::Vector3f> corr_v_;
@@ -52,6 +54,7 @@ namespace dynfu {
 			std::size_t frame_height_;
 			Eigen::Matrix4f t_gk_initial_;
 			std::size_t numit_;
+			optional<std::size_t> threshold_;
 
 
 		public:
@@ -80,6 +83,9 @@ namespace dynfu {
 				Eigen::Matrix3f,
 				value_type
 			) override;
+
+
+			void check_correspondences (std::size_t threshold) noexcept;
 
 
 	};
