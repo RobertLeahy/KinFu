@@ -11,7 +11,7 @@ kernel void normal_map(__global float * map) {
 	// we can't compute at these bounds?
 	if (x >= width-1U || y >= get_global_size(1)-1U) {
 
-		n=(float3)(0,0,0);
+		n=NAN;
 
 	} else {
 

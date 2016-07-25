@@ -149,11 +149,12 @@ SCENARIO_METHOD(fixture, "A dynfu::kinect_fusion_opencl_measurement_pipeline_blo
 			auto ptr=kfompb(pv, width, height, k);
 			auto && map=ptr->get();
 
-			THEN("The returned normals are all either exactly 0 or close to 1 in length") {
+			THEN("The returned normals are all either close to 1 in length or NaN") {
 				
 				for(auto && p : map) {
-				
-					CHECK((p.n.norm() == Approx( 1.0f ) || p.n.isZero()));
+
+					bool result((p.n.norm() == Approx(1.0f)) || (std::isnan(p.n(0)) || std::isnan(p.n(1)) || std::isnan(p.n(2))));
+					CHECK(result);
 				
 				}
 				
