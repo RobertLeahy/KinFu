@@ -8,11 +8,11 @@
 #include <dynfu/filesystem.hpp>
 #include <dynfu/msrc_file_system_depth_device.hpp>
 #include <dynfu/path.hpp>
+#include <dynfu/pixel.hpp>
 #include <Eigen/Dense>
 #include <algorithm>
 #include <cmath>
 #include <cstddef>
-#include <tuple>
 #include <vector>
 #include <catch.hpp>
 
@@ -146,17 +146,14 @@ SCENARIO_METHOD(fixture, "A dynfu::kinect_fusion_opencl_measurement_pipeline_blo
 		
 		WHEN("It is invoked") {
 			
-			auto t=kfompb(pv, width, height, k);
-			auto && v=std::get<0>(t);
-			auto && n=std::get<1>(t);
-			auto && vs=v->get();
-			auto && ns=n->get();
+			auto ptr=kfompb(pv, width, height, k);
+			auto && map=ptr->get();
 
 			THEN("The returned normals are all either exactly 0 or close to 1 in length") {
 				
-				for(auto && n : ns) {
+				for(auto && p : map) {
 				
-					CHECK((n.norm() == Approx( 1.0f ) || n.isZero()));
+					CHECK((p.n.norm() == Approx( 1.0f ) || p.n.isZero()));
 				
 				}
 				
@@ -166,9 +163,9 @@ SCENARIO_METHOD(fixture, "A dynfu::kinect_fusion_opencl_measurement_pipeline_blo
 			THEN("The returned vertices match the ground truth vertices within 0.001") {
 				
 				// Note: Eigen's default precision was too precise, here we only care about generally close
-				CHECK ( std::equal(vgt.begin(),vgt.end(),vs.begin(),vs.end(),[] (Eigen::Vector3f a, Eigen::Vector3f b) noexcept { 
+				CHECK ( std::equal(vgt.begin(),vgt.end(),map.begin(),map.end(),[] (const auto & a, const auto & b) noexcept {
 				
-					return (a-b).isZero(0.001f);
+					return (a-b.v).isZero(0.001f);
 				
 				}) );
 
@@ -178,9 +175,9 @@ SCENARIO_METHOD(fixture, "A dynfu::kinect_fusion_opencl_measurement_pipeline_blo
 			THEN("The returned normals match the ground truth normals within 0.001") {
 				
 				// Note: Eigen's default precision was too precise, here we only care about generally close
-				CHECK ( std::equal(ngt.begin(),ngt.end(),ns.begin(),ns.end(),[] (Eigen::Vector3f a, Eigen::Vector3f b) noexcept { 
+				CHECK ( std::equal(ngt.begin(),ngt.end(),map.begin(),map.end(),[] (const auto & a, const auto & b) noexcept {
 				
-					return (a-b).isZero(0.001f);
+					return (a-b.n).isZero(0.001f);
 				
 				}) );
 
@@ -204,17 +201,19 @@ SCENARIO_METHOD(fixture,"The vertices returned by a dynfu::kinect_fusion_opencl_
 
 			auto frame_ptr=dd();
 			auto k=dd.k();
-			auto t=kfompb(*frame_ptr,dd.width(),dd.height(),k);
+			auto h=dd.height();
+			auto w=dd.width();
+			auto ptr=kfompb(*frame_ptr,w,h,k);
 
 			THEN("The vertices of the returned vertex map may be deprojected back into pixel space") {
 
-				auto && v=std::get<0>(t)->get();
+				auto && map=ptr->get();
 				std::size_t idx(0);
-				for (int y=0;y<int(dd.height());++y) {
+				for (int y=0;y<int(h);++y) {
 
-					for (int x=0;x<int(dd.width());++x,++idx) {
+					for (int x=0;x<int(w);++x,++idx) {
 
-						Eigen::Vector3f curr=v[idx];
+						Eigen::Vector3f curr=map[idx].v;
 						if (std::isnan(curr(0))) continue;
 						Eigen::Vector3f deproj(k*curr);
 						int dpx=std::round(deproj(0)/deproj(2));
