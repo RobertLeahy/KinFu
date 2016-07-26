@@ -34,11 +34,9 @@ namespace dynfu {
 			boost::compute::buffer t_z_;
 			boost::compute::buffer t_gk_prev_inverse_;
 			boost::compute::buffer k_;
-			boost::compute::buffer data_;
-			opencl_vector_pipeline_value_extractor<measurement_pipeline_block::vertex_value_type::element_type::type::value_type> v_e_;
-			opencl_vector_pipeline_value_extractor<measurement_pipeline_block::normal_value_type::element_type::type::value_type> n_e_;
-			opencl_vector_pipeline_value_extractor<measurement_pipeline_block::vertex_value_type::element_type::type::value_type> pv_e_;
-			opencl_vector_pipeline_value_extractor<measurement_pipeline_block::normal_value_type::element_type::type::value_type> pn_e_;
+			boost::compute::buffer mats_;
+			opencl_vector_pipeline_value_extractor<measurement_pipeline_block::value_type::element_type::type::value_type> e_;
+			opencl_vector_pipeline_value_extractor<measurement_pipeline_block::value_type::element_type::type::value_type> p_e_;
 			float epsilon_d_;
 			float epsilon_theta_;
 			std::size_t frame_width_;
@@ -66,10 +64,8 @@ namespace dynfu {
 
 
 			virtual value_type operator () (
-				measurement_pipeline_block::vertex_value_type::element_type &,
-				measurement_pipeline_block::normal_value_type::element_type &,
-				measurement_pipeline_block::vertex_value_type::element_type *,
-				measurement_pipeline_block::normal_value_type::element_type *,
+				measurement_pipeline_block::value_type::element_type &,
+				measurement_pipeline_block::value_type::element_type *,
 				Eigen::Matrix3f,
 				value_type
 			) override;

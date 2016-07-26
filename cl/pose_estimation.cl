@@ -30,40 +30,6 @@ int is_finite(float3 v) {
 }
 
 
-struct __attribute__((packed)) kernel_data {
-
-	float3 v;
-	float3 n;
-	float3 pv;
-	float3 pn;
-	float a [36];
-	float b [6];
-
-};
-
-
-kernel void load(
-	__global struct kernel_data * data,	//	0
-	const __global float * v,	//	1
-	const __global float * n,	//	2
-	const __global float * pv,	//	3
-	const __global float * pn	//	4
-) {
-
-	size_t x=get_global_id(0);
-	size_t width=get_global_size(0);
-	size_t y=get_global_id(1);
-	size_t idx=(y*width)+x;
-
-	global struct kernel_data * curr=data+idx;
-	curr->v=vload3(idx,v);
-	curr->n=vload3(idx,n);
-	curr->pv=vload3(idx,pv);
-	curr->pn=vload3(idx,pn);
-
-}
-
-
 void zero_ab (__global float * a, __global float * b) {
 
 	#pragma unroll
@@ -133,22 +99,40 @@ void icp (float3 p, float3 q, float3 n, __global float * a, __global float * b) 
 }
 
 
+struct __attribute__((packed)) mats {
+
+	float a [6U*6U];
+	float b [6U];
+
+};
+
+
 kernel void correspondences(
-	__global struct kernel_data * data,	//	0
-	const __global float * t_gk_prev_inverse,	//	1
-	const __global float * t_z,	//	2
-	float epsilon_d,	//	3
-	float epsilon_theta,	//	4
-	const __global float * k	//	5
+	const __global float * map,	//	0
+	const __global float * prev_map,	//	1
+	const __global float * t_gk_prev_inverse,	//	2
+	const __global float * t_z,	//	3
+	float epsilon_d,	//	4
+	float epsilon_theta,	//	5
+	const __global float * k,	//	6
+	__global struct mats * mats
 ) {
 
 	size_t x=get_global_id(0);
 	size_t width=get_global_size(0);
 	size_t y=get_global_id(1);
 	size_t idx=(y*width)+x;
-	global struct kernel_data * curr=data+idx;
+	global struct mats * ms=mats+idx;
+	idx*=2U;
 
-	float3 curr_pv=curr->pv;
+	float3 curr_pv=vload3(idx,prev_map);
+	if (!is_finite(curr_pv)) {
+
+		zero_ab(ms->a,ms->b);
+		return;
+
+	}
+
 	float4 curr_pv_homo=(float4)(curr_pv,1);
 
 	float4 v_pcp_h=matrixmul4(t_gk_prev_inverse,curr_pv_homo);
@@ -158,24 +142,24 @@ kernel void correspondences(
 
 	int2 u=(int2)(round(uv3.x/uv3.z),round(uv3.y/uv3.z));
 
-	int lin_idx=u.x+u.y*width;
+	if ((u.x<0) || (u.y<0) || (((size_t)u.x)>=width) || (((size_t)u.y)>=get_global_size(1))) {
 
-	if (lin_idx>=(width*get_global_size(1)) || lin_idx<0) {
-
-		zero_ab(curr->a,curr->b);
+		zero_ab(ms->a,ms->b);
 		return;
 
 	}
 
-	float3 curr_pn=curr->pn;
-	//	These are in current camera space
-	global struct kernel_data * other=data+idx;
-	float3 curr_n=other->n;
-	float3 curr_v=other->v;
-	//	TODO: Should we be checking the current normal?
-	if (!(is_finite(curr_v) && is_finite(curr_pv) && is_finite(curr_pn))) {
+	size_t lin_idx=u.x+u.y*width;
 
-		zero_ab(curr->a,curr->b);
+	float3 curr_pn=vload3(idx+1U,prev_map);
+	//	These are in current camera space
+	lin_idx*=2U;
+	float3 curr_v=vload3(lin_idx,map);
+	float3 curr_n=vload3(lin_idx+1U,map);
+	//	TODO: Should we be checking the current normal?
+	if (!(is_finite(curr_v) && is_finite(curr_pn))) {
+
+		zero_ab(ms->a,ms->b);
 		return;
 
 	}
@@ -186,7 +170,7 @@ kernel void correspondences(
 	float3 t_z_curr_v=(float3)(t_z_curr_v_homo.x,t_z_curr_v_homo.y,t_z_curr_v_homo.z);
 	if (dot(t_z_curr_v_homo_curr_pv_homo,t_z_curr_v_homo_curr_pv_homo)>(epsilon_d*epsilon_d)) {
 
-		zero_ab(curr->a,curr->b);
+		zero_ab(ms->a,ms->b);
 		return;
 
 	}
@@ -207,12 +191,12 @@ kernel void correspondences(
 	float3 crzcncpn=cross(r_z_curr_n,curr_pn);
 	if (dot(crzcncpn,crzcncpn)>(epsilon_theta*epsilon_theta)) {
 
-		zero_ab(curr->a,curr->b);
+		zero_ab(ms->a,ms->b);
 		return;
 
 	}
 
-	icp(t_z_curr_v,curr_pv,curr_pn,curr->a,curr->b);
+	icp(t_z_curr_v,curr_pv,curr_pn,ms->a,ms->b);
 
 }
 
@@ -234,7 +218,7 @@ void vectoradd6 (__global float * restrict a, const __global float * restrict b)
 
 
 kernel void sum(
-	__global struct kernel_data * data,	//	0
+	__global struct mats * mats,	//	0
 	unsigned int mul,	//	1
 	int last_odd	//	2
 ) {
@@ -242,8 +226,8 @@ kernel void sum(
 	size_t i=get_global_id(0);
 	unsigned int stride=mul/2U;
 	size_t idx=i*mul;
-	global struct kernel_data * curr=data+idx;
-	global struct kernel_data * other=curr+stride;
+	global struct mats * curr=mats+idx;
+	global struct mats * other=curr+stride;
 
 	matrixadd6(curr->a,other->a);
 	vectoradd6(curr->b,other->b);
