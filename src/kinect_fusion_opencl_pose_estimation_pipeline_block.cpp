@@ -129,6 +129,7 @@ namespace dynfu {
 			using a_type=Eigen::Matrix<float,6,6>;
 			a_type a;
 			std::memcpy(&a,buffer,sizeof(a));
+			//	No need to transpose the A matrix as it is symmetric
 			using b_type=Eigen::Matrix<float,6,1>;
 			b_type b;
 			std::memcpy(&b,buffer+(6U*6U),sizeof(b));
