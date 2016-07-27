@@ -135,8 +135,8 @@ add_executable(tests
 	src/test/file_system_opencl_program_factory.cpp
 	src/test/fps_depth_device.cpp
 	src/test/kinect_fusion.cpp
-	src/test/kinect_fusion_opencl_frame_to_frame_surface_prediction_pipeline_block.cpp
 	src/test/kinect_fusion_eigen_pose_estimation_pipeline_block.cpp
+	src/test/kinect_fusion_opencl_frame_to_frame_surface_prediction_pipeline_block.cpp
 	src/test/kinect_fusion_opencl_measurement_pipeline_block.cpp
 	src/test/kinect_fusion_opencl_pose_estimation_pipeline_block.cpp
 	src/test/kinect_fusion_opencl_surface_prediction_pipeline_block.cpp
