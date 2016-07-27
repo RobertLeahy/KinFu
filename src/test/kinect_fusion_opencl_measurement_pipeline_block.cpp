@@ -2,6 +2,7 @@
 
 
 #include <boost/compute.hpp>
+#include <dynfu/camera.hpp>
 #include <dynfu/cpu_pipeline_value.hpp>
 #include <dynfu/file_system_depth_device.hpp>
 #include <dynfu/file_system_opencl_program_factory.hpp>
@@ -222,13 +223,11 @@ SCENARIO_METHOD(fixture,"The vertices returned by a dynfu::kinect_fusion_opencl_
 
 					for (int x=0;x<int(w);++x,++idx) {
 
-						Eigen::Vector3f curr=map[idx].v;
-						if (std::isnan(curr(0))) continue;
-						Eigen::Vector3f deproj(k*curr);
-						int dpx=std::round(deproj(0)/deproj(2));
-						CHECK(dpx==x);
-						int dpy=std::round(deproj(1)/deproj(2));
-						CHECK(dpy==y);
+						auto v=map[idx].v;
+						if (std::isnan(v(0))) continue;
+						auto pair=dynfu::to_pixel(v,k);
+						CHECK(pair.first(0)==x);
+						CHECK(pair.first(1)==y);
 
 					}
 
