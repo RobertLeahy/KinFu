@@ -13,6 +13,7 @@
 #include <algorithm>
 #include <cmath>
 #include <cstddef>
+#include <limits>
 #include <vector>
 #include <catch.hpp>
 
@@ -90,7 +91,7 @@ namespace {
 }
 
 
-SCENARIO_METHOD(fixture, "A dynfu::kinect_fusion_opencl_measurement_pipeline_block implements the measurement phase of the kinect fusion pipeline on the GPU using OpenCL","[dynfu][measurement_pipeline_block][kinect_fusion_opencl_measurement_pipeline_block][!mayfail]") {
+SCENARIO_METHOD(fixture, "A dynfu::kinect_fusion_opencl_measurement_pipeline_block implements the measurement phase of the kinect fusion pipeline on the GPU using OpenCL","[dynfu][measurement_pipeline_block][kinect_fusion_opencl_measurement_pipeline_block]") {
 	
 	GIVEN("A dynfu::kinect_fusion_opencl_measurement_pipeline_block") {		
 		
@@ -98,10 +99,11 @@ SCENARIO_METHOD(fixture, "A dynfu::kinect_fusion_opencl_measurement_pipeline_blo
 		dynfu::cpu_pipeline_value<std::vector<float>> pv;
 		std::vector<float> v{0.0f, 5.0f, 10.0f, 15.0f, 13.0f, 40.0f, 12.0f, 10.0f, 8.0f,19.0f,202.0f,102.0f,84.0f,293.0f,292.0f,293.0f};
 
+		auto nan = std::numeric_limits<float>::quiet_NaN();
 
 		std::vector<Eigen::Vector3f> vgt {
 			
-			{-1.39736e-011, 1.04802e-011, 2.55454e-011},
+			{nan, nan, nan},
 			{-2.7265, 2.05128, 5},
 			{-5.44231, 4.1074, 10.0118},
 			{-8.12818, 6.15382, 14.9999},
@@ -122,22 +124,22 @@ SCENARIO_METHOD(fixture, "A dynfu::kinect_fusion_opencl_measurement_pipeline_blo
 		
 		std::vector<Eigen::Vector3f> ngt {
 			
-			{0.585902, -0.585897, 0.559861},
+			{nan, nan, nan},
 			{0.42106, -0.735997, 0.53011},
 			{0.746723, -0.368941, 0.553433},
-			{0, 0, 0},
+			{nan, nan, nan},
 			{0.72885, 0.673795, 0.121564},
 			{-0.751723, 0.35527, -0.555604},
 			{-0.196665, -0.940886, 0.275782},
-			{0, 0, 0},
+			{nan, nan, nan},
 			{0.454822, -0.710761, 0.536615},
 			{0.577981, -0.596583, 0.5568},
 			{-0.886228, -0.279082, -0.369748},
-			{0, 0, 0},
-			{0, 0, 0},
-			{0, 0, 0},
-			{0, 0, 0},
-			{0, 0, 0}
+			{nan, nan, nan},
+			{nan, nan, nan},
+			{nan, nan, nan},
+			{nan, nan, nan},
+			{nan, nan, nan}
 			
 		};
 
@@ -153,7 +155,7 @@ SCENARIO_METHOD(fixture, "A dynfu::kinect_fusion_opencl_measurement_pipeline_blo
 				
 				for(auto && p : map) {
 
-					bool result((p.n.norm() == Approx(1.0f)) || (std::isnan(p.n(0)) || std::isnan(p.n(1)) || std::isnan(p.n(2))));
+					bool result(((std::isnan(p.n(0)) && std::isnan(p.n(1)) && std::isnan(p.n(2))) || (p.n.norm() == Approx(1.0f))));
 					CHECK(result);
 				
 				}
@@ -165,7 +167,10 @@ SCENARIO_METHOD(fixture, "A dynfu::kinect_fusion_opencl_measurement_pipeline_blo
 				
 				// Note: Eigen's default precision was too precise, here we only care about generally close
 				CHECK ( std::equal(vgt.begin(),vgt.end(),map.begin(),map.end(),[] (const auto & a, const auto & b) noexcept {
-				
+
+					bool a_nan=std::isnan(a(0)) && std::isnan(a(1)) && std::isnan(a(2));
+					if (a_nan) return std::isnan(b.v(0)) && std::isnan(b.v(1)) && std::isnan(b.v(2));
+					
 					return (a-b.v).isZero(0.001f);
 				
 				}) );
@@ -177,6 +182,9 @@ SCENARIO_METHOD(fixture, "A dynfu::kinect_fusion_opencl_measurement_pipeline_blo
 				
 				// Note: Eigen's default precision was too precise, here we only care about generally close
 				CHECK ( std::equal(ngt.begin(),ngt.end(),map.begin(),map.end(),[] (const auto & a, const auto & b) noexcept {
+
+					bool a_nan=std::isnan(a(0)) && std::isnan(a(1)) && std::isnan(a(2));
+					if (a_nan) return std::isnan(b.n(0)) && std::isnan(b.n(1)) && std::isnan(b.n(2));
 				
 					return (a-b.n).isZero(0.001f);
 				
