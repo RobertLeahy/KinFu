@@ -87,6 +87,7 @@ add_library(dynfu SHARED
 	src/file_system_depth_device.cpp
 	src/file_system_opencl_program_factory.cpp
 	src/fps_depth_device.cpp
+	src/high_resolution_clock.cpp
 	src/kinect_fusion.cpp
 	src/kinect_fusion_opencl_frame_to_frame_surface_prediction_pipeline_block.cpp
 	src/kinect_fusion_opencl_measurement_pipeline_block.cpp
