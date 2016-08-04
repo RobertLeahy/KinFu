@@ -19,7 +19,7 @@
 namespace dynfu {
 
 
-	constexpr std::size_t sizeof_mats=sizeof(float)*((6U*6U)+6U);
+	constexpr std::size_t sizeof_mats=sizeof(float)*(21U+6U);
 
 
 	kinect_fusion_opencl_pose_estimation_pipeline_block::kinect_fusion_opencl_pose_estimation_pipeline_block (
