@@ -30,7 +30,6 @@ namespace dynfu {
 			boost::compute::command_queue q_;
 			boost::compute::kernel corr_;
 			boost::compute::kernel sum_;
-			boost::compute::kernel load_;
 			boost::compute::buffer t_z_;
 			boost::compute::buffer t_gk_prev_inverse_;
 			boost::compute::buffer k_;
