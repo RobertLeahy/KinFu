@@ -124,15 +124,19 @@ namespace dynfu {
 			}
 
 			//	Collect results
-			float buffer [(6U*6U)+6U];
+			float buffer [21U+6U];
 			q_.enqueue_read_buffer(mats_,0,sizeof(buffer),buffer);
 			using a_type=Eigen::Matrix<float,6,6>;
 			a_type a;
-			std::memcpy(&a,buffer,sizeof(a));
-			//	No need to transpose the A matrix as it is symmetric
+			a <<	buffer[0],buffer[1],buffer[2],buffer[3],buffer[4],buffer[5],
+					buffer[1],buffer[6],buffer[7],buffer[8],buffer[9],buffer[10],
+					buffer[2],buffer[7],buffer[11],buffer[12],buffer[13],buffer[14],
+					buffer[3],buffer[8],buffer[12],buffer[15],buffer[16],buffer[17],
+					buffer[4],buffer[9],buffer[13],buffer[16],buffer[18],buffer[19],
+					buffer[5],buffer[10],buffer[14],buffer[17],buffer[19],buffer[20];
 			using b_type=Eigen::Matrix<float,6,1>;
 			b_type b;
-			std::memcpy(&b,buffer+(6U*6U),sizeof(b));
+			std::memcpy(&b,buffer+21U,sizeof(b));
 
 			//	Solve system
 			Eigen::FullPivHouseholderQR<a_type> solver(a);

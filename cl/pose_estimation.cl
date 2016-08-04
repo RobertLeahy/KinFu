@@ -53,40 +53,25 @@ void icp (float3 p, float3 q, float3 n, __global float * a, __global float * b) 
 	a[4]=c.x*n.y;
 	a[5]=c.x*n.z;
 	//	Second row
-	a[6]=c.y*c.x;
-	a[7]=c.y*c.y;
-	a[8]=c.y*c.z;
-	a[9]=c.y*n.x;
-	a[10]=c.y*n.y;
-	a[11]=c.y*n.z;
+	a[6]=c.y*c.y;
+	a[7]=c.y*c.z;
+	a[8]=c.y*n.x;
+	a[9]=c.y*n.y;
+	a[10]=c.y*n.z;
 	//	Third row
-	a[12]=c.z*c.x;
-	a[13]=c.z*c.y;
-	a[14]=c.z*c.z;
-	a[15]=c.z*n.x;
-	a[16]=c.z*n.y;
-	a[17]=c.z*n.z;
+	a[11]=c.z*c.z;
+	a[12]=c.z*n.x;
+	a[13]=c.z*n.y;
+	a[14]=c.z*n.z;
 	//	Fourth row
-	a[18]=n.x*c.x;
-	a[19]=n.x*c.y;
-	a[20]=n.x*c.z;
-	a[21]=n.x*n.x;
-	a[22]=n.x*n.y;
-	a[23]=n.x*n.z;
+	a[15]=n.x*n.x;
+	a[16]=n.x*n.y;
+	a[17]=n.x*n.z;
 	//	Fifth row
-	a[24]=n.y*c.x;
-	a[25]=n.y*c.y;
-	a[26]=n.y*c.z;
-	a[27]=n.y*n.x;
-	a[28]=n.y*n.y;
-	a[29]=n.y*n.z;
+	a[18]=n.y*n.y;
+	a[19]=n.y*n.z;
 	//	Sixth row
-	a[30]=n.z*c.x;
-	a[31]=n.z*c.y;
-	a[32]=n.z*c.z;
-	a[33]=n.z*n.x;
-	a[34]=n.z*n.y;
-	a[35]=n.z*n.z;
+	a[20]=n.z*n.z;
 
 	pqn*=-1;
 	b[0]=c.x*pqn;
@@ -101,7 +86,7 @@ void icp (float3 p, float3 q, float3 n, __global float * a, __global float * b) 
 
 struct __attribute__((packed)) mats {
 
-	float a [6U*6U];
+	float a [21U];	//	The matrix is symmetric so we don't store the lower triangle
 	float b [6U];
 
 };
@@ -204,7 +189,7 @@ kernel void correspondences(
 void matrixadd6 (__global float * restrict a, const __global float * restrict b) {
 
 	#pragma unroll
-	for (size_t i=0;i<(6U*6U);++i) a[i]+=b[i];
+	for (size_t i=0;i<21U;++i) a[i]+=b[i];
 
 }
 
