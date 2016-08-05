@@ -15,6 +15,7 @@
 #include <algorithm>
 #include <cmath>
 #include <cstddef>
+#include <stdexcept>
 #include <utility>
 #include <vector>
 #include <catch.hpp>
@@ -125,6 +126,29 @@ namespace {
 
 	};
 
+
+}
+
+
+SCENARIO_METHOD(fixture,"The constructor of dynfu::kinect_fusion_opencl_pose_estimation_pipeline_block rejects degenerate group sizes","[pose_estimation_pipeline_block][kinect_fusion_opencl_pose_estimation_pipeline_block][dynfu]") {
+
+	WHEN("dynfu::kinect_fusion_opencl_pose_estimation_pipeline_block is constructed with a group size of zero an exception is thrown") {
+
+		CHECK_THROWS_AS(dynfu::kinect_fusion_opencl_pose_estimation_pipeline_block(pf,q,0.10f,std::sin(20.0f*3.14159f/180.0f),width,height,t_gk_initial,iterations,0),std::logic_error);
+
+	}
+
+	WHEN("dynfu::kinect_fusion_opencl_pose_estimation_pipeline_block is constructed with a group size which does not evenly divide the frame size an exception is thrown") {
+
+		CHECK_THROWS_AS(dynfu::kinect_fusion_opencl_pose_estimation_pipeline_block(pf,q,0.10f,std::sin(20.0f*3.14159f/180.0f),width,height,t_gk_initial,iterations,19),std::logic_error);
+
+	}
+
+	WHEN("dynfu::kinect_fusion_opencl_pose_estimation_pipeline_block is constructed with a group size which is greater than the frame size an exception is thrown") {
+
+		CHECK_THROWS_AS(dynfu::kinect_fusion_opencl_pose_estimation_pipeline_block(pf,q,0.10f,std::sin(20.0f*3.14159f/180.0f),width,height,t_gk_initial,iterations,600000),std::logic_error);
+
+	}
 
 }
 
