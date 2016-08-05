@@ -51,6 +51,7 @@ namespace dynfu {
 
 		if (numit_==0) throw std::logic_error("Must iterate at least once");
 
+		if (group_size_==0) throw std::logic_error("Size of OpenCL parallel sum work groups must be at least 1");
 		auto frame_size=frame_width_*frame_height_;
 		if (group_size_>frame_size) {
 
