@@ -19,7 +19,8 @@
 namespace dynfu {
 
 
-	constexpr std::size_t sizeof_mats=sizeof(float)*(21U+6U);
+	constexpr std::size_t mats_floats=21U+6U;
+	constexpr std::size_t sizeof_mats=sizeof(float)*mats_floats;
 
 
 	kinect_fusion_opencl_pose_estimation_pipeline_block::kinect_fusion_opencl_pose_estimation_pipeline_block (
@@ -30,7 +31,8 @@ namespace dynfu {
 		std::size_t frame_width,
 		std::size_t frame_height,
 		Eigen::Matrix4f t_gk_initial,
-		std::size_t numit
+		std::size_t numit,
+		std::size_t group_size
 	)	:	q_(std::move(q)),
 			t_z_(q_.get_context(),sizeof(Eigen::Matrix4f),CL_MEM_READ_ONLY|CL_MEM_HOST_WRITE_ONLY),
 			t_gk_prev_inverse_(q_.get_context(),sizeof(Eigen::Matrix4f),CL_MEM_READ_ONLY|CL_MEM_HOST_WRITE_ONLY),
@@ -43,14 +45,34 @@ namespace dynfu {
 			frame_width_(frame_width),
 			frame_height_(frame_height),
 			t_gk_initial_(std::move(t_gk_initial)),
-			numit_(numit)
+			numit_(numit),
+			group_size_(group_size)
 	{
 
 		if (numit_==0) throw std::logic_error("Must iterate at least once");
 
+		auto frame_size=frame_width_*frame_height_;
+		if (group_size_>frame_size) {
+
+			std::ostringstream ss;
+			ss << "Size of OpenCL parallel sum work groups " << group_size_ << " is greater than frame size " << frame_size << " (" << frame_width_ << "x" << frame_height_ << ")";
+			throw std::logic_error(ss.str());
+
+		}
+		if ((frame_size%group_size_)!=0) {
+
+			std::ostringstream ss;
+			ss << "Size of OpenCL parallel sum work groups " << group_size_ << " does not evenly divide frame size " << frame_size << " (" << frame_width_ << "x" << frame_height_ << ")";
+			throw std::logic_error(ss.str());
+
+		}
+
+		mats_output_=boost::compute::buffer(q_.get_context(),(frame_size/group_size_)*sizeof_mats);
+
 		auto p=pf("pose_estimation");
 		corr_=p.create_kernel("correspondences");
-		sum_=p.create_kernel("sum");
+		parallel_sum_=p.create_kernel("parallel_sum");
+		serial_sum_=p.create_kernel("serial_sum");
 
 		//	Correspondences arguments
 		corr_.set_arg(2,t_gk_prev_inverse_);
@@ -60,8 +82,8 @@ namespace dynfu {
 		corr_.set_arg(6,k_);
 		corr_.set_arg(7,mats_);
 
-		//	Sum arguments
-		sum_.set_arg(0,mats_);
+		//	Parallel sum arguments
+		parallel_sum_.set_arg(2,boost::compute::local_buffer<float>(mats_floats*group_size_));
 
 	}
 
@@ -114,18 +136,40 @@ namespace dynfu {
 			std::size_t extent []={frame_width_,frame_height_};
 			q_.enqueue_nd_range_kernel(corr_,2,nullptr,extent,nullptr);
 
-			//	Sum
-			for (std::size_t prev_length=frame_height_*frame_width_,length=prev_length/2U,mul=2U;length!=0;prev_length=length,length/=2U,mul*=2U) {
+			//	Perform parallel phase of sum
+			boost::compute::buffer in(mats_);
+			boost::compute::buffer out(mats_output_);
+			auto input_size=frame_height_*frame_width_;
+			std::size_t output_size;
+			do {
 
-				sum_.set_arg(1,std::uint32_t(mul));
-				sum_.set_arg(2,std::int32_t((prev_length%2U)!=0));
-				q_.enqueue_nd_range_kernel(sum_,1,nullptr,&length,nullptr);
+				output_size=input_size/group_size_;
+
+				parallel_sum_.set_arg(0,in);
+				parallel_sum_.set_arg(1,out);
+				q_.enqueue_nd_range_kernel(parallel_sum_,1,nullptr,&input_size,&group_size_);
+				q_.finish();
+
+				input_size=output_size;
+				using std::swap;
+				swap(in,out);
+
+			} while ((input_size%group_size_)==0);
+
+			//	Perform serial phase of sum if necessary
+			if (output_size>1) {
+
+				serial_sum_.set_arg(0,in);
+				serial_sum_.set_arg(1,std::uint32_t(input_size));
+				std::size_t serial_size(27);
+				q_.enqueue_nd_range_kernel(serial_sum_,1,nullptr,&serial_size,nullptr);
+				q_.finish();
 
 			}
 
 			//	Collect results
 			float buffer [21U+6U];
-			q_.enqueue_read_buffer(mats_,0,sizeof(buffer),buffer);
+			q_.enqueue_read_buffer(in,0,sizeof(buffer),buffer);
 			using a_type=Eigen::Matrix<float,6,6>;
 			a_type a;
 			a <<	buffer[0],buffer[1],buffer[2],buffer[3],buffer[4],buffer[5],

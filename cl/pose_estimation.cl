@@ -202,25 +202,53 @@ void vectoradd6 (__global float * restrict a, const __global float * restrict b)
 }
 
 
-kernel void sum(
+//	ASSUMPTION:
+//
+//	Local group size IS NOT ODD!!!!
+kernel void parallel_sum(
+	const __global struct mats * src,	//	0
+	__global struct mats * dest,	//	1
+	__local struct mats * lmats	//	2
+) {
+
+	//	Get identifiers
+	size_t g=get_global_id(0);
+	size_t l=get_local_id(0);
+
+	//	Load into local memory
+	lmats[l]=src[g];
+
+	for (size_t stride=get_local_size(0)/2U;stride>0;stride/=2U) {
+
+		//	Wait for everything else to finish
+		barrier(CLK_LOCAL_MEM_FENCE);
+
+		//	Perform add if needed
+		if (l>=stride) continue;
+
+		local float * a=lmats[l].a;
+		const local float * b=lmats[l+stride].a;
+		#pragma unroll
+		for (size_t i=0;i<27U;++i) a[i]+=b[i]; 
+
+	}
+
+	//	Write out
+	if (l==0) dest[get_group_id(0)]=lmats[0];
+
+}
+
+
+kernel void serial_sum(
 	__global struct mats * mats,	//	0
-	unsigned int mul,	//	1
-	int last_odd	//	2
+	unsigned int length	//	1
 ) {
 
 	size_t i=get_global_id(0);
-	unsigned int stride=mul/2U;
-	size_t idx=i*mul;
-	global struct mats * curr=mats+idx;
-	global struct mats * other=curr+stride;
+	float sum=0;
 
-	matrixadd6(curr->a,other->a);
-	vectoradd6(curr->b,other->b);
+	for (size_t j=0;j<length;++j) sum+=mats[j].a[i];
 
-	if (!(last_odd && (i==(get_global_size(0)-1U)))) return;
-
-	other+=stride;
-	matrixadd6(curr->a,other->a);
-	vectoradd6(curr->b,other->b);
+	mats[0].a[i]=sum;
 
 }
