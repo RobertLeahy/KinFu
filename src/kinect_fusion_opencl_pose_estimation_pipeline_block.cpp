@@ -140,8 +140,8 @@ namespace dynfu {
 			boost::compute::buffer in(mats_);
 			boost::compute::buffer out(mats_output_);
 			auto input_size=frame_height_*frame_width_;
-			std::size_t output_size;
-			do {
+			std::size_t output_size=input_size;	//	In case the branch on the next line isn't taken
+			if (group_size_!=1) do {
 
 				output_size=input_size/group_size_;
 
