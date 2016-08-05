@@ -6,7 +6,7 @@
 #include <dynfu/optional.hpp>
 #include <dynfu/scope.hpp>
 #include <Eigen/Dense>
-#include <Eigen/QR>
+#include <Eigen/Cholesky>
 #include <cstddef>
 #include <cstring>
 #include <cstdint>
@@ -183,7 +183,7 @@ namespace dynfu {
 			std::memcpy(&b,buffer+21U,sizeof(b));
 
 			//	Solve system
-			Eigen::FullPivHouseholderQR<a_type> solver(a);
+			auto solver=a.ldlt();
 			b_type x=solver.solve(b);
 
 			float alpha=x(0);
