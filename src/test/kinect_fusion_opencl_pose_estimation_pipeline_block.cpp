@@ -153,6 +153,17 @@ SCENARIO_METHOD(fixture,"The constructor of dynfu::kinect_fusion_opencl_pose_est
 }
 
 
+SCENARIO_METHOD(fixture,"The constructor of dynfu::kinect_fusion_opencl_pose_estimation_pipeline_block rejects requests to iterate zero times","[dynfu][pose_estimation_pipeline_block][kinect_fusion_opencl_pose_estimation_pipeline_block]") {
+
+	WHEN("dynfu::kinect_fusion_opencl_pose_estimation_pipeline_block is constructed with zero iterations") {
+
+		CHECK_THROWS_AS(dynfu::kinect_fusion_opencl_pose_estimation_pipeline_block(pf,q,0.10f,std::sin(20.0f*3.14159f/180.0f),width,height,t_gk_initial,0,group_size),std::logic_error);
+
+	}
+
+}
+
+
 SCENARIO_METHOD(fixture,"dynfu::kinect_fusion_opencl_pose_estimation_pipeline_block objects return the matrix passed to their constructor on their first invocation","[dynfu][pose_estimation_pipeline_block][kinect_fusion_opencl_pose_estimation_pipeline_block]") {
 
 	GIVEN("A dynfu::kinect_fusion_opencl_pose_estimation_pipeline_block object") {
