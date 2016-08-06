@@ -186,22 +186,6 @@ kernel void correspondences(
 }
 
 
-void matrixadd6 (__global float * restrict a, const __global float * restrict b) {
-
-	#pragma unroll
-	for (size_t i=0;i<21U;++i) a[i]+=b[i];
-
-}
-
-
-void vectoradd6 (__global float * restrict a, const __global float * restrict b) {
-
-	#pragma unroll
-	for (size_t i=0;i<6U;++i) a[i]+=b[i];
-
-}
-
-
 //	ASSUMPTION:
 //
 //	Local group size IS NOT ODD!!!!
