@@ -82,6 +82,9 @@ namespace dynfu {
 		corr_.set_arg(5,epsilon_theta_);
 		corr_.set_arg(6,k_);
 		corr_.set_arg(7,mats_);
+		corr_.set_arg(8,boost::compute::local_buffer<float>(16));
+		corr_.set_arg(9,boost::compute::local_buffer<float>(16));
+		corr_.set_arg(10,boost::compute::local_buffer<float>(9));
 
 		//	Parallel sum arguments
 		parallel_sum_.set_arg(2,boost::compute::local_buffer<float>(mats_floats*group_size_));

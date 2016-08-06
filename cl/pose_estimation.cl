@@ -1,4 +1,4 @@
-float3 matrixmul3(const __constant float * m, float3 v) {
+float3 matrixmul3(const __local float * m, float3 v) {
 
     float3 retr;
     retr.x=dot(vload3(0,m),v);
@@ -10,7 +10,7 @@ float3 matrixmul3(const __constant float * m, float3 v) {
 }
 
 
-float4 matrixmul4(const __constant float * m, float4 v) {
+float4 matrixmul4(const __local float * m, float4 v) {
 
     float4 retr;
     retr.x=dot(vload4(0,m),v);
@@ -92,15 +92,15 @@ struct __attribute__((packed)) mats {
 };
 
 
-kernel void correspondences(
-	const __constant float * map,	//	0
-	const __constant float * prev_map,	//	1
-	const __constant float * t_gk_prev_inverse,	//	2
-	const __constant float * t_z,	//	3
-	float epsilon_d,	//	4
-	float epsilon_theta,	//	5
-	const __constant float * k,	//	6
-	__global struct mats * mats	//	7
+void correspondences_impl(
+	const __constant float * map,
+	const __constant float * prev_map,
+	const __local float * t_gk_prev_inverse,
+	const __local float * t_z,
+	float epsilon_d,
+	float epsilon_theta,
+	const __local float * k,
+	__global struct mats * mats
 ) {
 
 	size_t x=get_global_id(0);
@@ -182,6 +182,54 @@ kernel void correspondences(
 	}
 
 	icp(t_z_curr_v,curr_pv,curr_pn,ms->a,ms->b);
+
+}
+
+
+kernel void correspondences(
+	const __constant float * map,	//	0
+	const __constant float * prev_map,	//	1
+	const __constant float * t_gk_prev_inverse,	//	2
+	const __constant float * t_z,	//	3
+	float epsilon_d,	//	4
+	float epsilon_theta,	//	5
+	const __constant float * k,	//	6
+	__global struct mats * mats,	//	7
+	__local float * t_gk_prev_inverse_local,	//	8
+	__local float * t_z_local,	//	9
+	__local float * k_local	//	10
+) {
+
+	size_t lx=get_local_id(0);
+	size_t ly=get_local_id(1);
+	size_t lxs=get_local_size(0);
+	size_t lys=get_local_size(1);
+	size_t ls=lxs*lys;
+	size_t l=lx+(ly*lxs);
+	if (ls>=16) {
+
+		if (l<16) {
+
+			t_gk_prev_inverse_local[l]=t_gk_prev_inverse[l];
+			t_z_local[l]=t_z[l];
+			if (l<9) k_local[l]=k[l];
+
+		}
+
+	} else if (l==0) {
+
+		#pragma unroll
+		for (size_t i=0;i<16;++i) t_gk_prev_inverse_local[i]=t_gk_prev_inverse[i];
+		#pragma unroll
+		for (size_t i=0;i<16;++i) t_z_local[i]=t_z[i];
+		#pragma unroll
+		for (size_t i=0;i<16;++i) k_local[i]=k[i];
+
+	}
+
+	barrier(CLK_LOCAL_MEM_FENCE);
+
+	correspondences_impl(map,prev_map,t_gk_prev_inverse_local,t_z_local,epsilon_d,epsilon_theta,k_local,mats);
 
 }
 
