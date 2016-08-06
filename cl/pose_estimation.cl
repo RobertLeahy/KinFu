@@ -1,4 +1,4 @@
-float3 matrixmul3(const __global float * m, float3 v) {
+float3 matrixmul3(const __constant float * m, float3 v) {
 
     float3 retr;
     retr.x=dot(vload3(0,m),v);
@@ -10,7 +10,7 @@ float3 matrixmul3(const __global float * m, float3 v) {
 }
 
 
-float4 matrixmul4(const __global float * m, float4 v) {
+float4 matrixmul4(const __constant float * m, float4 v) {
 
     float4 retr;
     retr.x=dot(vload4(0,m),v);
@@ -93,14 +93,14 @@ struct __attribute__((packed)) mats {
 
 
 kernel void correspondences(
-	const __global float * map,	//	0
-	const __global float * prev_map,	//	1
-	const __global float * t_gk_prev_inverse,	//	2
-	const __global float * t_z,	//	3
+	const __constant float * map,	//	0
+	const __constant float * prev_map,	//	1
+	const __constant float * t_gk_prev_inverse,	//	2
+	const __constant float * t_z,	//	3
 	float epsilon_d,	//	4
 	float epsilon_theta,	//	5
-	const __global float * k,	//	6
-	__global struct mats * mats
+	const __constant float * k,	//	6
+	__global struct mats * mats	//	7
 ) {
 
 	size_t x=get_global_id(0);
