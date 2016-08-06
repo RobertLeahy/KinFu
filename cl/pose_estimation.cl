@@ -92,22 +92,22 @@ struct __attribute__((packed)) mats {
 };
 
 
-kernel void correspondences(
-	const __constant float * map,	//	0
-	const __constant float * prev_map,	//	1
-	const __constant float * t_gk_prev_inverse,	//	2
-	const __constant float * t_z,	//	3
-	float epsilon_d,	//	4
-	float epsilon_theta,	//	5
-	const __constant float * k,	//	6
-	__global struct mats * mats	//	7
+void correspondences_impl(
+	const __constant float * map,
+	const __constant float * prev_map,
+	const __constant float * t_gk_prev_inverse,
+	const __constant float * t_z,
+	float epsilon_d,
+	float epsilon_theta,
+	const __constant float * k,
+	size_t x,
+	size_t y,
+	size_t width,
+	size_t height,
+	__global struct mats * ms
 ) {
 
-	size_t x=get_global_id(0);
-	size_t width=get_global_size(0);
-	size_t y=get_global_id(1);
 	size_t idx=(y*width)+x;
-	global struct mats * ms=mats+idx;
 	idx*=2U;
 
 	float3 curr_pv=vload3(idx,prev_map);
@@ -127,7 +127,7 @@ kernel void correspondences(
 
 	int2 u=(int2)(round(uv3.x/uv3.z),round(uv3.y/uv3.z));
 
-	if ((u.x<0) || (u.y<0) || (((size_t)u.x)>=width) || (((size_t)u.y)>=get_global_size(1))) {
+	if ((u.x<0) || (u.y<0) || (((size_t)u.x)>=width) || (((size_t)u.y)>=height)) {
 
 		zero_ab(ms->a,ms->b);
 		return;
@@ -182,6 +182,41 @@ kernel void correspondences(
 	}
 
 	icp(t_z_curr_v,curr_pv,curr_pn,ms->a,ms->b);
+
+}
+
+
+kernel void correspondences(
+	const __constant float * map,	//	0
+	const __constant float * prev_map,	//	1
+	const __constant float * t_gk_prev_inverse,	//	2
+	const __constant float * t_z,	//	3
+	float epsilon_d,	//	4
+	float epsilon_theta,	//	5
+	const __constant float * k,	//	6
+	unsigned int width,	//	7
+	unsigned int height,	//	8
+	__global struct mats * mats	//	9
+) {
+
+	size_t idx=get_global_id(0);
+	size_t x=idx%width;
+	size_t y=idx/width;
+
+	correspondences_impl(
+		map,
+		prev_map,
+		t_gk_prev_inverse,
+		t_z,
+		epsilon_d,
+		epsilon_theta,
+		k,
+		x,
+		y,
+		width,
+		height,
+		mats+idx
+	);
 
 }
 

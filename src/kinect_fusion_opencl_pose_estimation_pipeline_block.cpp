@@ -81,7 +81,9 @@ namespace dynfu {
 		corr_.set_arg(4,epsilon_d_);
 		corr_.set_arg(5,epsilon_theta_);
 		corr_.set_arg(6,k_);
-		corr_.set_arg(7,mats_);
+		corr_.set_arg(7,std::uint32_t(frame_width));
+		corr_.set_arg(8,std::uint32_t(frame_height));
+		corr_.set_arg(9,mats_);
 
 		//	Parallel sum arguments
 		parallel_sum_.set_arg(2,boost::compute::local_buffer<float>(mats_floats*group_size_));
@@ -134,13 +136,12 @@ namespace dynfu {
 			auto tzwg=make_scope_exit([&] () noexcept {	tzw.wait();	});
 
 			//	Enqueue correspondences kernel
-			std::size_t extent []={frame_width_,frame_height_};
-			q_.enqueue_nd_range_kernel(corr_,2,nullptr,extent,nullptr);
+			auto input_size=frame_height_*frame_width_;
+			q_.enqueue_nd_range_kernel(corr_,1,nullptr,&input_size,nullptr);
 
 			//	Perform parallel phase of sum
 			boost::compute::buffer in(mats_);
 			boost::compute::buffer out(mats_output_);
-			auto input_size=frame_height_*frame_width_;
 			std::size_t output_size=input_size;	//	In case the branch on the next line isn't taken
 			if (group_size_!=1) do {
 
