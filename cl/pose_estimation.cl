@@ -186,6 +186,35 @@ void correspondences_impl(
 }
 
 
+void parallel_sum_impl(
+	size_t l,
+	size_t o,
+	size_t size,
+	__global struct mats * dest,
+	__local struct mats * lmats
+) {
+
+	for (size_t stride=size/2U;stride>0;stride/=2U) {
+
+		//	Wait for everything else to finish
+		barrier(CLK_LOCAL_MEM_FENCE);
+
+		//	Perform add if needed
+		if (l>=stride) continue;
+
+		local float * a=lmats[l].a;
+		const local float * b=lmats[l+stride].a;
+		#pragma unroll
+		for (size_t i=0;i<27U;++i) a[i]+=b[i];
+
+	}
+
+	//	Write out
+	if (l==0) dest[o]=lmats[0];
+
+}
+
+
 kernel void correspondences(
 	const __constant float * map,	//	0
 	const __constant float * prev_map,	//	1
@@ -237,23 +266,13 @@ kernel void parallel_sum(
 	//	Load into local memory
 	lmats[l]=src[g];
 
-	for (size_t stride=get_local_size(0)/2U;stride>0;stride/=2U) {
-
-		//	Wait for everything else to finish
-		barrier(CLK_LOCAL_MEM_FENCE);
-
-		//	Perform add if needed
-		if (l>=stride) continue;
-
-		local float * a=lmats[l].a;
-		const local float * b=lmats[l+stride].a;
-		#pragma unroll
-		for (size_t i=0;i<27U;++i) a[i]+=b[i]; 
-
-	}
-
-	//	Write out
-	if (l==0) dest[get_group_id(0)]=lmats[0];
+	parallel_sum_impl(
+		l,
+		get_group_id(0),
+		get_local_size(0),
+		dest,
+		lmats
+	);
 
 }
 
