@@ -149,7 +149,6 @@ namespace dynfu {
 				parallel_sum_.set_arg(0,in);
 				parallel_sum_.set_arg(1,out);
 				q_.enqueue_nd_range_kernel(parallel_sum_,1,nullptr,&input_size,&group_size_);
-				q_.finish();
 
 				input_size=output_size;
 				using std::swap;
@@ -164,7 +163,6 @@ namespace dynfu {
 				serial_sum_.set_arg(1,std::uint32_t(input_size));
 				std::size_t serial_size(27);
 				q_.enqueue_nd_range_kernel(serial_sum_,1,nullptr,&serial_size,nullptr);
-				q_.finish();
 
 			}
 
