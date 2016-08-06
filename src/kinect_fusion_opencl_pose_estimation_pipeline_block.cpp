@@ -1,5 +1,4 @@
 #include <boost/compute.hpp>
-#include <boost/compute/memory/local_buffer.hpp>	//	CI builds on Linux complain about local_buffer not being a member of boost::compute without this
 #include <dynfu/boost_compute_detail_type_name_trait.hpp>
 #include <dynfu/cpu_pipeline_value.hpp>
 #include <dynfu/kinect_fusion_opencl_pose_estimation_pipeline_block.hpp>
