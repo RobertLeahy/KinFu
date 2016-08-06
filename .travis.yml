@@ -117,7 +117,6 @@ before_install:
     fi;
 
   - if [ $TRAVIS_OS_NAME = "osx" ]; then
-      clinfo;
       brew update;
       brew install eigen;
       brew install pkg-config;
