@@ -37,7 +37,6 @@ namespace dynfu {
 			t_z_(q_.get_context(),sizeof(Eigen::Matrix4f),CL_MEM_READ_ONLY|CL_MEM_HOST_WRITE_ONLY),
 			t_gk_prev_inverse_(q_.get_context(),sizeof(Eigen::Matrix4f),CL_MEM_READ_ONLY|CL_MEM_HOST_WRITE_ONLY),
 			k_(q_.get_context(),sizeof(Eigen::Matrix3f),CL_MEM_READ_ONLY|CL_MEM_HOST_WRITE_ONLY),
-			mats_(q_.get_context(),sizeof_mats*frame_height*frame_width),
 			e_(q_),
 			p_e_(q_),
 			epsilon_d_(epsilon_d),
@@ -68,12 +67,16 @@ namespace dynfu {
 
 		}
 
-		mats_output_=boost::compute::buffer(q_.get_context(),(frame_size/group_size_)*sizeof_mats);
+		auto frame_size_after=frame_size/group_size_;
+		mats_=boost::compute::buffer(q_.get_context(),frame_size_after*sizeof_mats);
+		if ((frame_size_after%group_size_)==0) mats_output_=boost::compute::buffer(q_.get_context(),(frame_size_after/group_size_)*sizeof_mats);
 
 		auto p=pf("pose_estimation");
 		corr_=p.create_kernel("correspondences");
 		parallel_sum_=p.create_kernel("parallel_sum");
 		serial_sum_=p.create_kernel("serial_sum");
+
+		boost::compute::local_buffer<float> scratch(mats_floats*group_size_);
 
 		//	Correspondences arguments
 		corr_.set_arg(2,t_gk_prev_inverse_);
@@ -84,9 +87,10 @@ namespace dynfu {
 		corr_.set_arg(7,std::uint32_t(frame_width));
 		corr_.set_arg(8,std::uint32_t(frame_height));
 		corr_.set_arg(9,mats_);
+		corr_.set_arg(10,scratch);
 
 		//	Parallel sum arguments
-		parallel_sum_.set_arg(2,boost::compute::local_buffer<float>(mats_floats*group_size_));
+		parallel_sum_.set_arg(2,scratch);
 
 	}
 
@@ -137,13 +141,14 @@ namespace dynfu {
 
 			//	Enqueue correspondences kernel
 			auto input_size=frame_height_*frame_width_;
-			q_.enqueue_nd_range_kernel(corr_,1,nullptr,&input_size,nullptr);
+			q_.enqueue_nd_range_kernel(corr_,1,nullptr,&input_size,&group_size_);
+			input_size/=group_size_;
 
 			//	Perform parallel phase of sum
 			boost::compute::buffer in(mats_);
 			boost::compute::buffer out(mats_output_);
 			std::size_t output_size=input_size;	//	In case the branch on the next line isn't taken
-			if (group_size_!=1) do {
+			if (group_size_!=1) while ((input_size%group_size_)==0) {
 
 				output_size=input_size/group_size_;
 
@@ -155,7 +160,7 @@ namespace dynfu {
 				using std::swap;
 				swap(in,out);
 
-			} while ((input_size%group_size_)==0);
+			}
 
 			//	Perform serial phase of sum if necessary
 			if (output_size>1) {

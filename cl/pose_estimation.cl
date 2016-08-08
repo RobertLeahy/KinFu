@@ -33,7 +33,7 @@ int is_finite(float3 v) {
 }
 
 
-void zero_ab (__global float * ms) {
+void zero_ab (__local float * ms) {
 
 	#pragma unroll
 	for (size_t i=0;i<SIZEOF_MATS;++i) ms[i]=0;
@@ -41,7 +41,7 @@ void zero_ab (__global float * ms) {
 }
 
 
-void icp (float3 p, float3 q, float3 n, __global float * ms) {
+void icp (float3 p, float3 q, float3 n, __local float * ms) {
 
 	float3 c=cross(p,n);
 	float pqn=dot(p-q,n);
@@ -97,7 +97,7 @@ void correspondences_impl(
 	size_t y,
 	size_t width,
 	size_t height,
-	__global float * ms
+	__local float * ms
 ) {
 
 	size_t idx=(y*width)+x;
@@ -219,12 +219,14 @@ kernel void correspondences(
 	const __constant float * k,	//	6
 	unsigned int width,	//	7
 	unsigned int height,	//	8
-	__global float * mats	//	9
+	__global float * mats,	//	9
+	__local float * lmats	//	10
 ) {
 
 	size_t idx=get_global_id(0);
 	size_t x=idx%width;
 	size_t y=idx/width;
+	size_t l=get_local_id(0);
 
 	correspondences_impl(
 		map,
@@ -238,7 +240,14 @@ kernel void correspondences(
 		y,
 		width,
 		height,
-		mats+(idx*SIZEOF_MATS)
+		lmats+(SIZEOF_MATS*l)
+	);
+
+	parallel_sum_impl(
+		l,
+		get_local_size(0),
+		mats+(get_group_id(0)*SIZEOF_MATS),
+		lmats
 	);
 
 }
