@@ -1,3 +1,6 @@
+#define SIZEOF_MATS (27U)
+
+
 float3 matrixmul3(const __constant float * m, float3 v) {
 
     float3 retr;
@@ -30,66 +33,56 @@ int is_finite(float3 v) {
 }
 
 
-void zero_ab (__global float * a, __global float * b) {
+void zero_ab (__global float * ms) {
 
 	#pragma unroll
-	for (size_t i=0;i<(6*6);++i) a[i]=0;
-	#pragma unroll
-	for (size_t i=0;i<6;++i) b[i]=0;
+	for (size_t i=0;i<SIZEOF_MATS;++i) ms[i]=0;
 
 }
 
 
-void icp (float3 p, float3 q, float3 n, __global float * a, __global float * b) {
+void icp (float3 p, float3 q, float3 n, __global float * ms) {
 
 	float3 c=cross(p,n);
 	float pqn=dot(p-q,n);
 
 	//	First row
-	a[0]=c.x*c.x;
-	a[1]=c.x*c.y;
-	a[2]=c.x*c.z;
-	a[3]=c.x*n.x;
-	a[4]=c.x*n.y;
-	a[5]=c.x*n.z;
+	ms[0]=c.x*c.x;
+	ms[1]=c.x*c.y;
+	ms[2]=c.x*c.z;
+	ms[3]=c.x*n.x;
+	ms[4]=c.x*n.y;
+	ms[5]=c.x*n.z;
 	//	Second row
-	a[6]=c.y*c.y;
-	a[7]=c.y*c.z;
-	a[8]=c.y*n.x;
-	a[9]=c.y*n.y;
-	a[10]=c.y*n.z;
+	ms[6]=c.y*c.y;
+	ms[7]=c.y*c.z;
+	ms[8]=c.y*n.x;
+	ms[9]=c.y*n.y;
+	ms[10]=c.y*n.z;
 	//	Third row
-	a[11]=c.z*c.z;
-	a[12]=c.z*n.x;
-	a[13]=c.z*n.y;
-	a[14]=c.z*n.z;
+	ms[11]=c.z*c.z;
+	ms[12]=c.z*n.x;
+	ms[13]=c.z*n.y;
+	ms[14]=c.z*n.z;
 	//	Fourth row
-	a[15]=n.x*n.x;
-	a[16]=n.x*n.y;
-	a[17]=n.x*n.z;
+	ms[15]=n.x*n.x;
+	ms[16]=n.x*n.y;
+	ms[17]=n.x*n.z;
 	//	Fifth row
-	a[18]=n.y*n.y;
-	a[19]=n.y*n.z;
+	ms[18]=n.y*n.y;
+	ms[19]=n.y*n.z;
 	//	Sixth row
-	a[20]=n.z*n.z;
+	ms[20]=n.z*n.z;
 
 	pqn*=-1;
-	b[0]=c.x*pqn;
-	b[1]=c.y*pqn;
-	b[2]=c.z*pqn;
-	b[3]=n.x*pqn;
-	b[4]=n.y*pqn;
-	b[5]=n.z*pqn;
+	ms[21]=c.x*pqn;
+	ms[22]=c.y*pqn;
+	ms[23]=c.z*pqn;
+	ms[24]=n.x*pqn;
+	ms[25]=n.y*pqn;
+	ms[26]=n.z*pqn;
 
 }
-
-
-struct __attribute__((packed)) mats {
-
-	float a [21U];	//	The matrix is symmetric so we don't store the lower triangle
-	float b [6U];
-
-};
 
 
 void correspondences_impl(
@@ -104,7 +97,7 @@ void correspondences_impl(
 	size_t y,
 	size_t width,
 	size_t height,
-	__global struct mats * ms
+	__global float * ms
 ) {
 
 	size_t idx=(y*width)+x;
@@ -113,7 +106,7 @@ void correspondences_impl(
 	float3 curr_pv=vload3(idx,prev_map);
 	if (!is_finite(curr_pv)) {
 
-		zero_ab(ms->a,ms->b);
+		zero_ab(ms);
 		return;
 
 	}
@@ -129,7 +122,7 @@ void correspondences_impl(
 
 	if ((u.x<0) || (u.y<0) || (((size_t)u.x)>=width) || (((size_t)u.y)>=height)) {
 
-		zero_ab(ms->a,ms->b);
+		zero_ab(ms);
 		return;
 
 	}
@@ -144,7 +137,7 @@ void correspondences_impl(
 	//	TODO: Should we be checking the current normal?
 	if (!(is_finite(curr_v) && is_finite(curr_pn))) {
 
-		zero_ab(ms->a,ms->b);
+		zero_ab(ms);
 		return;
 
 	}
@@ -155,7 +148,7 @@ void correspondences_impl(
 	float3 t_z_curr_v=(float3)(t_z_curr_v_homo.x,t_z_curr_v_homo.y,t_z_curr_v_homo.z);
 	if (dot(t_z_curr_v_homo_curr_pv_homo,t_z_curr_v_homo_curr_pv_homo)>(epsilon_d*epsilon_d)) {
 
-		zero_ab(ms->a,ms->b);
+		zero_ab(ms);
 		return;
 
 	}
@@ -176,22 +169,21 @@ void correspondences_impl(
 	float3 crzcncpn=cross(r_z_curr_n,curr_pn);
 	if (dot(crzcncpn,crzcncpn)>(epsilon_theta*epsilon_theta)) {
 
-		zero_ab(ms->a,ms->b);
+		zero_ab(ms);
 		return;
 
 	}
 
-	icp(t_z_curr_v,curr_pv,curr_pn,ms->a,ms->b);
+	icp(t_z_curr_v,curr_pv,curr_pn,ms);
 
 }
 
 
 void parallel_sum_impl(
 	size_t l,
-	size_t o,
 	size_t size,
-	__global struct mats * dest,
-	__local struct mats * lmats
+	__global float * dest,
+	__local float * lmats
 ) {
 
 	for (size_t stride=size/2U;stride>0;stride/=2U) {
@@ -202,15 +194,17 @@ void parallel_sum_impl(
 		//	Perform add if needed
 		if (l>=stride) continue;
 
-		local float * a=lmats[l].a;
-		const local float * b=lmats[l+stride].a;
+		local float * a=lmats+(l*SIZEOF_MATS);
+		const local float * b=lmats+((l+stride)*SIZEOF_MATS);
 		#pragma unroll
-		for (size_t i=0;i<27U;++i) a[i]+=b[i];
+		for (size_t i=0;i<SIZEOF_MATS;++i) a[i]+=b[i];
 
 	}
 
 	//	Write out
-	if (l==0) dest[o]=lmats[0];
+	if (l!=0) return;
+	#pragma unroll
+	for (size_t i=0;i<SIZEOF_MATS;++i,++dest) *dest=lmats[i];
 
 }
 
@@ -225,7 +219,7 @@ kernel void correspondences(
 	const __constant float * k,	//	6
 	unsigned int width,	//	7
 	unsigned int height,	//	8
-	__global struct mats * mats	//	9
+	__global float * mats	//	9
 ) {
 
 	size_t idx=get_global_id(0);
@@ -244,7 +238,7 @@ kernel void correspondences(
 		y,
 		width,
 		height,
-		mats+idx
+		mats+(idx*SIZEOF_MATS)
 	);
 
 }
@@ -254,9 +248,9 @@ kernel void correspondences(
 //
 //	Local group size IS NOT ODD!!!!
 kernel void parallel_sum(
-	const __global struct mats * src,	//	0
-	__global struct mats * dest,	//	1
-	__local struct mats * lmats	//	2
+	const __global float * src,	//	0
+	__global float * dest,	//	1
+	__local float * lmats	//	2
 ) {
 
 	//	Get identifiers
@@ -264,13 +258,15 @@ kernel void parallel_sum(
 	size_t l=get_local_id(0);
 
 	//	Load into local memory
-	lmats[l]=src[g];
+	const global float * ld=src+(g*SIZEOF_MATS);
+	local float * sv=lmats+(l*SIZEOF_MATS);
+	#pragma unroll
+	for (size_t i=0;i<SIZEOF_MATS;++i,++sv,++ld) *sv=*ld;
 
 	parallel_sum_impl(
 		l,
-		get_group_id(0),
 		get_local_size(0),
-		dest,
+		dest+(get_group_id(0)*SIZEOF_MATS),
 		lmats
 	);
 
@@ -278,15 +274,15 @@ kernel void parallel_sum(
 
 
 kernel void serial_sum(
-	__global struct mats * mats,	//	0
+	__global float * mats,	//	0
 	unsigned int length	//	1
 ) {
 
 	size_t i=get_global_id(0);
 	float sum=0;
 
-	for (size_t j=0;j<length;++j) sum+=mats[j].a[i];
+	for (size_t j=0;j<length;++j) sum+=mats[(j*SIZEOF_MATS)+i];
 
-	mats[0].a[i]=sum;
+	mats[i]=sum;
 
 }
