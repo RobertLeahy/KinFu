@@ -86,8 +86,8 @@ void icp (float3 p, float3 q, float3 n, __local float * ms) {
 
 
 void correspondences_impl(
-	const __constant float * map,
-	const __constant float * prev_map,
+	const __global float * map,
+	const __global float * prev_map,
 	const __constant float * t_gk_prev_inverse,
 	const __constant float * t_z,
 	float epsilon_d,
@@ -210,8 +210,8 @@ void parallel_sum_impl(
 
 
 kernel void correspondences(
-	const __constant float * map,	//	0
-	const __constant float * prev_map,	//	1
+	const __global float * map,	//	0
+	const __global float * prev_map,	//	1
 	const __constant float * t_gk_prev_inverse,	//	2
 	const __constant float * t_z,	//	3
 	float epsilon_d,	//	4
