@@ -150,7 +150,7 @@ add_executable(tests
 	src/test/opencl_vector_pipeline_value.cpp
 	src/test/opencv_depth_device.cpp
 )
-target_link_libraries(tests dynfu)
+target_link_libraries(tests dynfu boost_random)
 
 add_executable(tsdf_viewer
 	src/tsdf_viewer.cpp
