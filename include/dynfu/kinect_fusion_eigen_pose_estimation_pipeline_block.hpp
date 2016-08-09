@@ -33,12 +33,11 @@ namespace dynfu {
 			std::size_t frame_height_;
 			std::size_t numit_;
 			Eigen::Matrix4f t_gk_initial_;
+			bool force_px_px_;
 
-			Eigen::Matrix4f iterate(
-				measurement_pipeline_block::vertex_value_type::element_type &,
-				measurement_pipeline_block::normal_value_type::element_type &,
-				measurement_pipeline_block::vertex_value_type::element_type *,
-				measurement_pipeline_block::normal_value_type::element_type *,
+			Eigen::Matrix4f incremental(
+				measurement_pipeline_block::value_type::element_type &,
+				measurement_pipeline_block::value_type::element_type &,
 				Eigen::Matrix3f,
 				Eigen::Matrix4f,
 				Eigen::Matrix4f
@@ -67,6 +66,9 @@ namespace dynfu {
 			 *  \param [in] numit
 			 *      The number of iterations to use
 			 *
+			 *	\param [in] force_px_px
+			 *		When set to true, forces all correspondences to be pixel to pixel
+			 *		instead of generated through projection.
 			 */
 			kinect_fusion_eigen_pose_estimation_pipeline_block (
 				float epsilon_d,
@@ -74,7 +76,8 @@ namespace dynfu {
 				std::size_t frame_width,
 				std::size_t frame_height,
 				Eigen::Matrix4f t_gk_initial,
-				std::size_t numit=15
+				std::size_t numit=15,
+				bool force_px_px=false
 			);
 
 			virtual value_type operator () (
