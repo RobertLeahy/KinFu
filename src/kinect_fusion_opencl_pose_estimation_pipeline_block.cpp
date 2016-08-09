@@ -19,7 +19,9 @@
 namespace dynfu {
 
 
-	constexpr std::size_t mats_floats=21U+6U;
+	constexpr std::size_t a_floats=21U;
+	constexpr std::size_t b_floats=6U;
+	constexpr std::size_t mats_floats=a_floats+b_floats;
 	constexpr std::size_t sizeof_mats=sizeof(float)*mats_floats;
 
 
@@ -173,7 +175,7 @@ namespace dynfu {
 			}
 
 			//	Collect results
-			float buffer [21U+6U];
+			float buffer [mats_floats];
 			q_.enqueue_read_buffer(in,0,sizeof(buffer),buffer);
 			using a_type=Eigen::Matrix<float,6,6>;
 			a_type a;
@@ -185,7 +187,7 @@ namespace dynfu {
 					buffer[5],buffer[10],buffer[14],buffer[17],buffer[19],buffer[20];
 			using b_type=Eigen::Matrix<float,6,1>;
 			b_type b;
-			std::memcpy(&b,buffer+21U,sizeof(b));
+			std::memcpy(&b,buffer+a_floats,sizeof(b));
 
 			//	Solve system
 			auto solver=a.ldlt();
