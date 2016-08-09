@@ -147,6 +147,7 @@ doxygen
 * Project Management - [waffle.io](https://waffle.io/RobertLeahy/DynFu)
 * Continuous Integration - [travis-ci](https://travis-ci.org/RobertLeahy/DynFu/)
 * Datasets - [MSRC RGB-D Dataset 7-Scenes](https://www.microsoft.com/en-us/research/project/rgb-d-dataset-7-scenes/)
+
 ## Contributing
 Currently, no outside contributions are being accepted as the coursework is required to be our own.
 
