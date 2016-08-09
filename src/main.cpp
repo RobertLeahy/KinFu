@@ -136,7 +136,7 @@ static void main_impl (int argc, char ** argv) {
 	float mu = 0.03f;
 
 	dynfu::file_system_opencl_program_factory opf(pp/".."/"cl",ctx);
-	dynfu::kinect_fusion_opencl_measurement_pipeline_block mpb(q,opf,20,2.0f,1.0f);
+	dynfu::kinect_fusion_opencl_measurement_pipeline_block mpb(q,opf,13,4.5f,0.03f);
 	Eigen::Matrix4f t_g_k(Eigen::Matrix4f::Identity());
 	t_g_k(0,3)=1.5f;
 	t_g_k(1,3)=1.5f;
