@@ -1,7 +1,7 @@
 #define SIZEOF_MATS (27U)
 
 
-float3 matrixmul3(const __constant float * m, float3 v) {
+float3 matrixmul3(const float * m, float3 v) {
 
     float3 retr;
     retr.x=dot(vload3(0,m),v);
@@ -13,7 +13,7 @@ float3 matrixmul3(const __constant float * m, float3 v) {
 }
 
 
-float4 matrixmul4(const __constant float * m, float4 v) {
+float4 matrixmul4(const float * m, float4 v) {
 
     float4 retr;
     retr.x=dot(vload4(0,m),v);
@@ -88,11 +88,11 @@ void icp (float3 p, float3 q, float3 n, __local float * ms) {
 void correspondences_impl(
 	const __global float * map,
 	const __global float * prev_map,
-	const __constant float * t_gk_prev_inverse,
-	const __constant float * t_z,
+	const float * t_gk_prev_inverse,
+	const float * t_z,
 	float epsilon_d,
 	float epsilon_theta,
-	const __constant float * k,
+	const float * k,
 	size_t x,
 	size_t y,
 	size_t width,
@@ -209,14 +209,22 @@ void parallel_sum_impl(
 }
 
 
+struct __attribute__((packed)) mat4 {
+	float vals [16];
+};
+struct __attribute__((packed)) mat3 {
+	float vals [9];
+};
+
+
 kernel void correspondences(
 	const __global float * map,	//	0
 	const __global float * prev_map,	//	1
-	const __constant float * t_gk_prev_inverse,	//	2
-	const __constant float * t_z,	//	3
+	const struct mat4 t_gk_prev_inverse,	//	2
+	const struct mat4 t_z,	//	3
 	float epsilon_d,	//	4
 	float epsilon_theta,	//	5
-	const __constant float * k,	//	6
+	const struct mat3 k,	//	6
 	unsigned int width,	//	7
 	unsigned int height,	//	8
 	__global float * mats,	//	9
@@ -231,11 +239,11 @@ kernel void correspondences(
 	correspondences_impl(
 		map,
 		prev_map,
-		t_gk_prev_inverse,
-		t_z,
+		t_gk_prev_inverse.vals,
+		t_z.vals,
 		epsilon_d,
 		epsilon_theta,
-		k,
+		k.vals,
 		x,
 		y,
 		width,

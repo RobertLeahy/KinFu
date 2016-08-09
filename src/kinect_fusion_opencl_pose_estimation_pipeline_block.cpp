@@ -4,7 +4,6 @@
 #include <dynfu/kinect_fusion_opencl_pose_estimation_pipeline_block.hpp>
 #include <dynfu/opencl_program_factory.hpp>
 #include <dynfu/optional.hpp>
-#include <dynfu/scope.hpp>
 #include <Eigen/Dense>
 #include <Eigen/Cholesky>
 #include <cstddef>
@@ -36,9 +35,6 @@ namespace dynfu {
 		std::size_t numit,
 		std::size_t group_size
 	)	:	q_(std::move(q)),
-			t_z_(q_.get_context(),sizeof(Eigen::Matrix4f),CL_MEM_READ_ONLY|CL_MEM_HOST_WRITE_ONLY),
-			t_gk_prev_inverse_(q_.get_context(),sizeof(Eigen::Matrix4f),CL_MEM_READ_ONLY|CL_MEM_HOST_WRITE_ONLY),
-			k_(q_.get_context(),sizeof(Eigen::Matrix3f),CL_MEM_READ_ONLY|CL_MEM_HOST_WRITE_ONLY),
 			e_(q_),
 			p_e_(q_),
 			epsilon_d_(epsilon_d),
@@ -81,11 +77,8 @@ namespace dynfu {
 		boost::compute::local_buffer<float> scratch(mats_floats*group_size_);
 
 		//	Correspondences arguments
-		corr_.set_arg(2,t_gk_prev_inverse_);
-		corr_.set_arg(3,t_z_);
 		corr_.set_arg(4,epsilon_d_);
 		corr_.set_arg(5,epsilon_theta_);
-		corr_.set_arg(6,k_);
 		corr_.set_arg(7,std::uint32_t(frame_width));
 		corr_.set_arg(8,std::uint32_t(frame_height));
 		corr_.set_arg(9,mats_);
@@ -127,19 +120,16 @@ namespace dynfu {
 		Eigen::Matrix4f t_gk_prev_inverse(t_gk_minus_one_m.inverse());
 
 		t_gk_prev_inverse.transposeInPlace();
-		auto tgkw=q_.enqueue_write_buffer_async(t_gk_prev_inverse_,0,sizeof(t_gk_prev_inverse),&t_gk_prev_inverse);
-		auto tgkwg=make_scope_exit([&] () noexcept {	tgkw.wait();	});
+		corr_.set_arg(2,sizeof(t_gk_prev_inverse),&t_gk_prev_inverse);
 
 		k.transposeInPlace();
-		auto kw=q_.enqueue_write_buffer_async(k_,0,sizeof(k),&k);
-		auto kwg=make_scope_exit([&] () noexcept {	kw.wait();	});
+		corr_.set_arg(6,sizeof(k),&k);
 
 		for (std::size_t i=0;i<numit_;++i) {
 
 			//	Upload current estimate to the GPU
 			t_z.transposeInPlace();
-			auto tzw=q_.enqueue_write_buffer_async(t_z_,0,sizeof(t_z),&t_z);
-			auto tzwg=make_scope_exit([&] () noexcept {	tzw.wait();	});
+			corr_.set_arg(3,sizeof(t_z),&t_z);
 
 			//	Enqueue correspondences kernel
 			auto input_size=frame_height_*frame_width_;

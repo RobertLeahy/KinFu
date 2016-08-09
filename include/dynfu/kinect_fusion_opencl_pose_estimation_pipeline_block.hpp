@@ -31,9 +31,6 @@ namespace dynfu {
 			boost::compute::kernel corr_;
 			boost::compute::kernel parallel_sum_;
 			boost::compute::kernel serial_sum_;
-			boost::compute::buffer t_z_;
-			boost::compute::buffer t_gk_prev_inverse_;
-			boost::compute::buffer k_;
 			boost::compute::buffer mats_;
 			boost::compute::buffer mats_output_;
 			opencl_vector_pipeline_value_extractor<measurement_pipeline_block::value_type::element_type::type::value_type> e_;
