@@ -1,5 +1,6 @@
 #include <boost/compute.hpp>
 #include <boost/program_options.hpp>
+#include <boost/progress.hpp>
 #include <dynfu/depth_device.hpp>
 #include <dynfu/file_system_depth_device.hpp>
 #include <dynfu/file_system_opencl_program_factory.hpp>
@@ -198,6 +199,9 @@ static void main_impl (int argc, char ** argv) {
     std::size_t abs_idx(0);
 	std::size_t num_nans(0);
 
+    std::cout << std::endl << "Exporting Progress: ";
+    boost::progress_display show_progress(tsdf_size);
+
     for(std::size_t zi(0); zi < tsdf_size; ++zi) {
 
         pz = (float(zi)+0.5f) * tsdf_extent/tsdf_size;
@@ -227,7 +231,7 @@ static void main_impl (int argc, char ** argv) {
 
         }
 
-        std::cout << "Export Progress: "  << (zi + 1) << " / " << tsdf_size << std::endl;
+        ++show_progress;
 
     }
 
