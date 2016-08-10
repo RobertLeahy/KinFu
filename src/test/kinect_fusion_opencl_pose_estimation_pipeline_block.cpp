@@ -183,19 +183,19 @@ SCENARIO_METHOD(fixture,"The constructor of dynfu::kinect_fusion_opencl_pose_est
 
 	WHEN("dynfu::kinect_fusion_opencl_pose_estimation_pipeline_block is constructed with a group size of zero an exception is thrown") {
 
-		CHECK_THROWS_AS(dynfu::kinect_fusion_opencl_pose_estimation_pipeline_block(pf,q,0.10f,std::sin(20.0f*3.14159f/180.0f),width,height,t_gk_initial,iterations,0),std::logic_error);
+		CHECK_THROWS_AS(dynfu::kinect_fusion_opencl_pose_estimation_pipeline_block(q,pf,0.10f,std::sin(20.0f*3.14159f/180.0f),width,height,t_gk_initial,iterations,0),std::logic_error);
 
 	}
 
 	WHEN("dynfu::kinect_fusion_opencl_pose_estimation_pipeline_block is constructed with a group size which does not evenly divide the frame size an exception is thrown") {
 
-		CHECK_THROWS_AS(dynfu::kinect_fusion_opencl_pose_estimation_pipeline_block(pf,q,0.10f,std::sin(20.0f*3.14159f/180.0f),width,height,t_gk_initial,iterations,19),std::logic_error);
+		CHECK_THROWS_AS(dynfu::kinect_fusion_opencl_pose_estimation_pipeline_block(q,pf,0.10f,std::sin(20.0f*3.14159f/180.0f),width,height,t_gk_initial,iterations,19),std::logic_error);
 
 	}
 
 	WHEN("dynfu::kinect_fusion_opencl_pose_estimation_pipeline_block is constructed with a group size which is greater than the frame size an exception is thrown") {
 
-		CHECK_THROWS_AS(dynfu::kinect_fusion_opencl_pose_estimation_pipeline_block(pf,q,0.10f,std::sin(20.0f*3.14159f/180.0f),width,height,t_gk_initial,iterations,600000),std::logic_error);
+		CHECK_THROWS_AS(dynfu::kinect_fusion_opencl_pose_estimation_pipeline_block(q,pf,0.10f,std::sin(20.0f*3.14159f/180.0f),width,height,t_gk_initial,iterations,600000),std::logic_error);
 
 	}
 
@@ -206,7 +206,7 @@ SCENARIO_METHOD(fixture,"The constructor of dynfu::kinect_fusion_opencl_pose_est
 
 	WHEN("dynfu::kinect_fusion_opencl_pose_estimation_pipeline_block is constructed with zero iterations") {
 
-		CHECK_THROWS_AS(dynfu::kinect_fusion_opencl_pose_estimation_pipeline_block(pf,q,0.10f,std::sin(20.0f*3.14159f/180.0f),width,height,t_gk_initial,0,group_size),std::logic_error);
+		CHECK_THROWS_AS(dynfu::kinect_fusion_opencl_pose_estimation_pipeline_block(q,pf,0.10f,std::sin(20.0f*3.14159f/180.0f),width,height,t_gk_initial,0,group_size),std::logic_error);
 
 	}
 
@@ -217,7 +217,7 @@ SCENARIO_METHOD(fixture,"dynfu::kinect_fusion_opencl_pose_estimation_pipeline_bl
 
 	GIVEN("A dynfu::kinect_fusion_opencl_pose_estimation_pipeline_block object") {
 
-		dynfu::kinect_fusion_opencl_pose_estimation_pipeline_block pepb(pf,q,0.10f,std::sin(20.0f*3.14159f/180.0f),width,height,t_gk_initial,iterations,group_size);
+		dynfu::kinect_fusion_opencl_pose_estimation_pipeline_block pepb(q,pf,0.10f,std::sin(20.0f*3.14159f/180.0f),width,height,t_gk_initial,iterations,group_size);
 
 		WHEN("It is invoked for the first time (i.e. passed NULL as the 3rd, 4th, and 5th arguments to dynfu::kinect_fusion_opencl_pose_estimation_pipeline_block::operator ())") {
 
@@ -242,7 +242,7 @@ SCENARIO_METHOD(fixture,"dynfu::kinect_fusion_opencl_pose_estimation_pipeline_bl
 
 	GIVEN("A dynfu::kinect_fusion_opencl_pose_estimation_pipeline_block object") {
 
-		dynfu::kinect_fusion_opencl_pose_estimation_pipeline_block pepb(pf,q,0.10f,std::sin(20.0f*3.14159f/180.0f),width,height,t_gk_initial,iterations,group_size);
+		dynfu::kinect_fusion_opencl_pose_estimation_pipeline_block pepb(q,pf,0.10f,std::sin(20.0f*3.14159f/180.0f),width,height,t_gk_initial,iterations,group_size);
 
 		WHEN("It is invoked on two identical sets of vertices and normals") {
 
@@ -273,7 +273,7 @@ SCENARIO_METHOD(fixture,"dynfu::kinect_fusion_opencl_pose_estimation_pipeline_bl
 	GIVEN("A dynfu::kinect_fusion_opencl_pose_estimation_pipeline_block object with force pixel to pixel correspondences enabled") {
 
 		bool enable_pixel_to_pixel(false);
-		dynfu::kinect_fusion_opencl_pose_estimation_pipeline_block pepb(pf, q, 0.10f,std::sin(20.0f*3.14159f/180.0f),width,height,t_gk_initial, 15, 64, enable_pixel_to_pixel);
+		dynfu::kinect_fusion_opencl_pose_estimation_pipeline_block pepb(q, pf, 0.10f,std::sin(20.0f*3.14159f/180.0f),width,height,t_gk_initial, 15, 64, enable_pixel_to_pixel);
 
 		WHEN("It is invoked on consecutive MSRC frames") {
 
@@ -320,7 +320,7 @@ SCENARIO_METHOD(fixture,"dynfu::kinect_fusion_opencl_pose_estimation_pipeline_bl
 	GIVEN("A dynfu::kinect_fusion_opencl_pose_estimation_pipeline_block object") {
 
 		bool enable_pixel_to_pixel(false);
-		dynfu::kinect_fusion_opencl_pose_estimation_pipeline_block pepb(pf,q,0.10f,std::sin(20.0f*3.14159f/180.0f),width,height,t_gk_initial,15,64,enable_pixel_to_pixel);
+		dynfu::kinect_fusion_opencl_pose_estimation_pipeline_block pepb(q,pf,0.10f,std::sin(20.0f*3.14159f/180.0f),width,height,t_gk_initial,15,64,enable_pixel_to_pixel);
 
 		WHEN("It is invoked on a set of vertices and normals, and a set of perturbed vertices and normals") {
 
@@ -370,7 +370,7 @@ SCENARIO_METHOD(fixture,"Between consecutive frames dynfu::kinect_fusion_opencl_
 
 	GIVEN("A dynfu::kinect_fusion_opencl_pose_estimation_pipeline_block object") {
 
-		dynfu::kinect_fusion_opencl_pose_estimation_pipeline_block pepb(pf,q,0.10f,std::sin(20.0f*3.14159f/180.0f),width,height,t_gk_initial,iterations,group_size);
+		dynfu::kinect_fusion_opencl_pose_estimation_pipeline_block pepb(q,pf,0.10f,std::sin(20.0f*3.14159f/180.0f),width,height,t_gk_initial,iterations,group_size);
 
 		WHEN("It is invoked on two consecutive frames") {
 
@@ -453,7 +453,7 @@ SCENARIO_METHOD(fixture,"When a minimum number of point-to-point correspondences
 
 	GIVEN("A dynfu::kinect_fusion_opencl_pose_estimation_pipeline_block object") {
 
-		dynfu::kinect_fusion_opencl_pose_estimation_pipeline_block pepb(pf,q,0.10f,std::sin(20.0f*3.14159f/180.0f),width,height,t_gk_initial,iterations,group_size);
+		dynfu::kinect_fusion_opencl_pose_estimation_pipeline_block pepb(q,pf,0.10f,std::sin(20.0f*3.14159f/180.0f),width,height,t_gk_initial,iterations,group_size);
 
 		THEN("Invoking it on two non-consecutive frames results in a dynfu::pose_estimation_pipeline_block::tracking_lost_error") {
 

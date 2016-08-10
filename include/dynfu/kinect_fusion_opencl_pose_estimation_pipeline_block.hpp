@@ -20,7 +20,16 @@
 
 namespace dynfu {
 
-
+	/**
+	 *	An implementation of a \ref pose_estimation_pipeline_block
+	 *	that uses the OpenCL to calculate a new sensor
+	 *	pose estimation.
+	 *
+	 *	This is the recommended pose_estimation_pipeline_block to use
+	 *	in the kinect_fusion pipeline.
+	 *
+	 *	\sa kinect_fusion
+	 */
 	class kinect_fusion_opencl_pose_estimation_pipeline_block : public pose_estimation_pipeline_block {
 
 
@@ -53,10 +62,48 @@ namespace dynfu {
 
 			kinect_fusion_opencl_pose_estimation_pipeline_block () = delete;
 
-
+			/**
+			 *  Creates a new kinect_fusion_opencl_pose_estimation_pipeline_block.
+			 *
+			 *	\param [in] q
+			 *		A boost::compute::command_queue which the newly created
+			 *		object shall use to dispatch OpenCL tasks.
+			 *
+			 *  \param [in] pf
+			 *      An \ref opencl_program_factory which the newly created object will
+			 *		use to obtain OpenCL programs.
+			 *
+			 *  \param [in] epsilon_d
+			 *      The rejection distance in Equation 17, \f$\epsilon_d\f$
+			 *
+			 *  \param [in] epsilon_theta
+			 *      The normal rejection angle in Equation 17, \f$\epsilon_\theta\f$
+			 *
+			 *  \param [in] frame_width
+			 *      The width of the depth frame
+			 *
+			 *  \param [in] frame_height
+			 *      The height of the depth frame
+			 *
+			 *	\param [in] t_gk_initial
+			 *		The \f$T_{g,k}\f$ to return from the first invocation.
+			 *
+			 *  \param [in] numit
+			 *      The number of iterations to use. The default is 15.
+			 *
+			 *	\param [in] group_size
+			 *		The group size to use in the OpenCL correspondences kernel. Tuning
+			 *		this parameter can have a large effect on the runtime of the kernel
+			 *		on different hardware. The default is 16. Good results can often be
+			 *		obtained with 64 as well.
+			 *
+			 *	\param [in] force_px_px
+			 *		When set to true, forces all correspondences to be pixel to pixel
+			 *		instead of generated through projection.
+			 */
 			kinect_fusion_opencl_pose_estimation_pipeline_block (
-				opencl_program_factory & pf,
 				boost::compute::command_queue q,
+				opencl_program_factory & pf,
 				float epsilon_d,
 				float epsilon_theta,
 				std::size_t frame_width,
