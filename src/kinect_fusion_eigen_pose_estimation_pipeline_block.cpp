@@ -24,17 +24,16 @@ namespace dynfu {
 		std::size_t frame_width, 
 		std::size_t frame_height,
 		Eigen::Matrix4f t_gk_initial,
-		std::size_t numit
-	) : epsilon_d_(epsilon_d), epsilon_theta_(epsilon_theta), frame_width_(frame_width), frame_height_(frame_height), numit_(numit), t_gk_initial_(std::move(t_gk_initial)) {}
+		std::size_t numit,
+		bool force_px_px
+	) : epsilon_d_(epsilon_d), epsilon_theta_(epsilon_theta), frame_width_(frame_width), frame_height_(frame_height), numit_(numit), t_gk_initial_(std::move(t_gk_initial)), force_px_px_(force_px_px) {}
 
 
-	Eigen::Matrix4f kinect_fusion_eigen_pose_estimation_pipeline_block::iterate(
-		measurement_pipeline_block::vertex_value_type::element_type & v_i,
-		measurement_pipeline_block::normal_value_type::element_type & n_i,
-		measurement_pipeline_block::vertex_value_type::element_type * prev_v,
-		measurement_pipeline_block::normal_value_type::element_type * prev_n,
+	Eigen::Matrix4f kinect_fusion_eigen_pose_estimation_pipeline_block::incremental(
+		measurement_pipeline_block::value_type::element_type & map,
+		measurement_pipeline_block::value_type::element_type & prev_map,
 		Eigen::Matrix3f k,
-		Eigen::Matrix4f t_frame_to_frame,
+		Eigen::Matrix4f t_frame_frame,
 		Eigen::Matrix4f t_z
 	) {
 
@@ -46,17 +45,30 @@ namespace dynfu {
 		std::size_t rej_oob = 0;
 		std::size_t numpts = frame_height_ * frame_width_;
 
+
+		long long int u_std = 0;
+		long long int v_std = 0;
+
 		std::vector<std::tuple<Eigen::Vector3f, Eigen::Vector3f, Eigen::Vector3f>> correspondences;
+
+		auto && u_map = map.get();
+		auto && u_prev_map = prev_map.get();
 
 		for (std::size_t i = 0; i < numpts; ++i) {
 
 			// measured v and n maps from current frame. These are in current camera space.
-			auto v = v_i.get()[i];
-			auto n = n_i.get()[i];
+			auto v = u_map[i].v;
+			auto n = u_map[i].n;
+
+			if (!isfinite(v) || !isfinite(n)) {
+				rej_m++;
+				continue;
+			}
+
 			Eigen::Vector4f v_h(v(0), v(1), v(2), 1.0f);
 
 			// Transform v to previous camera space, using t_frame_to_frame
-			auto v_cp_h = (t_frame_to_frame * v_h).eval();
+			auto v_cp_h = (t_frame_frame * v_h).eval();
 
 			assert(v_cp_h(3) == 1.0f);
 
@@ -65,28 +77,35 @@ namespace dynfu {
 			auto uv3 = k * v_cp;
 			Eigen::Vector2f uv(uv3(0)/uv3(2),uv3(1)/uv3(2));
 
-			// convert uv coords to lin_idx
-			std::int32_t lin_idx = std::int32_t(std::round(uv(0))) + std::int32_t(std::round(uv(1))) * frame_width_;
+			auto uv_u = std::int32_t(std::round(uv(0)));
+			auto uv_v = std::int32_t(std::round(uv(1)));
 
-			if (lin_idx >= std::int32_t(numpts) || lin_idx < 0)  {
+			auto curr_u = i % frame_width_;
+			auto curr_v = i / frame_width_;
+
+			u_std += (curr_u - uv_u);
+			v_std += (curr_v - uv_v);
+
+			if (uv_u < 0 || uv_u >= std::int32_t(frame_width_) || uv_v < 0 || uv_v >= std::int32_t(frame_height_)) {
 				rej_oob++;
 				continue;
 			}
 
-			// In world coordinates
-			auto pv = prev_v->get()[lin_idx];
-			auto pn = prev_n->get()[lin_idx];
+			// convert uv coords to lin_idx
+			std::int32_t lin_idx = std::int32_t(std::round(uv(0))) + std::int32_t(std::round(uv(1))) * frame_width_;
 
-			if (!isfinite(pn) || !isfinite(pv) || !isfinite(v)) {
+			// In world coordinates
+			auto pv = u_prev_map[lin_idx].v;
+			auto pn = u_prev_map[lin_idx].n;
+
+			if (!isfinite(pn) || !isfinite(pv)) {
 				rej_m++;
 				continue;
 			}
 
-
-
 			// Test epsilon d
-			Eigen::Vector4f pv_homo(pv(0), pv(1), pv(2), 1.0);
-			Eigen::Vector4f v_w_h = t_z * v_h;
+			Eigen::Vector4f pv_homo(pv(0), pv(1), pv(2), 1.0); // pv homo in world
+			Eigen::Vector4f v_w_h = t_z * v_h; // v homo in world
 			assert(v_w_h(3) == 1.0f);
 			if ( (v_w_h - pv_homo).norm() > epsilon_d_) {
 				rej_ed++;
@@ -99,14 +118,26 @@ namespace dynfu {
 				rej_et++;
 				continue;
 			}
-			
+			Eigen::Vector3f v_w(v_w_h(0), v_w_h(1), v_w_h(2)); // v in world space
 			// if we get to here the correspondence is valid
 			correspondences.emplace_back(std::make_tuple(
-				v, // <- in current camera space
+				v_w, // <- in global space
 				pv,
 				pn	 
 			));
 		}
+
+
+		std::cout << "Average difference in uv" << std::endl;
+		std::cout << "\tu:" << float(u_std)/numpts << std::endl;
+		std::cout << "\tv:" << float(v_std)/numpts << std::endl;
+
+		std::cout << "Correspondences summary:" << std::endl;
+		std::cout << "\t Rej due to NaN: " << rej_m << std::endl;
+		std::cout << "\t Rej due to distance: " << rej_ed << std::endl;
+		std::cout << "\t Rej due to angle: " << rej_et << std::endl;
+		std::cout << "\t Rej due to oob: " << rej_oob << std::endl;
+
 
 		// 6 is the DOF, so we need 6 points to solve minimum
 		if (correspondences.size() < 6) {
@@ -119,7 +150,11 @@ namespace dynfu {
 		Eigen::Matrix<float, 6, 1> b = Eigen::Matrix<float, 1, 6>::Zero();
 
 		for (auto && cor : correspondences) {
-		
+
+			// For this correspondence, we find the optimal transformation
+			// to be applied to p that minimizes its distance from the
+			// plane generated by q and n
+
 			auto && p = std::get<0>(cor); // v
 			auto && q = std::get<1>(cor); // pv
 			auto && n = std::get<2>(cor); // pn
@@ -164,36 +199,71 @@ namespace dynfu {
 				 	 -beta, alpha, 1.0f, tz,
 					 0.0f, 0.0f, 0.0f, 1.0f;
 		
+		// to_return should be the best transformation that brings v into alignment with pv
+
+		//std::cout << "to_return" << std::endl << to_return << std::endl;
 
 		return to_return;
 
 	}
 
+
+
+
+
 	kinect_fusion_eigen_pose_estimation_pipeline_block::value_type kinect_fusion_eigen_pose_estimation_pipeline_block::operator () (
-		measurement_pipeline_block::vertex_value_type::element_type & v,
-		measurement_pipeline_block::normal_value_type::element_type & n,
-		measurement_pipeline_block::vertex_value_type::element_type * prev_v,
-		measurement_pipeline_block::normal_value_type::element_type * prev_n,
+		measurement_pipeline_block::value_type::element_type & map,
+		measurement_pipeline_block::value_type::element_type * prev_map,
 		Eigen::Matrix3f k,
 		value_type t_gk_minus_one
 	) {
 		
-		using pv_type=cpu_pipeline_value<sensor_pose_estimation_type>;
-		if (!(prev_v && prev_n && t_gk_minus_one)) {
+		// Emplace the initial tgk and return if this is the first time we are running
+		using pv_type=cpu_pipeline_value<value_type::element_type::type>;
+	
+		if (!(t_gk_minus_one && prev_map)) {
+
 			t_gk_minus_one=std::make_unique<pv_type>();
 			static_cast<pv_type &>(*t_gk_minus_one).emplace(t_gk_initial_);
+
 			return t_gk_minus_one;
+
 		}
 
-		Eigen::Matrix4f t_frame_to_frame = Eigen::Matrix4f::Identity();
-		Eigen::Matrix4f t_z = t_gk_minus_one->get(); // z= 0 means t_z = T_g_k from previous frame
+		// Extract previous tgk
+		auto && pv=dynamic_cast<pv_type &>(*t_gk_minus_one);
+		auto t_gk_minus_one_m=pv.get();
+		Eigen::Matrix4f t_z(t_gk_minus_one_m);
+		Eigen::Matrix4f t_gk_prev_inverse(t_gk_minus_one_m.inverse());
+		
 
+		// Iterate
 		for (std::size_t i = 0; i < numit_; ++i) {
-			t_z = kinect_fusion_eigen_pose_estimation_pipeline_block::iterate(v, n, prev_v, prev_n, k, t_frame_to_frame, t_z);
-			t_frame_to_frame = t_gk_minus_one->get().inverse() * t_z;
+
+			// Should be identity the first time this runs
+
+			// t_frame_frame goes from current camera to previous frame's camera
+			Eigen::Matrix4f t_frame_frame(t_gk_prev_inverse * t_z);
+
+			// If enabled, force pixel to pixel correspondences
+			if (force_px_px_) t_frame_frame = Eigen::Matrix4f::Identity();
+
+			//Eigen::Matrix4f t_frame_frame(Eigen::Matrix4f::Identity()); // WHY??? THIS IS INSANITY
+			
+			std::cout << "t_frame_frame" << std::endl << t_frame_frame << std::endl;
+			std::cout << "original t_z" << std::endl << t_z << std::endl;
+			// Minimize the energy of the linearized system, giving the incremental update and apply to t_z
+			//auto t_z_new = t_z;
+			auto inc = incremental(map, *prev_map, k, t_frame_frame, t_z);
+			std::cout << "inc" << std::endl << inc << std::endl;
+			//iterate returns an incremental update that takes us from the prev world to an updated estimate
+			t_z = inc * t_z;
+
+			std::cout << "updated t_z:" << std::endl << t_z << std::endl;
+			//std::cout << "t_z changed:" << std::boolalpha << (t_z_new != t_z) << std::endl; 
+
 		}
 
-		auto && pv=dynamic_cast<cpu_pipeline_value<sensor_pose_estimation_type> &>(*t_gk_minus_one);
 		pv.emplace(t_z);
 		return t_gk_minus_one;
 	}

@@ -89,6 +89,7 @@ add_library(dynfu SHARED
 	src/fps_depth_device.cpp
 	src/high_resolution_clock.cpp
 	src/kinect_fusion.cpp
+	src/kinect_fusion_eigen_pose_estimation_pipeline_block.cpp
 	src/kinect_fusion_opencl_frame_to_frame_surface_prediction_pipeline_block.cpp
 	src/kinect_fusion_opencl_measurement_pipeline_block.cpp
 	src/kinect_fusion_opencl_pose_estimation_pipeline_block.cpp
@@ -149,7 +150,7 @@ add_executable(tests
 	src/test/opencl_vector_pipeline_value.cpp
 	src/test/opencv_depth_device.cpp
 )
-target_link_libraries(tests dynfu)
+target_link_libraries(tests dynfu boost_random)
 
 add_executable(tsdf_viewer
 	src/tsdf_viewer.cpp
