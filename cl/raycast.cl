@@ -138,7 +138,7 @@ float triLerp (const float3 p, const __global float * tsdf, const float extent, 
     //  TODO: If this is the null vector what happens?  Can
     //  that happen?  Do we need to check?  How would we
     //  handle that?
-    float3 ray_dir = normalize(uv_world - camera_pos);
+    float3 ray_dir = fast_normalize(uv_world - camera_pos);
 
     //  This gives us the position from which we will begin
     //  our search (i.e. this position is on the near plane)
@@ -232,7 +232,7 @@ float triLerp (const float3 p, const __global float * tsdf, const float extent, 
         //  otherwise we store NaN
         float3 n = (float3) (fx1 - fx2, fy1 - fy2, fz1 - fz2);
         float3 nullv = (float3)(0, 0, 0);
-        vstore3((n == nullv) ? NAN : normalize(n), idx + 1U, map);
+        vstore3((n == nullv) ? NAN : fast_normalize(n), idx + 1U, map);
 
         return;
 
