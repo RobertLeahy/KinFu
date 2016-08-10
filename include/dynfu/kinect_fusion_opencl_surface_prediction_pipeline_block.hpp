@@ -11,6 +11,7 @@
 #include <boost/compute/container/vector.hpp>
 #include <boost/compute/kernel.hpp>
 #include <dynfu/depth_device.hpp>
+#include <dynfu/half.hpp>
 #include <dynfu/measurement_pipeline_block.hpp>
 #include <dynfu/opencl_program_factory.hpp>
 #include <dynfu/opencl_vector_pipeline_value.hpp>
@@ -37,7 +38,7 @@ namespace dynfu {
 		
 		
 		private:
-			opencl_vector_pipeline_value_extractor<float> ve_;
+			opencl_vector_pipeline_value_extractor<half> ve_;
 			boost::compute::kernel raycast_kernel_;
 			boost::compute::buffer t_g_k_buf_;
 			boost::compute::buffer ik_buf_;
@@ -80,7 +81,7 @@ namespace dynfu {
 				boost::compute::command_queue q,
 				opencl_program_factory & opf,
 				float mu,
-				std::size_t tsdf_size=512,
+				std::size_t tsdf_size=256,
 				float tsdf_extent=3.0f,
 				std::size_t frame_width=640,
 				std::size_t frame_height=480

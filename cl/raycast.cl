@@ -3,9 +3,10 @@
 #define STEP_SIZE (0.0005f) // mu *0.8
 
 
-float getTsdfValue (const int3 vox, const __global float * tsdf, const size_t size) {
+float getTsdfValue (const int3 vox, const __global half * tsdf, const size_t size) {
 
-    float val = tsdf[vox.x + vox.y * size + vox.z * size * size];
+    size_t offset = vox.x + vox.y * size + vox.z * size * size;
+    float val = vload_half(offset, tsdf);
 
     return val;
 
@@ -100,7 +101,7 @@ float triLerp (const float3 p, const __global float * tsdf, const float extent, 
  *  frame_width - The width of the depth frame
  */
  kernel void raycast(
-    const __global float * tsdf,    //  0
+    const __global half * tsdf,    //  0
     __global float * map,   //  1
     const __global float * T_g_k,   //  2
     const __global float * Kinv,    //  3

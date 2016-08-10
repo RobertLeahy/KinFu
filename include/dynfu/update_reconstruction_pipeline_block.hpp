@@ -5,6 +5,7 @@
 
 #pragma once
 
+#include <dynfu/half.hpp>
 #include <dynfu/depth_device.hpp>
 #include <dynfu/pipeline_value.hpp>
 #include <dynfu/pose_estimation_pipeline_block.hpp>
@@ -35,7 +36,7 @@ namespace dynfu {
 			 *	Each voxel in the tsdf has an associated value, forming a scalar
 			 *	field in \f${\rm I\!R^3}\f$.
 			 */
-			using buffer_type=std::vector<float>;
+			using buffer_type=std::vector<half>;
 			
 		
 			/**
