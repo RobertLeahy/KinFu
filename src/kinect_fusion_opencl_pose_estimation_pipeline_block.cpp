@@ -34,10 +34,11 @@ namespace dynfu {
 		std::size_t frame_height,
 		Eigen::Matrix4f t_gk_initial,
 		std::size_t numit,
-		std::size_t group_size
+		std::size_t group_size,
+		bool force_px_px
 	)	:	q_(std::move(q)),
 			t_z_(q_.get_context(),sizeof(Eigen::Matrix4f),CL_MEM_READ_ONLY|CL_MEM_HOST_WRITE_ONLY),
-			t_gk_prev_inverse_(q_.get_context(),sizeof(Eigen::Matrix4f),CL_MEM_READ_ONLY|CL_MEM_HOST_WRITE_ONLY),
+			t_frame_frame_(q_.get_context(),sizeof(Eigen::Matrix4f),CL_MEM_READ_ONLY|CL_MEM_HOST_WRITE_ONLY),
 			k_(q_.get_context(),sizeof(Eigen::Matrix3f),CL_MEM_READ_ONLY|CL_MEM_HOST_WRITE_ONLY),
 			e_(q_),
 			p_e_(q_),
@@ -47,7 +48,8 @@ namespace dynfu {
 			frame_height_(frame_height),
 			t_gk_initial_(std::move(t_gk_initial)),
 			numit_(numit),
-			group_size_(group_size)
+			group_size_(group_size),
+			force_px_px_(force_px_px)
 	{
 
 		if (numit_==0) throw std::logic_error("Must iterate at least once");
@@ -81,7 +83,7 @@ namespace dynfu {
 		boost::compute::local_buffer<float> scratch(mats_floats*group_size_);
 
 		//	Correspondences arguments
-		corr_.set_arg(2,t_gk_prev_inverse_);
+		corr_.set_arg(2,t_frame_frame_);
 		corr_.set_arg(3,t_z_);
 		corr_.set_arg(4,epsilon_d_);
 		corr_.set_arg(5,epsilon_theta_);
@@ -126,10 +128,6 @@ namespace dynfu {
 		Eigen::Matrix4f t_z(t_gk_minus_one_m);
 		Eigen::Matrix4f t_gk_prev_inverse(t_gk_minus_one_m.inverse());
 
-		t_gk_prev_inverse.transposeInPlace();
-		auto tgkw=q_.enqueue_write_buffer_async(t_gk_prev_inverse_,0,sizeof(t_gk_prev_inverse),&t_gk_prev_inverse);
-		auto tgkwg=make_scope_exit([&] () noexcept {	tgkw.wait();	});
-
 		k.transposeInPlace();
 		auto kw=q_.enqueue_write_buffer_async(k_,0,sizeof(k),&k);
 		auto kwg=make_scope_exit([&] () noexcept {	kw.wait();	});
@@ -137,9 +135,17 @@ namespace dynfu {
 		for (std::size_t i=0;i<numit_;++i) {
 
 			//	Upload current estimate to the GPU
+			Eigen::Matrix4f t_frame_frame(t_gk_prev_inverse*t_z);
+
+			// If enabled, force pixel to pixel correspondences
+			if (force_px_px_) t_frame_frame = Eigen::Matrix4f::Identity();
+
 			t_z.transposeInPlace();
 			auto tzw=q_.enqueue_write_buffer_async(t_z_,0,sizeof(t_z),&t_z);
 			auto tzwg=make_scope_exit([&] () noexcept {	tzw.wait();	});
+			t_frame_frame.transposeInPlace();
+			auto tffw=q_.enqueue_write_buffer_async(t_frame_frame_,0,sizeof(t_frame_frame),&t_frame_frame);
+			auto tffwg=make_scope_exit([&] () noexcept {	tffw.wait();	});
 
 			//	Enqueue correspondences kernel
 			auto input_size=frame_height_*frame_width_;
