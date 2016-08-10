@@ -55,8 +55,8 @@ namespace dynfu {
 
 
 			kinect_fusion_opencl_pose_estimation_pipeline_block (
-				opencl_program_factory & pf,
 				boost::compute::command_queue q,
+				opencl_program_factory & pf,
 				float epsilon_d,
 				float epsilon_theta,
 				std::size_t frame_width,
