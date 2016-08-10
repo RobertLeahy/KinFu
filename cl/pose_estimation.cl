@@ -88,7 +88,7 @@ void icp (float3 p, float3 q, float3 n, __local float * ms) {
 void correspondences_impl(
 	const __global float * map,
 	const __global float * prev_map,
-	const __constant float * t_gk_prev_inverse,
+	const __constant float * t_frame_frame,
 	const __constant float * t_z,
 	float epsilon_d,
 	float epsilon_theta,
@@ -103,20 +103,21 @@ void correspondences_impl(
 	size_t idx=(y*width)+x;
 	idx*=2U;
 
-	float3 curr_pv=vload3(idx,prev_map);
-	if (!is_finite(curr_pv)) {
+	float3 curr_v=vload3(idx,map);
+	float3 curr_n=vload3(idx+1U,map);
+	if (!is_finite(curr_v) || !is_finite(curr_n)) {
 
 		zero_ab(ms);
 		return;
 
 	}
 
-	float4 curr_pv_homo=(float4)(curr_pv,1);
+	float4 curr_v_homo=(float4)(curr_v,1);
 
-	float4 v_pcp_h=matrixmul4(t_gk_prev_inverse,curr_pv_homo);
+	float4 v_pc_h=matrixmul4(t_frame_frame,curr_v_homo);
 
-	float3 v_pcp=(float3)(v_pcp_h.x, v_pcp_h.y, v_pcp_h.z);
-	float3 uv3=matrixmul3(k,v_pcp);
+	float3 v_pc=(float3)(v_pc_h.x, v_pc_h.y, v_pc_h.z);
+	float3 uv3=matrixmul3(k,v_pc);
 
 	int2 u=(int2)(round(uv3.x/uv3.z),round(uv3.y/uv3.z));
 
@@ -129,24 +130,23 @@ void correspondences_impl(
 
 	size_t lin_idx=u.x+u.y*width;
 
-	float3 curr_pn=vload3(idx+1U,prev_map);
 	//	These are in current camera space
 	lin_idx*=2U;
-	float3 curr_v=vload3(lin_idx,map);
-	float3 curr_n=vload3(lin_idx+1U,map);
-	//	TODO: Should we be checking the current normal?
-	if (!(is_finite(curr_v) && is_finite(curr_pn))) {
+	float3 curr_pv=vload3(lin_idx,prev_map);
+	float3 curr_pn=vload3(lin_idx+1U,prev_map);
+
+	if (!(is_finite(curr_pv) && is_finite(curr_pn))) {
 
 		zero_ab(ms);
 		return;
 
 	}
 
-	float4 curr_v_homo=(float4)(curr_v,1);
+	float4 curr_pv_homo=(float4)(curr_pv,1);
 	float4 t_z_curr_v_homo=matrixmul4(t_z,curr_v_homo);
 	float4 t_z_curr_v_homo_curr_pv_homo=t_z_curr_v_homo-curr_pv_homo;
 	float3 t_z_curr_v=(float3)(t_z_curr_v_homo.x,t_z_curr_v_homo.y,t_z_curr_v_homo.z);
-	if (dot(t_z_curr_v_homo_curr_pv_homo,t_z_curr_v_homo_curr_pv_homo)>(epsilon_d*epsilon_d)) {
+	if (fast_length(t_z_curr_v_homo_curr_pv_homo) > epsilon_d) {
 
 		zero_ab(ms);
 		return;
@@ -167,7 +167,7 @@ void correspondences_impl(
 		(t_z[9]*curr_n.y)+
 		(t_z[10]*curr_n.z);
 	float3 crzcncpn=cross(r_z_curr_n,curr_pn);
-	if (dot(crzcncpn,crzcncpn)>(epsilon_theta*epsilon_theta)) {
+	if (fast_length(crzcncpn) > epsilon_theta) {
 
 		zero_ab(ms);
 		return;
@@ -212,7 +212,7 @@ void parallel_sum_impl(
 kernel void correspondences(
 	const __global float * map,	//	0
 	const __global float * prev_map,	//	1
-	const __constant float * t_gk_prev_inverse,	//	2
+	const __constant float * t_frame_frame,	//	2
 	const __constant float * t_z,	//	3
 	float epsilon_d,	//	4
 	float epsilon_theta,	//	5
@@ -231,7 +231,7 @@ kernel void correspondences(
 	correspondences_impl(
 		map,
 		prev_map,
-		t_gk_prev_inverse,
+		t_frame_frame,
 		t_z,
 		epsilon_d,
 		epsilon_theta,

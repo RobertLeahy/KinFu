@@ -32,7 +32,7 @@ namespace dynfu {
 			boost::compute::kernel parallel_sum_;
 			boost::compute::kernel serial_sum_;
 			boost::compute::buffer t_z_;
-			boost::compute::buffer t_gk_prev_inverse_;
+			boost::compute::buffer t_frame_frame_;
 			boost::compute::buffer k_;
 			boost::compute::buffer mats_;
 			boost::compute::buffer mats_output_;
@@ -45,6 +45,7 @@ namespace dynfu {
 			Eigen::Matrix4f t_gk_initial_;
 			std::size_t numit_;
 			std::size_t group_size_;
+			bool force_px_px_;
 
 
 		public:
@@ -62,7 +63,8 @@ namespace dynfu {
 				std::size_t frame_height,
 				Eigen::Matrix4f t_gk_initial,
 				std::size_t numit=15,
-				std::size_t group_size=16
+				std::size_t group_size=16,
+				bool force_px_px=false
 			);
 
 

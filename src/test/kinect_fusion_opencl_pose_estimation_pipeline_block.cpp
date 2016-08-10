@@ -2,6 +2,7 @@
 
 
 #include <boost/compute.hpp>
+#include <boost/nondet_random.hpp>
 #include <dynfu/cpu_pipeline_value.hpp>
 #include <dynfu/file_system_depth_device.hpp>
 #include <dynfu/file_system_opencl_program_factory.hpp>
@@ -16,6 +17,8 @@
 #include <cmath>
 #include <cstddef>
 #include <stdexcept>
+#include <iterator>
+#include <random>
 #include <utility>
 #include <vector>
 #include <catch.hpp>
@@ -76,6 +79,10 @@ namespace {
 			dynfu::kinect_fusion_opencl_measurement_pipeline_block mpb;
 			std::size_t iterations;
 			std::size_t group_size;
+			boost::random_device rd;
+			std::mt19937 mt;
+			std::uniform_real_distribution<float> angle_dist;
+			std::uniform_real_distribution<float> trans_dist;
 
 
 			std::vector<dynfu::pixel> to_global (std::vector<dynfu::pixel> ps) {
@@ -94,6 +101,44 @@ namespace {
 
 			}
 
+			std::vector<dynfu::pixel> perturb (std::vector<dynfu::pixel> ps, Eigen::Matrix4f transform) {
+
+				std::transform(ps.begin(),ps.end(),ps.begin(),[&] (const auto & p) noexcept {
+
+					Eigen::Vector4f vh(p.v(0),p.v(1),p.v(2),1.0f);
+					vh=transform*vh;
+					Eigen::Vector3f v(vh(0),vh(1),vh(2));
+
+					return dynfu::pixel{v,transform.block<3,3>(0,0)*p.n};
+
+				});
+
+				return ps;
+
+			}
+
+			Eigen::Matrix4f rand_perturbation() {
+
+				// generate 3 random angles
+				auto alpha = angle_dist(mt);
+				auto beta = angle_dist(mt);
+				auto gamma = angle_dist(mt);
+
+				// generate 3 random translation
+				auto dx = trans_dist(mt);
+				auto dy = trans_dist(mt);
+				auto dz = trans_dist(mt);
+
+				Eigen::Matrix4f retr;
+				retr <<  1.0f,  alpha, beta, dx,
+					-alpha, 1.0f, gamma, dy,
+					-beta, -gamma, 1.0f, dz,
+					0.0f,  0.0f,  0.0f,  1.0f;
+
+				return retr;
+
+			}
+
 
 			fixture ()
 				:	dev(boost::compute::system::default_device()),
@@ -106,7 +151,11 @@ namespace {
 					dd(frames_path(),ff,&f),
 					mpb(q,pf,16,2.0f,1.0f),
 					iterations(15),	//	The default
-					group_size(dev.get_info<std::size_t>(CL_DEVICE_MAX_WORK_GROUP_SIZE))
+					group_size(dev.get_info<std::size_t>(CL_DEVICE_MAX_WORK_GROUP_SIZE)),
+					mt(rd),
+					angle_dist(-0.02, 0.02),
+					trans_dist(-0.04, 0.04)
+
 			{
 
 				k <<	585.0f, 0.0f, 320.0f,
@@ -219,7 +268,93 @@ SCENARIO_METHOD(fixture,"dynfu::kinect_fusion_opencl_pose_estimation_pipeline_bl
 
 }
 
+SCENARIO_METHOD(fixture,"dynfu::kinect_fusion_opencl_pose_estimation_pipeline_block objects derive a transformation matrix between consecutive MSRC frames that matches the expected value, when forcing pixel to pixel correspondences","[!hide][dynfu][pose_estimation_pipeline_block][kinect_fusion_opencl_pose_estimation_pipeline_block][!mayfail]") {
 
+	GIVEN("A dynfu::kinect_fusion_opencl_pose_estimation_pipeline_block object with force pixel to pixel correspondences enabled") {
+
+		bool enable_pixel_to_pixel(false);
+		dynfu::kinect_fusion_opencl_pose_estimation_pipeline_block pepb(pf, q, 0.10f,std::sin(20.0f*3.14159f/180.0f),width,height,t_gk_initial, 15, 64, enable_pixel_to_pixel);
+
+		WHEN("It is invoked on consecutive MSRC frames") {
+
+			auto frame_ptr=dd();
+			auto m_ptr=mpb(*frame_ptr,width,height,k);
+			auto ptr=pepb(*m_ptr,nullptr,k,{});
+
+			auto frame_ptr2=dd();
+			auto m_ptr2=mpb(*frame_ptr2,width,height,k);
+
+			dynfu::cpu_pipeline_value<std::vector<dynfu::pixel>> pv;
+			pv.emplace(to_global(m_ptr->get()));
+			ptr=pepb(*m_ptr2,&pv,k,std::move(ptr));
+
+			Eigen::Matrix4f gt;
+			gt << 0.999998443679553f,  -0.001401553458469f,  -0.001091006688159f,   1.496718902792527f,
+					0.001403957028225f,   0.999996648369455f,   0.002197726537721f,   1.505616570079536f,
+					0.001087974352801f,  -0.002199269742567f,   0.999996929166082f,   1.498810789733843f,
+					0.0f,                   0.0f,                   0.0f,   1.0f;
+
+
+			THEN("The kinect_fusion_opencl_pose_estimation_pipeline_block finds the correct transformation") {
+
+
+				auto t_gk=ptr->get(); // what we get back (current cam -> world)
+
+				CHECK((t_gk-gt).isZero());
+
+
+
+			}
+
+
+
+		}
+
+	}
+
+
+}
+
+SCENARIO_METHOD(fixture,"dynfu::kinect_fusion_opencl_pose_estimation_pipeline_block objects derive a transformation matrix between a frame and its perturbed version that is within numerical precision of the perturbation","[!hide][dynfu][pose_estimation_pipeline_block][kinect_fusion_opencl_pose_estimation_pipeline_block]") {
+
+	GIVEN("A dynfu::kinect_fusion_opencl_pose_estimation_pipeline_block object") {
+
+		bool enable_pixel_to_pixel(false);
+		dynfu::kinect_fusion_opencl_pose_estimation_pipeline_block pepb(pf,q,0.10f,std::sin(20.0f*3.14159f/180.0f),width,height,t_gk_initial,15,64,enable_pixel_to_pixel);
+
+		WHEN("It is invoked on a set of vertices and normals, and a set of perturbed vertices and normals") {
+
+			auto frame_ptr=dd();
+			auto m_ptr=mpb(*frame_ptr,width,height,k);
+			auto ptr=pepb(*m_ptr,nullptr,k,{});
+
+			auto perturbation = rand_perturbation();
+
+			auto gt = perturbation * t_gk_initial; // should also be from current cam -> world
+
+			dynfu::cpu_pipeline_value<std::vector<dynfu::pixel>> pv;
+			pv.emplace(perturb(to_global(m_ptr->get()), perturbation));
+			ptr=pepb(*m_ptr,&pv,k,std::move(ptr));
+
+
+			THEN("The kinect_fusion_opencl_pose_estimation_pipeline_block finds the applied perturbation.") {
+
+				auto t_gk=ptr->get(); // what we get back (current cam -> world)
+
+				CHECK((t_gk-gt).isZero());
+
+
+
+			}
+
+
+
+		}
+
+	}
+
+
+}
 
 
 static bool is_bounded_by (float val, float a, float b) noexcept {
