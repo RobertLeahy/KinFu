@@ -1,9 +1,8 @@
-
 #define l2_norm(t) \
 	( sqrt(t.x*t.x + t.y*t.y + t.z*t.z) )
 
 
-#define MAX_WEIGHT (256U)
+#define MAX_WEIGHT ((uchar)254U)
 /**
  *	Params:
  *
@@ -20,12 +19,12 @@
  *	tsdf_extent_w,h,d - tsdf_extent in m in w,h,d directions
  *
  */
-kernel void tsdf_kernel(__global float * src, __global float* dest, 
+kernel void tsdf_kernel(__global float * src, __global half * dest, 
  const unsigned int tsdf_width, const unsigned int tsdf_height, const unsigned int tsdf_depth,
  __global const float* proj_view, __global const float* K, __global const float* K_inv, 
  __global const float* t_gk, const float mu, const unsigned int frame_width, const unsigned int frame_height, 
  const float tsdf_extent_w, const float tsdf_extent_h, const float tsdf_extent_d, const unsigned int n,
- __global unsigned int * weight) {
+ __global unsigned char * weight) {
 
 
  	// get the x, y, z of the current voxel from memory
@@ -39,7 +38,7 @@ kernel void tsdf_kernel(__global float * src, __global float* dest,
 
 
 	if (n==0) {
-		dest[idx] = 1.0f;
+		vstore_half(1.0f, idx, dest);
 		weight[idx] = 0;
 	}
 
@@ -103,18 +102,22 @@ kernel void tsdf_kernel(__global float * src, __global float* dest,
 
 		if (isnan(tsdf)) return;
 
-		float prev_tsdf = dest[idx];
+		float prev_tsdf = vload_half(idx, dest);
 
 		if (isnan(prev_tsdf)) prev_tsdf = 0;
 
-		uint prev_weight = weight[idx];
+		uchar prev_weight = weight[idx];
 
 		// if we haven't had a valid measurement, 
 		// then the prev_tsdf is NAN and prev_weight = 0
-		uint new_weight = min(MAX_WEIGHT, prev_weight + 1);
+		uchar new_weight = min(MAX_WEIGHT, prev_weight);
+		++new_weight;
+
 		weight[idx] = new_weight;
 
-		dest[idx] = (prev_tsdf * prev_weight + tsdf * new_weight) / (prev_weight + new_weight);
+		float new_tsdf = (prev_tsdf * prev_weight + tsdf * new_weight) / (prev_weight + new_weight);
+		vstore_half(new_tsdf, idx, dest);
+
  
 	}
 }

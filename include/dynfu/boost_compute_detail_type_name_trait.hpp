@@ -7,6 +7,7 @@
 
 
 #include <boost/compute.hpp>
+#include <dynfu/half.hpp>
 #include <dynfu/pixel.hpp>
 #include <Eigen/Dense>
 
@@ -42,6 +43,19 @@ namespace boost {
 				static const char * value () noexcept {
 					
 					return "dynfu::pixel";
+					
+				}
+				
+				
+			};
+
+			template <>
+			struct type_name_trait<dynfu::half> {
+				
+				
+				static const char * value () noexcept {
+					
+					return "dynfu::half";
 					
 				}
 				

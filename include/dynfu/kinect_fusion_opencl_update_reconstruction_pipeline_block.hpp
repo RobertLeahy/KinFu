@@ -18,6 +18,7 @@
 #include <dynfu/update_reconstruction_pipeline_block.hpp>
 #include <Eigen/Dense>
 #include <cstddef>
+#include <cstdint>
 
 
 
@@ -41,7 +42,7 @@ namespace dynfu {
 			boost::compute::buffer ik_buf_;
 			boost::compute::buffer k_buf_;
 			boost::compute::buffer proj_view_buf_;
-			boost::compute::vector<std::uint32_t> weights_;
+			boost::compute::vector<std::uint8_t> weights_;
 			optional<Eigen::Matrix4f> t_g_k_;
 			optional<Eigen::Matrix3f> k_;
 			float mu_;
