@@ -60,6 +60,9 @@ float triLerp (const float3 p, const __global float * tsdf, const float extent, 
     if (p.y < vox_world.y) --vox.y;
     if (p.z < vox_world.z) --vox.z;
 
+    // if vox changed we need to recompute vox_world, otherwise has no effect
+    vox_world = (vox_flt + 0.5f) * voxel_size;
+
     float3 rs = (p - vox_world) / voxel_size;
 
     int3 v000 = (int3)(vox.x, vox.y, vox.z);
