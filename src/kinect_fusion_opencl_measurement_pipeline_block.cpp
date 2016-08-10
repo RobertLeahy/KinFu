@@ -119,6 +119,9 @@ namespace dynfu {
 		//	0:	Map
 		n_kernel_.set_arg(0,map);
 		q.enqueue_nd_range_kernel(n_kernel_,2,nullptr,extent,nullptr);
+
+		//	For benchmarking
+		q.finish();
 		
 		return v;
 		

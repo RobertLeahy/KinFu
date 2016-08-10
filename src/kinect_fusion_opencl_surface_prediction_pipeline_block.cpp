@@ -98,6 +98,9 @@ namespace dynfu {
 		std::size_t extent []={frame_width_,frame_height_};
 		q.enqueue_nd_range_kernel(raycast_kernel_,2,nullptr,extent,nullptr);
 
+		//	For benchmarking
+		q.finish();
+
 		return map;
 	}
 	

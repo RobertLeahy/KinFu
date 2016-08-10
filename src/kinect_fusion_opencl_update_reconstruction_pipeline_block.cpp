@@ -128,6 +128,9 @@ namespace dynfu {
 		v.width = tsdf_width_;
 		v.height = tsdf_height_;
 		v.depth = tsdf_depth_;
+
+		//	For benchmarking
+		q.finish();
 		
 		return v;
 	}

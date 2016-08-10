@@ -68,6 +68,9 @@ namespace dynfu {
 		vec.resize(vi.size(),q_);
 		pv.future=boost::compute::copy_async(vi.begin(),vi.end(),vec.begin(),q_);
 		
+		//	For benchmarking
+		q_.finish();
+
 		return v;
 		
 	}

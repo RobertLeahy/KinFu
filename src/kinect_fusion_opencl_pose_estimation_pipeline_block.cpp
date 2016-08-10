@@ -218,6 +218,9 @@ namespace dynfu {
 
 		pv.emplace(t_z);
 
+		//	For benchmarking
+		q_.finish();
+
 		return t_gk_minus_one;
 	
 	}
