@@ -153,11 +153,6 @@ add_executable(tests
 )
 target_link_libraries(tests dynfu boost_random)
 
-add_executable(tsdf_viewer
-	src/tsdf_viewer.cpp
-)
-target_link_libraries(tsdf_viewer dynfu dynfu_libigl)
-
 add_custom_target(tests_run ALL
 	COMMAND tests
 	DEPENDS tests
