@@ -4,6 +4,7 @@
 #include <boost/compute.hpp>
 #include <dynfu/cpu_pipeline_value.hpp>
 #include <dynfu/filesystem.hpp>
+#include <dynfu/half.hpp>
 #include <dynfu/path.hpp>
 #include <dynfu/pixel.hpp>
 #include <Eigen/Dense>
@@ -54,7 +55,7 @@ SCENARIO_METHOD(fixture,"dynfu::kinect_fusion_opencl_frame_to_frame_surface_pred
 
 		WHEN("It is invoked") {
 
-			dynfu::cpu_pipeline_value<std::vector<float>> tsdf;
+			dynfu::cpu_pipeline_value<std::vector<dynfu::half>> tsdf;
 			tsdf.emplace();
 			dynfu::cpu_pipeline_value<Eigen::Matrix4f> pose;
 			pose.emplace(Eigen::Matrix4f::Zero());
