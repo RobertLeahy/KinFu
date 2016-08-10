@@ -105,11 +105,21 @@ namespace dynfu {
 			return false;
 		
 		});
-		if (ex_) std::rethrow_exception(ex_);
-		auto retr=std::move(q_.front());
-		q_.pop_front();
-		wait_.notify_all();
-		return retr;
+
+		//	We continue dequeuing until we run out of
+		//	frames then we throw the stored exception
+		if (!q_.empty()) {
+
+			auto retr=std::move(q_.front());
+			q_.pop_front();
+			wait_.notify_all();
+			return retr;
+
+		}
+
+		//	If we got here there's an exception and the
+		//	queue is empty so throw the exception
+		std::rethrow_exception(ex_);
 
 	}
 
