@@ -1,5 +1,6 @@
 #include <boost/compute.hpp>
 #include <boost/program_options.hpp>
+#include <boost/progress.hpp>
 #include <dynfu/depth_device.hpp>
 #include <dynfu/file_system_depth_device.hpp>
 #include <dynfu/file_system_opencl_program_factory.hpp>
@@ -196,7 +197,9 @@ static void main_impl (int argc, char ** argv) {
     Eigen::VectorXd S_(tsdf_size*tsdf_size*tsdf_size);
     Eigen::MatrixXd GV(tsdf_size*tsdf_size*tsdf_size,3);
     std::size_t abs_idx(0);
-	std::size_t num_nans(0);
+
+    std::cout << std::endl << "Exporting Progress: ";
+    boost::progress_display show_progress(tsdf_size);
 
     for(std::size_t zi(0); zi < tsdf_size; ++zi) {
 
@@ -214,24 +217,18 @@ static void main_impl (int argc, char ** argv) {
 
                 GV.row(vox_idx) = Eigen::RowVector3d(px,py,pz);
 
-				if (std::isnan(tsdf[vox_idx])) {
-					S_(abs_idx) = 1.0f;
-					num_nans++;
-				} else {
- 					S_(abs_idx) = tsdf[vox_idx];
-				}
-               
+ 				S_(abs_idx) = tsdf[vox_idx];
+
                 abs_idx++;
 
             }
 
         }
 
-        std::cout << "Export Progress: "  << (zi + 1) << " / " << tsdf_size << std::endl;
+        ++show_progress;
 
     }
 
-	std::cout << "Num NaN: " << num_nans << std::endl;
     std::cout << "Running Marching Cubes..." << std::endl;
 
     dynfu::libigl::marching_cubes(S_,GV,tsdf_size,tsdf_size,tsdf_size,SV,SF);
