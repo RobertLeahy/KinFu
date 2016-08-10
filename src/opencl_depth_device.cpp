@@ -37,7 +37,7 @@ namespace dynfu {
 					//	Because OpenCL may be still using
 					//	things until the asynchronous task
 					//	completes
-					future.wait();
+					if (future.valid()) future.wait();
 					
 				}
 				

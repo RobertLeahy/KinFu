@@ -81,6 +81,7 @@ if (WIN32)
 endif()
 
 add_library(dynfu SHARED
+	src/buffered_depth_device.cpp
 	src/camera.cpp
 	src/depth_device.cpp
 	src/depth_device_decorator.cpp

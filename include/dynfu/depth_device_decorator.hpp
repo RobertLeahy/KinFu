@@ -3,6 +3,9 @@
  */
 
 
+#pragma once
+
+
 #include <dynfu/depth_device.hpp>
 
 

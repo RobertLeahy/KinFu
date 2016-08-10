@@ -1,6 +1,7 @@
 #include <boost/compute.hpp>
 #include <boost/program_options.hpp>
 #include <boost/progress.hpp>
+#include <dynfu/buffered_depth_device.hpp>
 #include <dynfu/depth_device.hpp>
 #include <dynfu/file_system_depth_device.hpp>
 #include <dynfu/file_system_opencl_program_factory.hpp>
@@ -128,7 +129,8 @@ static void main_impl (int argc, char ** argv) {
 
 	}
 
-	dynfu::opencl_depth_device dd(*ddp,q);
+	dynfu::opencl_depth_device ocldd(*ddp,q);
+	dynfu::buffered_depth_device dd(ocldd,10);
 
 	dynfu::filesystem::path pp(dynfu::current_executable_parent_path());
 
@@ -156,34 +158,38 @@ static void main_impl (int argc, char ** argv) {
 
 	std::size_t total(0);
 	std::size_t frames(0);
-	while (ddi) {
-			
-		dynfu::timer t;
-		kf();
-		//	We do this because we're not actually consuming
-		//	the generated values, in the future this shouldn't
-		//	be necessary as the pipeline_value objects we consume
-		//	will do this or equivalent internally as they'll have
-		//	to wait for their offered values to become available
-		//	on the GPU before they download them
-		q.finish();
-		auto e=t.elapsed_ms();
-		std::cout << "Depth frame took " << std::chrono::duration_cast<std::chrono::milliseconds>(kf.depth_device_elapsed()).count() << "ms" << std::endl;
-		std::cout << "Measurement took " << std::chrono::duration_cast<std::chrono::milliseconds>(kf.measurement_pipeline_block_elapsed()).count() << "ms" << std::endl;
-		std::cout << "Pose estimation took " << std::chrono::duration_cast<std::chrono::milliseconds>(kf.pose_estimation_pipeline_block_elapsed()).count() << "ms" << std::endl;
-		std::cout << "Updating reconstruction took " << std::chrono::duration_cast<std::chrono::milliseconds>(kf.update_reconstruction_pipeline_block_elapsed()).count() << "ms" << std::endl;
-		std::cout << "Surface prediction took " << std::chrono::duration_cast<std::chrono::milliseconds>(kf.surface_prediction_pipeline_block_elapsed()).count() << "ms" << std::endl;
-		std::cout << "Frame took " << e.count() << "ms" << std::endl;
-		total+=e.count();
+	try {
 
-		if (options.max_frames) {
+		for (;;) {
 
-			std::cout << "Finished frame " << ++frames << " / " << *options.max_frames << std::endl;
-			if (frames == *options.max_frames) break;
+			dynfu::timer t;
+			kf();
+			//	We do this because we're not actually consuming
+			//	the generated values, in the future this shouldn't
+			//	be necessary as the pipeline_value objects we consume
+			//	will do this or equivalent internally as they'll have
+			//	to wait for their offered values to become available
+			//	on the GPU before they download them
+			q.finish();
+			auto e=t.elapsed_ms();
+			std::cout << "Depth frame took " << std::chrono::duration_cast<std::chrono::milliseconds>(kf.depth_device_elapsed()).count() << "ms" << std::endl;
+			std::cout << "Measurement took " << std::chrono::duration_cast<std::chrono::milliseconds>(kf.measurement_pipeline_block_elapsed()).count() << "ms" << std::endl;
+			std::cout << "Pose estimation took " << std::chrono::duration_cast<std::chrono::milliseconds>(kf.pose_estimation_pipeline_block_elapsed()).count() << "ms" << std::endl;
+			std::cout << "Updating reconstruction took " << std::chrono::duration_cast<std::chrono::milliseconds>(kf.update_reconstruction_pipeline_block_elapsed()).count() << "ms" << std::endl;
+			std::cout << "Surface prediction took " << std::chrono::duration_cast<std::chrono::milliseconds>(kf.surface_prediction_pipeline_block_elapsed()).count() << "ms" << std::endl;
+			std::cout << "Frame took " << e.count() << "ms" << std::endl;
+			total+=e.count();
+
+			if (options.max_frames) {
+
+				std::cout << "Finished frame " << ++frames << " / " << *options.max_frames << std::endl;
+				if (frames == *options.max_frames) break;
+
+			}
 
 		}
-		
-	}
+
+	} catch (const dynfu::file_system_depth_device::end &) {	}
 	
 	std::cout << "Frames: " << frames << std::endl;
 	std::size_t avg=(frames==0) ? 0 : (total/frames);
