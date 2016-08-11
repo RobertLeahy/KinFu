@@ -90,7 +90,7 @@ kernel void tsdf_kernel(
 	x_tild.y = round(uv.y);
 
 	// check if the current voxel projects into the depth frame
-	if (x_tild.x < 0 || x_tild.x >= frame_width || x_tild.y < 0 || x_tild.y >= frame_height || plane.z < 0.0f) {
+	if (x_tild.x < 0 || x_tild.x >= frame_width || x_tild.y < 0 || x_tild.y >= frame_height || plane.z < 0.4f) {
 
 		return;
 
