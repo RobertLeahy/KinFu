@@ -38,6 +38,7 @@ namespace dynfu {
 		private:
 			opencl_vector_pipeline_value_extractor<float> ve_;
 			boost::compute::kernel tsdf_kernel_;
+			boost::compute::kernel zero_kernel_;
 			boost::compute::buffer t_g_k_vec_buf_;
 			boost::compute::buffer ik_buf_;
 			boost::compute::buffer k_buf_;
@@ -50,8 +51,6 @@ namespace dynfu {
 			std::size_t tsdf_width_;
 			std::size_t tsdf_height_;
 			std::size_t tsdf_depth_;
-			
-			std::size_t invk_;
 		
 		public:
 			

@@ -9,16 +9,8 @@
 #include <utility>
 
 namespace dynfu {
-	
-	
-	static boost::compute::kernel get_tsdf_kernel (opencl_program_factory & opf) {
-		
-		auto p=opf("tsdf");
-		return boost::compute::kernel(p,"tsdf_kernel");
-		
-	}	
-	
-	
+
+
 	kinect_fusion_opencl_update_reconstruction_pipeline_block::kinect_fusion_opencl_update_reconstruction_pipeline_block (
 		boost::compute::command_queue q,
 		opencl_program_factory & opf,
@@ -30,7 +22,6 @@ namespace dynfu {
 		float tsdf_extent_h,
 		float tsdf_extent_d)
 		:	ve_(std::move(q)),
-			tsdf_kernel_(get_tsdf_kernel(opf)),
 			t_g_k_vec_buf_(ve_.command_queue().get_context(),sizeof(Eigen::Vector3f),CL_MEM_READ_ONLY),
 			ik_buf_(ve_.command_queue().get_context(),sizeof(Eigen::Matrix3f),CL_MEM_READ_ONLY),
 			k_buf_(ve_.command_queue().get_context(),sizeof(Eigen::Matrix3f),CL_MEM_READ_ONLY),
@@ -39,9 +30,12 @@ namespace dynfu {
 			mu_(mu),
 			tsdf_width_(tsdf_width),
 			tsdf_height_(tsdf_height),
-			tsdf_depth_(tsdf_depth),
-			invk_(0)
+			tsdf_depth_(tsdf_depth)
 	{
+
+		auto p = opf("tsdf");
+		tsdf_kernel_ = p.create_kernel("tsdf_kernel");
+		zero_kernel_ = p.create_kernel("zero_kernel");
 
 		tsdf_kernel_.set_arg(5,proj_view_buf_);
 		tsdf_kernel_.set_arg(6,k_buf_);
@@ -50,7 +44,7 @@ namespace dynfu {
 		tsdf_kernel_.set_arg(12, tsdf_extent_w);
 		tsdf_kernel_.set_arg(13, tsdf_extent_h);
 		tsdf_kernel_.set_arg(14, tsdf_extent_d);
-		tsdf_kernel_.set_arg(16, weights_);
+		tsdf_kernel_.set_arg(15, weights_);
 
 
 	}
@@ -103,9 +97,18 @@ namespace dynfu {
 
 		auto && tsdf_ptr = v.buffer;
 		using type = opencl_vector_pipeline_value<dynfu::half>;
-		if (!tsdf_ptr) tsdf_ptr = std::make_unique<type>(q);
+		bool alloc(tsdf_ptr);
+		if (!alloc) tsdf_ptr = std::make_unique<type>(q);
 		auto && tsdf_buf = dynamic_cast<type &>(*tsdf_ptr).vector();
-		tsdf_buf.resize(tsdf_width_*tsdf_height_*tsdf_depth_, q);
+		if (!alloc) {
+
+			std::size_t extent(tsdf_height_*tsdf_width_*tsdf_height_);
+			tsdf_buf.resize(extent, q);
+			zero_kernel_.set_arg(0,tsdf_buf);
+			zero_kernel_.set_arg(1,weights_);
+			q.enqueue_nd_range_kernel(zero_kernel_,1,nullptr,&extent,nullptr);
+
+		}
 		
 		// Set kernel args
 		tsdf_kernel_.set_arg(0, depth_frame);
@@ -117,7 +120,6 @@ namespace dynfu {
 		tsdf_kernel_.set_arg(9, mu_);
 		tsdf_kernel_.set_arg(10, std::uint32_t(frame_width));
 		tsdf_kernel_.set_arg(11, std::uint32_t(frame_height));
-		tsdf_kernel_.set_arg(15, std::uint32_t(invk_++));
 
 		
 		// Ready to run the kernel

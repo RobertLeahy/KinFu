@@ -2,6 +2,18 @@
 	( sqrt(t.x*t.x + t.y*t.y + t.z*t.z) )
 
 
+kernel void zero_kernel(
+	__global half * tsdf,	//	0
+	__global unsigned char * weight	//	1
+) {
+
+	size_t idx = get_global_id(0);
+	vstore_half(1.0f, idx, tsdf);
+	weight[idx] = 0;
+
+}
+
+
 #define MAX_WEIGHT ((uchar)254U)
 /**
  *	Params:
@@ -35,8 +47,7 @@ kernel void tsdf_kernel(
 	const float tsdf_extent_w,	//	12
 	const float tsdf_extent_h,	//	13
 	const float tsdf_extent_d,	//	14
-	const unsigned int n,	//	15
-	__global unsigned char * weight	//	16
+	__global unsigned char * weight	//	15
 ) {
 
 
@@ -48,12 +59,6 @@ kernel void tsdf_kernel(
 	// Determine the linear index using the x,y,z components
 	// From http://stackoverflow.com/questions/10903149/how-do-i-compute-the-linear-index-of-a-3d-coordinate-and-vice-versa
 	unsigned int idx = x + (tsdf_width)*y + ((tsdf_width) * (tsdf_height))*z;
-
-
-	if (n==0) {
-		vstore_half(1.0f, idx, dest);
-		weight[idx] = 0;
-	}
 
 	// OOB
 	if (x > tsdf_width || y > tsdf_height || z > tsdf_depth ) {
