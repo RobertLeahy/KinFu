@@ -98,6 +98,7 @@ kernel void tsdf_kernel(
 	}
 
 	float v = src[x_tild.y * frame_width + x_tild.x];
+	if (isnan(v)) return;
 	float3 pix = (float3)(x_tild.x, x_tild.y, 1.0f);
 	float3 pix_k_inv;
 	pix_k_inv.x = dot ((float3)(K_inv[0], K_inv[1], K_inv[2]), pix);
@@ -114,16 +115,12 @@ kernel void tsdf_kernel(
 
 		float tsdf = fmin(1.0f, sdf/mu);
 
-		if (isnan(tsdf)) return;
-
 		float prev_tsdf = vload_half(idx, dest);
-
-		if (isnan(prev_tsdf)) prev_tsdf = 0;
 
 		uchar prev_weight = weight[idx];
 
 		// if we haven't had a valid measurement, 
-		// then the prev_tsdf is NAN and prev_weight = 0
+		// then the prev_tsdf is 1 and prev_weight = 0
 		uchar new_weight = min(MAX_WEIGHT, prev_weight);
 		++new_weight;
 
