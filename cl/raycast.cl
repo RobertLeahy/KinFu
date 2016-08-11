@@ -163,7 +163,7 @@ float triLerp (const float3 p, const __global float * tsdf, const float extent, 
     float cell_size = extent / flt_size;
     //  We have to start STEP_SIZE away because we need
     //  two samples to detect a sign change
-    for (float dist = STEP_SIZE; dist < KINECT_MAX_DIST; dist += STEP_SIZE) {
+    for (float dist = STEP_SIZE; dist < (KINECT_MAX_DIST - KINECT_MIN_DIST); dist += STEP_SIZE) {
 
         float3 where = initial_ray + (ray_dir * dist);
 
