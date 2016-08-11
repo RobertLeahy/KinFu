@@ -19,12 +19,25 @@
  *	tsdf_extent_w,h,d - tsdf_extent in m in w,h,d directions
  *
  */
-kernel void tsdf_kernel(__global float * src, __global half * dest, 
- const unsigned int tsdf_width, const unsigned int tsdf_height, const unsigned int tsdf_depth,
- __global const float* proj_view, __global const float* K, __global const float* K_inv, 
- __global const float* t_gk, const float mu, const unsigned int frame_width, const unsigned int frame_height, 
- const float tsdf_extent_w, const float tsdf_extent_h, const float tsdf_extent_d, const unsigned int n,
- __global unsigned char * weight) {
+kernel void tsdf_kernel(
+	__global float * src,	//	0
+	__global half * dest,	//	1
+	const unsigned int tsdf_width,	//	2
+	const unsigned int tsdf_height,	//	3
+	const unsigned int tsdf_depth,	//	4
+	__global const float* proj_view,	//	5
+	__global const float* K,	//	6
+	__global const float* K_inv,	//	7
+	__global const float* t_gk,	//	8
+	const float mu,	//	9
+	const unsigned int frame_width,	//	10
+	const unsigned int frame_height,	//	11
+	const float tsdf_extent_w,	//	12
+	const float tsdf_extent_h,	//	13
+	const float tsdf_extent_d,	//	14
+	const unsigned int n,	//	15
+	__global unsigned char * weight	//	16
+) {
 
 
  	// get the x, y, z of the current voxel from memory
