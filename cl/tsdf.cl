@@ -33,10 +33,10 @@ kernel void tsdf_kernel(
 	const unsigned int tsdf_width,	//	2
 	const unsigned int tsdf_height,	//	3
 	const unsigned int tsdf_depth,	//	4
-	__global const float* proj_view,	//	5
-	__global const float* K,	//	6
-	__global const float* K_inv,	//	7
-	__global const float* t_gk,	//	8
+	__constant const float* proj_view,	//	5
+	__constant const float* K,	//	6
+	__constant const float* K_inv,	//	7
+	__constant const float* t_gk,	//	8
 	const float mu,	//	9
 	const unsigned int frame_width,	//	10
 	const unsigned int frame_height,	//	11
