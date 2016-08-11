@@ -73,7 +73,10 @@ namespace dynfu {
 
 		auto frame_size_after=frame_size/group_size_;
 		mats_=boost::compute::buffer(q_.get_context(),frame_size_after*sizeof_mats);
-		if ((frame_size_after%group_size_)==0) mats_output_=boost::compute::buffer(q_.get_context(),(frame_size_after/group_size_)*sizeof_mats);
+		if (
+			(group_size_!=1) &&
+			((frame_size_after%group_size_)==0)
+		) mats_output_=boost::compute::buffer(q_.get_context(),(frame_size_after/group_size_)*sizeof_mats);
 
 		auto p=pf("pose_estimation");
 		corr_=p.create_kernel("correspondences");
