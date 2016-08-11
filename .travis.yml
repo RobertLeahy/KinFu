@@ -11,6 +11,9 @@ sudo: required
 
 
 matrix:
+  fast_finish: true
+  allow_failures:
+    - os: osx
   exclude:
     - os: osx
       compiler: gcc
