@@ -1,6 +1,6 @@
 #define KINECT_MAX_DIST (8.0f)
 #define KINECT_MIN_DIST (0.4f)
-#define STEP_SIZE (0.0005f) // mu *0.8
+#define STEP_SIZE (0.01f) // mu *0.8
 
 
 float getTsdfValue (const int3 vox, const __global half * tsdf, const size_t size) {
@@ -185,18 +185,13 @@ float triLerp (const float3 p, const __global float * tsdf, const float extent, 
 
         //  Good sign change
 
-        float ftdt = triLerp(where, tsdf, extent, tsdf_size);
-        if (isnan(ftdt)) break;
-
+        //  Calculate and store crossing position using
+        //  linear interpolation
+        float diff = tsdf_val_prev - tsdf_val;
+        float div = - tsdf_val / diff;
         float3 last = where - (ray_dir * STEP_SIZE);
-        float ft = triLerp(last, tsdf, extent, tsdf_size);
-        if (isnan(ft)) break;
-
-        float t_star = dist - (STEP_SIZE * ft) / (ftdt - ft);
-
-        //  Store computed vertex position
-        float3 v = initial_ray + (ray_dir * t_star);
-        vstore3(v, idx, map);
+        float3 crossing = last + (ray_dir * div * STEP_SIZE);
+        vstore3(crossing, idx, map);
 
         //  Check to see if we can even compute a normal
         if (!isVoxelValidAndOffBorder(getVoxel(last, extent, tsdf_size), tsdf_size, 2)) {
@@ -208,26 +203,26 @@ float triLerp (const float3 p, const __global float * tsdf, const float extent, 
 
         //  Compute a normal by computing partial derivatives
         //  along all three axes
-        float3 t = v;
+        float3 t = crossing;
         t.x += cell_size;
-        float fx1 = triLerp(t, tsdf, extent, tsdf_size);
-        t = v;
+        float fx1 = getTsdfValue(getVoxel(t, extent, tsdf_size), tsdf, tsdf_size);
+        t = crossing;
         t.x -= cell_size;
-        float fx2 = triLerp(t, tsdf, extent, tsdf_size);
+        float fx2 = getTsdfValue(getVoxel(t, extent, tsdf_size), tsdf, tsdf_size);
 
-        t = v;
+        t = crossing;
         t.y += cell_size;
-        float fy1 = triLerp(t, tsdf, extent, tsdf_size);
-        t = v;
+        float fy1 = getTsdfValue(getVoxel(t, extent, tsdf_size), tsdf, tsdf_size);
+        t = crossing;
         t.y -= cell_size;
-        float fy2 = triLerp(t, tsdf, extent, tsdf_size);
+        float fy2 = getTsdfValue(getVoxel(t, extent, tsdf_size), tsdf, tsdf_size);
 
-        t = v;
+        t = crossing;
         t.z += cell_size;
-        float fz1 = triLerp(t, tsdf, extent, tsdf_size);
-        t = v;
+        float fz1 = getTsdfValue(getVoxel(t, extent, tsdf_size), tsdf, tsdf_size);
+        t = crossing;
         t.z -= cell_size;
-        float fz2 = triLerp(t, tsdf, extent, tsdf_size);
+        float fz2 = getTsdfValue(getVoxel(t, extent, tsdf_size), tsdf, tsdf_size);
 
         //  We only store the normal if it's not the null vector
         //  otherwise we store NaN
