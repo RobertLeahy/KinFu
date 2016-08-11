@@ -1,7 +1,3 @@
-#define l2_norm(t) \
-	( sqrt(t.x*t.x + t.y*t.y + t.z*t.z) )
-
-
 kernel void zero_kernel(
 	__global half * tsdf,	//	0
 	__global unsigned char * weight	//	1
