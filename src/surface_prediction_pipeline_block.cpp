@@ -1,7 +1,7 @@
-#include <dynfu/surface_prediction_pipeline_block.hpp>
+#include <kinfu/surface_prediction_pipeline_block.hpp>
 
 
-namespace dynfu {
+namespace kinfu {
 	
 	
 	surface_prediction_pipeline_block::~surface_prediction_pipeline_block () noexcept {	}

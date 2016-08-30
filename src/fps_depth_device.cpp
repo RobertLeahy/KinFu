@@ -1,9 +1,9 @@
-#include <dynfu/fps_depth_device.hpp>
+#include <kinfu/fps_depth_device.hpp>
 #include <chrono>
 #include <thread>
 
 
-namespace dynfu {
+namespace kinfu {
 	
 	
 	static std::chrono::duration<float> fps_to_period (unsigned fps) noexcept {

@@ -1,12 +1,12 @@
 #include <boost/compute.hpp>
-#include <dynfu/filesystem.hpp>
-#include <dynfu/opencl_build_error.hpp>
+#include <kinfu/filesystem.hpp>
+#include <kinfu/opencl_build_error.hpp>
 #include <sstream>
 #include <string>
 #include <utility>
 
 
-namespace dynfu {
+namespace kinfu {
 	
 	
 	static std::string make_what (const boost::compute::program & p, const boost::compute::opencl_error & err, const filesystem::path * path=nullptr) {

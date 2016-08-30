@@ -1,5 +1,5 @@
-PROJECT_NAME="DynFu"
-PROJECT_BRIEF="An open source implementation of KinectFusion & Dynamic Fusion for a senior design project at the University of Victoria"
+PROJECT_NAME="KinFu"
+PROJECT_BRIEF="An open source implementation of KinectFusion for a senior design project at the University of Victoria"
 OUTPUT_DIRECTORY="doc"
 INPUT=include/ README.md
 EXCLUDE_PATTERNS=

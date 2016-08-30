@@ -1,14 +1,14 @@
-#include <dynfu/opencv_depth_device.hpp>
+#include <kinfu/opencv_depth_device.hpp>
 
 
 #include <catch.hpp>
 
 
-SCENARIO("On creation dynfu::opencv_depth_device objects may be used to retrieve depth frames","[dynfu][opencv_depth_device][depth_device][!mayfail]") {
+SCENARIO("On creation kinfu::opencv_depth_device objects may be used to retrieve depth frames","[kinfu][opencv_depth_device][depth_device][!mayfail]") {
 
-    GIVEN("A dynfu::opencv_depth_device object") {
+    GIVEN("A kinfu::opencv_depth_device object") {
 
-        dynfu::opencv_depth_device dd;
+        kinfu::opencv_depth_device dd;
 
         WHEN("A depth frame is retrieved") {
 

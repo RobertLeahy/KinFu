@@ -1,11 +1,11 @@
-#include <dynfu/cpu_pipeline_value.hpp>
-#include <dynfu/mock_depth_device.hpp>
+#include <kinfu/cpu_pipeline_value.hpp>
+#include <kinfu/mock_depth_device.hpp>
 #include <memory>
 #include <stdexcept>
 #include <utility>
 
 
-namespace dynfu {
+namespace kinfu {
 	
 	
 	void mock_depth_device::check (const std::vector<float> & f) const {

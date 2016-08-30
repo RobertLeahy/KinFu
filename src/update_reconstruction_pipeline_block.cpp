@@ -1,7 +1,7 @@
-#include <dynfu/update_reconstruction_pipeline_block.hpp>
+#include <kinfu/update_reconstruction_pipeline_block.hpp>
 
 
-namespace dynfu {
+namespace kinfu {
 	
 	
 	update_reconstruction_pipeline_block::~update_reconstruction_pipeline_block () noexcept {	}

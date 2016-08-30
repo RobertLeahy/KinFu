@@ -1,15 +1,15 @@
-#include <dynfu/kinect_fusion.hpp>
+#include <kinfu/kinect_fusion.hpp>
 
 
 #include <stdexcept>
 #include <catch.hpp>
 
 
-SCENARIO("dynfu::kinect_fusion objects reject attempts to invoke them when the pipeline they manage is incomplete","[dynfu][kinect_fusion]") {
+SCENARIO("kinfu::kinect_fusion objects reject attempts to invoke them when the pipeline they manage is incomplete","[kinfu][kinect_fusion]") {
 
-	GIVEN("A dynfu::kinect_fusion with an incomplete pipeline") {
+	GIVEN("A kinfu::kinect_fusion with an incomplete pipeline") {
 
-		dynfu::kinect_fusion kf;
+		kinfu::kinect_fusion kf;
 
 		THEN("Attempting to invoke it throws an exception") {
 

@@ -1,15 +1,15 @@
-#include <dynfu/kinect_fusion_opencl_measurement_pipeline_block.hpp>
+#include <kinfu/kinect_fusion_opencl_measurement_pipeline_block.hpp>
 
 
 #include <boost/compute.hpp>
-#include <dynfu/camera.hpp>
-#include <dynfu/cpu_pipeline_value.hpp>
-#include <dynfu/file_system_depth_device.hpp>
-#include <dynfu/file_system_opencl_program_factory.hpp>
-#include <dynfu/filesystem.hpp>
-#include <dynfu/msrc_file_system_depth_device.hpp>
-#include <dynfu/path.hpp>
-#include <dynfu/pixel.hpp>
+#include <kinfu/camera.hpp>
+#include <kinfu/cpu_pipeline_value.hpp>
+#include <kinfu/file_system_depth_device.hpp>
+#include <kinfu/file_system_opencl_program_factory.hpp>
+#include <kinfu/filesystem.hpp>
+#include <kinfu/msrc_file_system_depth_device.hpp>
+#include <kinfu/path.hpp>
+#include <kinfu/pixel.hpp>
 #include <Eigen/Dense>
 #include <algorithm>
 #include <cmath>
@@ -27,14 +27,14 @@ namespace {
 		
 		private:
 		
-			static dynfu::filesystem::path curr_dir () {
+			static kinfu::filesystem::path curr_dir () {
 
-				return dynfu::filesystem::path(dynfu::current_executable_parent_path());
+				return kinfu::filesystem::path(kinfu::current_executable_parent_path());
 
 			}
 
 
-			static dynfu::filesystem::path cl_path () {
+			static kinfu::filesystem::path cl_path () {
 
 				auto retr=curr_dir();
 				retr/="..";
@@ -45,7 +45,7 @@ namespace {
 			}
 
 
-			static dynfu::filesystem::path frames_path () {
+			static kinfu::filesystem::path frames_path () {
 
 				auto retr=curr_dir();
 				retr/="..";
@@ -60,13 +60,13 @@ namespace {
 			boost::compute::device dev;
 			boost::compute::context ctx;
 			boost::compute::command_queue q;
-			dynfu::msrc_file_system_depth_device_frame_factory ff;
-			dynfu::msrc_file_system_depth_device_filter f;
-			dynfu::file_system_depth_device dd;
+			kinfu::msrc_file_system_depth_device_frame_factory ff;
+			kinfu::msrc_file_system_depth_device_filter f;
+			kinfu::file_system_depth_device dd;
 			std::size_t width;
 			std::size_t height;
 			Eigen::Matrix3f k;
-			dynfu::file_system_opencl_program_factory fsopf;
+			kinfu::file_system_opencl_program_factory fsopf;
 			
 		public:
 		
@@ -92,12 +92,12 @@ namespace {
 }
 
 
-SCENARIO_METHOD(fixture, "A dynfu::kinect_fusion_opencl_measurement_pipeline_block implements the measurement phase of the kinect fusion pipeline on the GPU using OpenCL","[dynfu][measurement_pipeline_block][kinect_fusion_opencl_measurement_pipeline_block]") {
+SCENARIO_METHOD(fixture, "A kinfu::kinect_fusion_opencl_measurement_pipeline_block implements the measurement phase of the kinect fusion pipeline on the GPU using OpenCL","[kinfu][measurement_pipeline_block][kinect_fusion_opencl_measurement_pipeline_block]") {
 	
-	GIVEN("A dynfu::kinect_fusion_opencl_measurement_pipeline_block") {		
+	GIVEN("A kinfu::kinect_fusion_opencl_measurement_pipeline_block") {		
 		
-		dynfu::kinect_fusion_opencl_measurement_pipeline_block kfompb(q, fsopf, 16, 2.0f, 1.0f);
-		dynfu::cpu_pipeline_value<std::vector<float>> pv;
+		kinfu::kinect_fusion_opencl_measurement_pipeline_block kfompb(q, fsopf, 16, 2.0f, 1.0f);
+		kinfu::cpu_pipeline_value<std::vector<float>> pv;
 		std::vector<float> v{0.0f, 5.0f, 10.0f, 15.0f, 13.0f, 40.0f, 12.0f, 10.0f, 8.0f,19.0f,202.0f,102.0f,84.0f,293.0f,292.0f,293.0f};
 
 		auto nan = std::numeric_limits<float>::quiet_NaN();
@@ -201,11 +201,11 @@ SCENARIO_METHOD(fixture, "A dynfu::kinect_fusion_opencl_measurement_pipeline_blo
 }
 
 
-SCENARIO_METHOD(fixture,"The vertices returned by a dynfu::kinect_fusion_opencl_measurement_pipeline_block may be deprojected back into pixel space","[dynfu][measurement_pipeline_block][kinect_fusion_opencl_measurement_pipeline_block]") {
+SCENARIO_METHOD(fixture,"The vertices returned by a kinfu::kinect_fusion_opencl_measurement_pipeline_block may be deprojected back into pixel space","[kinfu][measurement_pipeline_block][kinect_fusion_opencl_measurement_pipeline_block]") {
 
-	GIVEN("A dynfu::kinect_fusion_opencl_measurement_pipeline_block") {
+	GIVEN("A kinfu::kinect_fusion_opencl_measurement_pipeline_block") {
 
-		dynfu::kinect_fusion_opencl_measurement_pipeline_block kfompb(q, fsopf, 16, 2.0f, 1.0f);
+		kinfu::kinect_fusion_opencl_measurement_pipeline_block kfompb(q, fsopf, 16, 2.0f, 1.0f);
 
 		WHEN("It is run on a depth frame") {
 
@@ -225,7 +225,7 @@ SCENARIO_METHOD(fixture,"The vertices returned by a dynfu::kinect_fusion_opencl_
 
 						auto v=map[idx].v;
 						if (std::isnan(v(0))) continue;
-						auto pair=dynfu::to_pixel(v,k);
+						auto pair=kinfu::to_pixel(v,k);
 						CHECK(pair.first(0)==x);
 						CHECK(pair.first(1)==y);
 

@@ -1,5 +1,5 @@
-# SENG 499 Summer 2016 - DynFu {#mainpage}
-[![Build Status](https://travis-ci.com/RobertLeahy/DynFu.svg?token=E1Ypp9btW9nWJKJqzctp&branch=master)](https://travis-ci.com/RobertLeahy/DynFu)
+# SENG 499 Summer 2016 - KinFu {#mainpage}
+[![Build Status](https://travis-ci.com/RobertLeahy/KinFu.svg?token=E1Ypp9btW9nWJKJqzctp&branch=master)](https://travis-ci.com/RobertLeahy/KinFu)
 
 ## Introduction
 This repository serves as the home for the course [SENG 499](http://www.ece.uvic.ca/~elec499/) offered at the University of Victoria in the Summer of 2016. The proposed project is to implement a system capabale of generating and continuously updating triangular meshes through the use of a RGBD camera, such as the Microsoft Kinect. Similar work has been done in the following papers.
@@ -114,8 +114,8 @@ Copy `./Catch/single_include/catch.hpp` to `C:\MinGW\x86_64-w64-mingw32\include`
 Since we are using travis-ci it is possible that issues can be resolved by referencing the .travis.yml file on the master branch for solution inspirations. 
 
 ```
-git clone https://github.com/RobertLeahy/DynFu.git
-cd DynFu
+git clone https://github.com/RobertLeahy/KinFu.git
+cd KinFu
 mkdir -p include
 wget -O include/catch.hpp https://raw.githubusercontent.com/philsquared/Catch/master/single_include/catch.hpp
 sudo add-apt-repository ppa:ubuntu-toolchain-r/test
@@ -127,7 +127,7 @@ sudo apt-get install g++-5 libeigen3-dev libboost-all-dev libopencv-dev
 ### Compile
 Once the dependencies are satisfied...
 ```
-cd DynFu
+cd KinFu
 cmake .
 make
 ```
@@ -144,8 +144,8 @@ doxygen
 ```
 
 ## Links
-* Project Management - [waffle.io](https://waffle.io/RobertLeahy/DynFu)
-* Continuous Integration - [travis-ci](https://travis-ci.org/RobertLeahy/DynFu/)
+* Project Management - [waffle.io](https://waffle.io/RobertLeahy/KinFu)
+* Continuous Integration - [travis-ci](https://travis-ci.org/RobertLeahy/KinFu/)
 * Datasets - [MSRC RGB-D Dataset 7-Scenes](https://www.microsoft.com/en-us/research/project/rgb-d-dataset-7-scenes/)
 
 ## Contributing

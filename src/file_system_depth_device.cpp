@@ -1,5 +1,5 @@
-#include <dynfu/file_system_depth_device.hpp>
-#include <dynfu/filesystem.hpp>
+#include <kinfu/file_system_depth_device.hpp>
+#include <kinfu/filesystem.hpp>
 #include <algorithm>
 #include <functional>
 #include <sstream>
@@ -7,7 +7,7 @@
 #include <utility>
 
 
-namespace dynfu {
+namespace kinfu {
 	
 	
 	file_system_depth_device_filter::~file_system_depth_device_filter () noexcept {	}

@@ -1,20 +1,20 @@
-#include <dynfu/file_system_depth_device.hpp>
+#include <kinfu/file_system_depth_device.hpp>
 
 
 #include <Eigen/Dense>
-#include <dynfu/filesystem.hpp>
-#include <dynfu/path.hpp>
+#include <kinfu/filesystem.hpp>
+#include <kinfu/path.hpp>
 #include <cstddef>
 #include <utility>
 #include <vector>
 #include <catch.hpp>
 
 
-SCENARIO("file_system_depth_device loads depth information from files in the file system", "[dynfu][depth_device][file_system_depth_device]") {
+SCENARIO("file_system_depth_device loads depth information from files in the file system", "[kinfu][depth_device][file_system_depth_device]") {
 	
 	GIVEN("A file_system_depth_device") {
 		
-		class mock_factory : public dynfu::file_system_depth_device_frame_factory {
+		class mock_factory : public kinfu::file_system_depth_device_frame_factory {
 			
 			
 			private:
@@ -29,7 +29,7 @@ SCENARIO("file_system_depth_device loads depth information from files in the fil
 				mock_factory () noexcept : num_(0) {	}
 				
 				
-				virtual value_type operator () (const dynfu::filesystem::path &, value_type v) override {
+				virtual value_type operator () (const kinfu::filesystem::path &, value_type v) override {
 					
 					++num_;
 					return v;
@@ -67,11 +67,11 @@ SCENARIO("file_system_depth_device loads depth information from files in the fil
 			
 		};
 		
-		dynfu::filesystem::path fake_path(dynfu::current_executable_parent_path());
+		kinfu::filesystem::path fake_path(kinfu::current_executable_parent_path());
 		fake_path/="..";
 		fake_path/="data/test/file_system_depth_device";
 		mock_factory fac;
-		dynfu::file_system_depth_device fsdd(std::move(fake_path),fac);
+		kinfu::file_system_depth_device fsdd(std::move(fake_path),fac);
 		
 		THEN("operator bool returs true") {
 			
@@ -91,7 +91,7 @@ SCENARIO("file_system_depth_device loads depth information from files in the fil
 			
 			THEN("Invoking it again throws an exception as there are no more files") {
 				
-				CHECK_THROWS_AS(fsdd(),dynfu::file_system_depth_device::end);
+				CHECK_THROWS_AS(fsdd(),kinfu::file_system_depth_device::end);
 				
 			}
 			

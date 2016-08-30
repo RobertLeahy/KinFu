@@ -1,4 +1,4 @@
-#include <dynfu/high_resolution_clock.hpp>
+#include <kinfu/high_resolution_clock.hpp>
 
 
 #ifdef _WIN32
@@ -8,7 +8,7 @@
 #include <windows.h>
 
 
-namespace dynfu {
+namespace kinfu {
 
 
 	static std::uint64_t get_freq () {

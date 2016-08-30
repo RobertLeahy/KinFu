@@ -1,10 +1,10 @@
-#include <dynfu/kinect_fusion.hpp>
+#include <kinfu/kinect_fusion.hpp>
 #include <Eigen/Dense>
 #include <stdexcept>
 #include <utility>
 
 
-namespace dynfu {
+namespace kinfu {
 
 
 	void kinect_fusion::check_pipeline () const {
@@ -18,7 +18,7 @@ namespace dynfu {
 	
 	void kinect_fusion::get_frame () {
 		
-		dynfu::depth_device::value_type f;
+		kinfu::depth_device::value_type f;
 		using std::swap;
 		swap(f,frame_);
 		timer t;
@@ -30,7 +30,7 @@ namespace dynfu {
 	
 	void kinect_fusion::get_vertex_and_normal_map () {
 		
-		dynfu::measurement_pipeline_block::value_type map;
+		kinfu::measurement_pipeline_block::value_type map;
 		using std::swap;
 		swap(map,map_);
 		timer t;
@@ -42,7 +42,7 @@ namespace dynfu {
 
 	void kinect_fusion::get_tgk () {
 
-		dynfu::pose_estimation_pipeline_block::value_type t_g_k;
+		kinfu::pose_estimation_pipeline_block::value_type t_g_k;
 		using std::swap;
 		swap(t_g_k,t_g_k_);
 		timer t;
@@ -54,7 +54,7 @@ namespace dynfu {
 
 	void kinect_fusion::get_tsdf () {
 
-		dynfu::update_reconstruction_pipeline_block::value_type tsdf{{},0,0,0};
+		kinfu::update_reconstruction_pipeline_block::value_type tsdf{{},0,0,0};
 		using std::swap;
 		swap(tsdf,tsdf_);
 		timer t;
@@ -66,7 +66,7 @@ namespace dynfu {
 
 	void kinect_fusion::get_prediction () {
 
-		dynfu::surface_prediction_pipeline_block::value_type map;
+		kinfu::surface_prediction_pipeline_block::value_type map;
 		using std::swap;
 		swap(map,prev_map_);
 		timer t;
@@ -89,7 +89,7 @@ namespace dynfu {
 	{	}
 	
 	
-	void kinect_fusion::depth_device (dynfu::depth_device & dd) noexcept {
+	void kinect_fusion::depth_device (kinfu::depth_device & dd) noexcept {
 		
 		dd_=&dd;
 		k_=dd.k();
@@ -99,28 +99,28 @@ namespace dynfu {
 	}
 	
 	
-	void kinect_fusion::measurement_pipeline_block (dynfu::measurement_pipeline_block & mpb) noexcept {
+	void kinect_fusion::measurement_pipeline_block (kinfu::measurement_pipeline_block & mpb) noexcept {
 		
 		mpb_=&mpb;
 		
 	}
 
 
-	void kinect_fusion::pose_estimation_pipeline_block (dynfu::pose_estimation_pipeline_block & pepb) noexcept {
+	void kinect_fusion::pose_estimation_pipeline_block (kinfu::pose_estimation_pipeline_block & pepb) noexcept {
 
 		pepb_=&pepb;
 
 	}
 
 
-	void kinect_fusion::update_reconstruction_pipeline_block (dynfu::update_reconstruction_pipeline_block & urpb) noexcept {
+	void kinect_fusion::update_reconstruction_pipeline_block (kinfu::update_reconstruction_pipeline_block & urpb) noexcept {
 
 		urpb_=&urpb;
 
 	}
 
 
-	void kinect_fusion::surface_prediction_pipeline_block (dynfu::surface_prediction_pipeline_block & sppb) noexcept {
+	void kinect_fusion::surface_prediction_pipeline_block (kinfu::surface_prediction_pipeline_block & sppb) noexcept {
 
 		sppb_=&sppb;
 

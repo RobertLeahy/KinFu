@@ -1,7 +1,7 @@
 #include <opencv2/opencv.hpp>
-#include <dynfu/cpu_pipeline_value.hpp>
-#include <dynfu/filesystem.hpp>
-#include <dynfu/msrc_file_system_depth_device.hpp>
+#include <kinfu/cpu_pipeline_value.hpp>
+#include <kinfu/filesystem.hpp>
+#include <kinfu/msrc_file_system_depth_device.hpp>
 #include <cstdint>
 #include <limits>
 #include <memory>
@@ -10,7 +10,7 @@
 #include <utility>
 
 
-namespace dynfu {
+namespace kinfu {
 
 	static const std::regex & get_regex() {
 
