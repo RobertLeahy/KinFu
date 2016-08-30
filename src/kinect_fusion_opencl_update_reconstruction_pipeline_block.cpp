@@ -1,14 +1,14 @@
-#include <dynfu/boost_compute_detail_type_name_trait.hpp>
-#include <dynfu/half.hpp>
-#include <dynfu/kinect_fusion_opencl_update_reconstruction_pipeline_block.hpp>
-#include <dynfu/opencl_vector_pipeline_value.hpp>
-#include <dynfu/pose_estimation_pipeline_block.hpp>
+#include <kinfu/boost_compute_detail_type_name_trait.hpp>
+#include <kinfu/half.hpp>
+#include <kinfu/kinect_fusion_opencl_update_reconstruction_pipeline_block.hpp>
+#include <kinfu/opencl_vector_pipeline_value.hpp>
+#include <kinfu/pose_estimation_pipeline_block.hpp>
 #include <Eigen/Dense>
 #include <cstddef>
 #include <memory>
 #include <utility>
 
-namespace dynfu {
+namespace kinfu {
 	
 	
 	static boost::compute::kernel get_tsdf_kernel (opencl_program_factory & opf) {
@@ -102,7 +102,7 @@ namespace dynfu {
 
 
 		auto && tsdf_ptr = v.buffer;
-		using type = opencl_vector_pipeline_value<dynfu::half>;
+		using type = opencl_vector_pipeline_value<kinfu::half>;
 		if (!tsdf_ptr) tsdf_ptr = std::make_unique<type>(q);
 		auto && tsdf_buf = dynamic_cast<type &>(*tsdf_ptr).vector();
 		tsdf_buf.resize(tsdf_width_*tsdf_height_*tsdf_depth_, q);

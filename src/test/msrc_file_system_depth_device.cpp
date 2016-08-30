@@ -1,26 +1,26 @@
-#include <dynfu/msrc_file_system_depth_device.hpp>
+#include <kinfu/msrc_file_system_depth_device.hpp>
 
 
-#include <dynfu/filesystem.hpp>
+#include <kinfu/filesystem.hpp>
 #include <Eigen/Dense>
-#include <dynfu/path.hpp>
+#include <kinfu/path.hpp>
 #include <cmath>
 #include <cstddef>
 #include <unordered_set>
 #include <catch.hpp>
 
 
-SCENARIO("msrc_file_system_depth_device loads depth information from MSRC 7Scene files in the file system", "[dynfu][depth_device][file_system_depth_device][msrc_file_system_depth_device]") {
+SCENARIO("msrc_file_system_depth_device loads depth information from MSRC 7Scene files in the file system", "[kinfu][depth_device][file_system_depth_device][msrc_file_system_depth_device]") {
 	
-	dynfu::filesystem::path test_data_path(dynfu::current_executable_parent_path());
+	kinfu::filesystem::path test_data_path(kinfu::current_executable_parent_path());
 	test_data_path/="..";
 	test_data_path/="data/test/msrc_file_system_depth_device";
 	
 	GIVEN("A valid msrc_file_system_depth_device") {
 		
-		dynfu::msrc_file_system_depth_device_frame_factory fac;
-		dynfu::msrc_file_system_depth_device_filter filt;
-		dynfu::file_system_depth_device fsdd(std::move(test_data_path),fac, &filt);
+		kinfu::msrc_file_system_depth_device_frame_factory fac;
+		kinfu::msrc_file_system_depth_device_filter filt;
+		kinfu::file_system_depth_device fsdd(std::move(test_data_path),fac, &filt);
 		
 
 		WHEN("Returning the width and height") {
@@ -117,8 +117,8 @@ SCENARIO("msrc_file_system_depth_device loads depth information from MSRC 7Scene
 
 		
 		test_data_path/="garbage";
-		dynfu::msrc_file_system_depth_device_frame_factory fac;
-		dynfu::file_system_depth_device fsdd(std::move(test_data_path),fac);
+		kinfu::msrc_file_system_depth_device_frame_factory fac;
+		kinfu::file_system_depth_device fsdd(std::move(test_data_path),fac);
 		
 		THEN("Invoking it throws an exception") {
 

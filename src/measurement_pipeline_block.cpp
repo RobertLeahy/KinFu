@@ -1,7 +1,7 @@
-#include <dynfu/measurement_pipeline_block.hpp>
+#include <kinfu/measurement_pipeline_block.hpp>
 
 
-namespace dynfu {
+namespace kinfu {
 	
 	
 	measurement_pipeline_block::~measurement_pipeline_block () noexcept {	}

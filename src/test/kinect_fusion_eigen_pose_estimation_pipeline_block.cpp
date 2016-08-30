@@ -1,20 +1,20 @@
 /**
  * Note that these tests are NOT run by default. To run these: bin\tests [kinect_fusion_eigen_pose_estimation_pipeline_block]
  */
-#include <dynfu/kinect_fusion_eigen_pose_estimation_pipeline_block.hpp>
+#include <kinfu/kinect_fusion_eigen_pose_estimation_pipeline_block.hpp>
 
 
 #include <boost/compute.hpp>
 #include <boost/nondet_random.hpp>
-#include <dynfu/cpu_pipeline_value.hpp>
-#include <dynfu/file_system_depth_device.hpp>
-#include <dynfu/file_system_opencl_program_factory.hpp>
-#include <dynfu/filesystem.hpp>
-#include <dynfu/kinect_fusion_opencl_measurement_pipeline_block.hpp>
-#include <dynfu/msrc_file_system_depth_device.hpp>
-#include <dynfu/path.hpp>
-#include <dynfu/pixel.hpp>
-#include <dynfu/pose_estimation_pipeline_block.hpp>
+#include <kinfu/cpu_pipeline_value.hpp>
+#include <kinfu/file_system_depth_device.hpp>
+#include <kinfu/file_system_opencl_program_factory.hpp>
+#include <kinfu/filesystem.hpp>
+#include <kinfu/kinect_fusion_opencl_measurement_pipeline_block.hpp>
+#include <kinfu/msrc_file_system_depth_device.hpp>
+#include <kinfu/path.hpp>
+#include <kinfu/pixel.hpp>
+#include <kinfu/pose_estimation_pipeline_block.hpp>
 #include <Eigen/Dense>
 #include <algorithm>
 #include <cmath>
@@ -35,14 +35,14 @@ namespace {
 		private:
 
 
-			static dynfu::filesystem::path curr_dir () {
+			static kinfu::filesystem::path curr_dir () {
 
-				return dynfu::filesystem::path(dynfu::current_executable_parent_path());
+				return kinfu::filesystem::path(kinfu::current_executable_parent_path());
 
 			}
 
 
-			static dynfu::filesystem::path cl_path () {
+			static kinfu::filesystem::path cl_path () {
 
 				auto retr=curr_dir();
 				retr/="..";
@@ -53,7 +53,7 @@ namespace {
 			}
 
 
-			static dynfu::filesystem::path frames_path () {
+			static kinfu::filesystem::path frames_path () {
 
 				auto retr=curr_dir();
 				retr/="..";
@@ -74,18 +74,18 @@ namespace {
 			std::size_t height;
 			Eigen::Matrix3f k;
 			Eigen::Matrix4f t_gk_initial;
-			dynfu::file_system_opencl_program_factory pf;
-			dynfu::msrc_file_system_depth_device_frame_factory ff;
-			dynfu::msrc_file_system_depth_device_filter f;
-			dynfu::file_system_depth_device dd;
-			dynfu::kinect_fusion_opencl_measurement_pipeline_block mpb;
+			kinfu::file_system_opencl_program_factory pf;
+			kinfu::msrc_file_system_depth_device_frame_factory ff;
+			kinfu::msrc_file_system_depth_device_filter f;
+			kinfu::file_system_depth_device dd;
+			kinfu::kinect_fusion_opencl_measurement_pipeline_block mpb;
 			boost::random_device rd;
 			std::mt19937 mt;
 			std::uniform_real_distribution<float> angle_dist;
 			std::uniform_real_distribution<float> trans_dist;
 
 
-			std::vector<dynfu::pixel> to_global (std::vector<dynfu::pixel> ps) {
+			std::vector<kinfu::pixel> to_global (std::vector<kinfu::pixel> ps) {
 
 				std::transform(ps.begin(),ps.end(),ps.begin(),[&] (const auto & p) noexcept {
 
@@ -93,7 +93,7 @@ namespace {
 					vh=t_gk_initial*vh;
 					Eigen::Vector3f v(vh(0),vh(1),vh(2));
 
-					return dynfu::pixel{v,t_gk_initial.block<3,3>(0,0)*p.n};
+					return kinfu::pixel{v,t_gk_initial.block<3,3>(0,0)*p.n};
 
 				});
 
@@ -101,7 +101,7 @@ namespace {
 
 			}
 
-			std::vector<dynfu::pixel> perturb (std::vector<dynfu::pixel> ps, Eigen::Matrix4f transform) {
+			std::vector<kinfu::pixel> perturb (std::vector<kinfu::pixel> ps, Eigen::Matrix4f transform) {
 
 				std::transform(ps.begin(),ps.end(),ps.begin(),[&] (const auto & p) noexcept {
 
@@ -109,7 +109,7 @@ namespace {
 					vh=transform*vh;
 					Eigen::Vector3f v(vh(0),vh(1),vh(2));
 
-					return dynfu::pixel{v,transform.block<3,3>(0,0)*p.n};
+					return kinfu::pixel{v,transform.block<3,3>(0,0)*p.n};
 
 				});
 
@@ -178,13 +178,13 @@ namespace {
 }
 
 
-SCENARIO_METHOD(fixture,"dynfu::kinect_fusion_eigen_pose_estimation_pipeline_block objects return the matrix passed to their constructor on their first invocation","[!hide][dynfu][pose_estimation_pipeline_block][kinect_fusion_eigen_pose_estimation_pipeline_block]") {
+SCENARIO_METHOD(fixture,"kinfu::kinect_fusion_eigen_pose_estimation_pipeline_block objects return the matrix passed to their constructor on their first invocation","[!hide][kinfu][pose_estimation_pipeline_block][kinect_fusion_eigen_pose_estimation_pipeline_block]") {
 
-	GIVEN("A dynfu::kinect_fusion_eigen_pose_estimation_pipeline_block object") {
+	GIVEN("A kinfu::kinect_fusion_eigen_pose_estimation_pipeline_block object") {
 
-		dynfu::kinect_fusion_eigen_pose_estimation_pipeline_block pepb(0.10f,std::sin(20.0f*3.14159f/180.0f),width,height,t_gk_initial);
+		kinfu::kinect_fusion_eigen_pose_estimation_pipeline_block pepb(0.10f,std::sin(20.0f*3.14159f/180.0f),width,height,t_gk_initial);
 
-		WHEN("It is invoked for the first time (i.e. passed NULL as the 3rd, 4th, and 5th arguments to dynfu::kinect_fusion_eigen_pose_estimation_pipeline_block::operator ())") {
+		WHEN("It is invoked for the first time (i.e. passed NULL as the 3rd, 4th, and 5th arguments to kinfu::kinect_fusion_eigen_pose_estimation_pipeline_block::operator ())") {
 
 			auto frame_ptr=dd();
 			auto m_ptr=mpb(*frame_ptr,width,height,k);
@@ -203,18 +203,18 @@ SCENARIO_METHOD(fixture,"dynfu::kinect_fusion_eigen_pose_estimation_pipeline_blo
 }
 
 
-SCENARIO_METHOD(fixture,"dynfu::kinect_fusion_eigen_pose_estimation_pipeline_block objects derive a transformation matrix between two identical frames that is the identity matrix with some set, constant, initial translation","[!hide][dynfu][pose_estimation_pipeline_block][kinect_fusion_eigen_pose_estimation_pipeline_block]") {
+SCENARIO_METHOD(fixture,"kinfu::kinect_fusion_eigen_pose_estimation_pipeline_block objects derive a transformation matrix between two identical frames that is the identity matrix with some set, constant, initial translation","[!hide][kinfu][pose_estimation_pipeline_block][kinect_fusion_eigen_pose_estimation_pipeline_block]") {
 
-	GIVEN("A dynfu::kinect_fusion_eigen_pose_estimation_pipeline_block object") {
+	GIVEN("A kinfu::kinect_fusion_eigen_pose_estimation_pipeline_block object") {
 
-		dynfu::kinect_fusion_eigen_pose_estimation_pipeline_block pepb(0.10f,std::sin(20.0f*3.14159f/180.0f),width,height,t_gk_initial);
+		kinfu::kinect_fusion_eigen_pose_estimation_pipeline_block pepb(0.10f,std::sin(20.0f*3.14159f/180.0f),width,height,t_gk_initial);
 
 		WHEN("It is invoked on two identical sets of vertices and normals") {
 
 			auto frame_ptr=dd();
 			auto m_ptr=mpb(*frame_ptr,width,height,k);
 			auto ptr=pepb(*m_ptr,nullptr,k,{});
-			dynfu::cpu_pipeline_value<std::vector<dynfu::pixel>> pv;
+			kinfu::cpu_pipeline_value<std::vector<kinfu::pixel>> pv;
 			pv.emplace(to_global(m_ptr->get()));
 			ptr=pepb(*m_ptr,&pv,k,std::move(ptr));
 
@@ -233,12 +233,12 @@ SCENARIO_METHOD(fixture,"dynfu::kinect_fusion_eigen_pose_estimation_pipeline_blo
 
 }
 
-SCENARIO_METHOD(fixture,"dynfu::kinect_fusion_eigen_pose_estimation_pipeline_block objects derive a transformation matrix between consecutive MSRC frames that matches the expected value, when forcing pixel to pixel correspondences","[!hide][dynfu][pose_estimation_pipeline_block][kinect_fusion_eigen_pose_estimation_pipeline_block][!mayfail]") {
+SCENARIO_METHOD(fixture,"kinfu::kinect_fusion_eigen_pose_estimation_pipeline_block objects derive a transformation matrix between consecutive MSRC frames that matches the expected value, when forcing pixel to pixel correspondences","[!hide][kinfu][pose_estimation_pipeline_block][kinect_fusion_eigen_pose_estimation_pipeline_block][!mayfail]") {
 
-	GIVEN("A dynfu::kinect_fusion_eigen_pose_estimation_pipeline_block object with force pixel to pixel correspondences enabled") {
+	GIVEN("A kinfu::kinect_fusion_eigen_pose_estimation_pipeline_block object with force pixel to pixel correspondences enabled") {
 
 		bool enable_pixel_to_pixel(false);
-		dynfu::kinect_fusion_eigen_pose_estimation_pipeline_block pepb(0.10f,std::sin(20.0f*3.14159f/180.0f),width,height,t_gk_initial, 15, enable_pixel_to_pixel);
+		kinfu::kinect_fusion_eigen_pose_estimation_pipeline_block pepb(0.10f,std::sin(20.0f*3.14159f/180.0f),width,height,t_gk_initial, 15, enable_pixel_to_pixel);
 
 		WHEN("It is invoked on consecutive MSRC frames") {
 
@@ -249,7 +249,7 @@ SCENARIO_METHOD(fixture,"dynfu::kinect_fusion_eigen_pose_estimation_pipeline_blo
 			auto frame_ptr2=dd();
 			auto m_ptr2=mpb(*frame_ptr2,width,height,k);
 
-			dynfu::cpu_pipeline_value<std::vector<dynfu::pixel>> pv;
+			kinfu::cpu_pipeline_value<std::vector<kinfu::pixel>> pv;
 			pv.emplace(to_global(m_ptr->get()));
 			ptr=pepb(*m_ptr2,&pv,k,std::move(ptr));
 
@@ -280,12 +280,12 @@ SCENARIO_METHOD(fixture,"dynfu::kinect_fusion_eigen_pose_estimation_pipeline_blo
 
 }
 
-SCENARIO_METHOD(fixture,"dynfu::kinect_fusion_eigen_pose_estimation_pipeline_block objects derive a transformation matrix between a frame and its perturbed version that is within numerical precision of the perturbation","[!hide][dynfu][pose_estimation_pipeline_block][kinect_fusion_eigen_pose_estimation_pipeline_block]") {
+SCENARIO_METHOD(fixture,"kinfu::kinect_fusion_eigen_pose_estimation_pipeline_block objects derive a transformation matrix between a frame and its perturbed version that is within numerical precision of the perturbation","[!hide][kinfu][pose_estimation_pipeline_block][kinect_fusion_eigen_pose_estimation_pipeline_block]") {
 
-	GIVEN("A dynfu::kinect_fusion_eigen_pose_estimation_pipeline_block object") {
+	GIVEN("A kinfu::kinect_fusion_eigen_pose_estimation_pipeline_block object") {
 
 		bool enable_pixel_to_pixel(false);
-		dynfu::kinect_fusion_eigen_pose_estimation_pipeline_block pepb(0.10f,std::sin(20.0f*3.14159f/180.0f),width,height,t_gk_initial,15,enable_pixel_to_pixel);
+		kinfu::kinect_fusion_eigen_pose_estimation_pipeline_block pepb(0.10f,std::sin(20.0f*3.14159f/180.0f),width,height,t_gk_initial,15,enable_pixel_to_pixel);
 
 		WHEN("It is invoked on a set of vertices and normals, and a set of perturbed vertices and normals") {
 
@@ -297,7 +297,7 @@ SCENARIO_METHOD(fixture,"dynfu::kinect_fusion_eigen_pose_estimation_pipeline_blo
 
 			auto gt = perturbation * t_gk_initial; // should also be from current cam -> world
 
-			dynfu::cpu_pipeline_value<std::vector<dynfu::pixel>> pv;
+			kinfu::cpu_pipeline_value<std::vector<kinfu::pixel>> pv;
 			pv.emplace(perturb(to_global(m_ptr->get()), perturbation));
 			ptr=pepb(*m_ptr,&pv,k,std::move(ptr));
 
@@ -332,13 +332,13 @@ static bool is_bounded_by (float val, float a, float b) noexcept {
 }
 
 
-SCENARIO_METHOD(fixture,"Between consecutive frames dynfu::kinect_fusion_eigen_pose_estimation_pipeline_block reports only a small change in sensor pose","[!hide][dynfu][kinect_fusion_eigen_pose_estimation_pipeline_block][pose_estimation_pipeline_block]") {
+SCENARIO_METHOD(fixture,"Between consecutive frames kinfu::kinect_fusion_eigen_pose_estimation_pipeline_block reports only a small change in sensor pose","[!hide][kinfu][kinect_fusion_eigen_pose_estimation_pipeline_block][pose_estimation_pipeline_block]") {
 
-	GIVEN("A dynfu::kinect_fusion_eigen_pose_estimation_pipeline_block object") {
+	GIVEN("A kinfu::kinect_fusion_eigen_pose_estimation_pipeline_block object") {
 
 
 
-		dynfu::kinect_fusion_eigen_pose_estimation_pipeline_block pepb(0.10f,std::sin(20.0f*3.14159f/180.0f),width,height,t_gk_initial);
+		kinfu::kinect_fusion_eigen_pose_estimation_pipeline_block pepb(0.10f,std::sin(20.0f*3.14159f/180.0f),width,height,t_gk_initial);
 
 		WHEN("It is invoked on two consecutive frames") {
 
@@ -347,7 +347,7 @@ SCENARIO_METHOD(fixture,"Between consecutive frames dynfu::kinect_fusion_eigen_p
 			auto ptr=pepb(*m_ptr1,nullptr,k,{});
 			frame_ptr=dd(std::move(frame_ptr));
 			auto m_ptr2=mpb(*frame_ptr,width,height,k);
-			dynfu::cpu_pipeline_value<std::vector<dynfu::pixel>> pv;
+			kinfu::cpu_pipeline_value<std::vector<kinfu::pixel>> pv;
 			pv.emplace(to_global(m_ptr1->get()));
 			ptr=pepb(*m_ptr2,&pv,k,std::move(ptr));
 
@@ -417,13 +417,13 @@ SCENARIO_METHOD(fixture,"Between consecutive frames dynfu::kinect_fusion_eigen_p
 }
 
 
-SCENARIO_METHOD(fixture,"When a minimum number of point-to-point correspondences cannot be made dynfu::kinect_fusion_eigen_pose_estimation_pipeline_block objects throw a dynfu::pose_estimation_pipeline_block::tracking_lost_error","[!hide][dynfu][kinect_fusion_eigen_pose_estimation_pipeline_block][pose_estimation_pipeline_block][!mayfail]") {
+SCENARIO_METHOD(fixture,"When a minimum number of point-to-point correspondences cannot be made kinfu::kinect_fusion_eigen_pose_estimation_pipeline_block objects throw a kinfu::pose_estimation_pipeline_block::tracking_lost_error","[!hide][kinfu][kinect_fusion_eigen_pose_estimation_pipeline_block][pose_estimation_pipeline_block][!mayfail]") {
 
-	GIVEN("A dynfu::kinect_fusion_eigen_pose_estimation_pipeline_block object") {
+	GIVEN("A kinfu::kinect_fusion_eigen_pose_estimation_pipeline_block object") {
 
-		dynfu::kinect_fusion_eigen_pose_estimation_pipeline_block pepb(0.10f,std::sin(20.0f*3.14159f/180.0f),width,height,t_gk_initial);
+		kinfu::kinect_fusion_eigen_pose_estimation_pipeline_block pepb(0.10f,std::sin(20.0f*3.14159f/180.0f),width,height,t_gk_initial);
 
-		THEN("Invoking it on two non-consecutive frames results in a dynfu::pose_estimation_pipeline_block::tracking_lost_error") {
+		THEN("Invoking it on two non-consecutive frames results in a kinfu::pose_estimation_pipeline_block::tracking_lost_error") {
 
 			auto frame_ptr=dd();	//	Frame 00
 			auto m_ptr1=mpb(*frame_ptr,width,height,k);
@@ -431,9 +431,9 @@ SCENARIO_METHOD(fixture,"When a minimum number of point-to-point correspondences
 			frame_ptr=dd(std::move(frame_ptr));	//	Frame 23
 			auto m_ptr2=mpb(*frame_ptr,width,height,k);
 			auto ptr=pepb(*m_ptr1,nullptr,k,{});
-			dynfu::cpu_pipeline_value<std::vector<dynfu::pixel>> pv;
+			kinfu::cpu_pipeline_value<std::vector<kinfu::pixel>> pv;
 			pv.emplace(to_global(m_ptr2->get()));
-			CHECK_THROWS_AS(pepb(*m_ptr1,&pv,k,std::move(ptr)),dynfu::pose_estimation_pipeline_block::tracking_lost_error);
+			CHECK_THROWS_AS(pepb(*m_ptr1,&pv,k,std::move(ptr)),kinfu::pose_estimation_pipeline_block::tracking_lost_error);
 			
 		}
 

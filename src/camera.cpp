@@ -1,9 +1,9 @@
-#include <dynfu/camera.hpp>
+#include <kinfu/camera.hpp>
 #include <cmath>
 #include <utility>
 
 
-namespace dynfu {
+namespace kinfu {
 
 
 	std::pair<Eigen::Vector2i,float> to_pixel (Eigen::Vector3f camera, Eigen::Matrix3f k) noexcept {

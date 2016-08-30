@@ -1,9 +1,9 @@
-#include <dynfu/opencl_build_error.hpp>
+#include <kinfu/opencl_build_error.hpp>
 
 
 #include <boost/compute.hpp>
-#include <dynfu/filesystem.hpp>
-#include <dynfu/path.hpp>
+#include <kinfu/filesystem.hpp>
+#include <kinfu/path.hpp>
 #include <catch.hpp>
 
 
@@ -32,11 +32,11 @@ namespace {
 }
 
 
-SCENARIO_METHOD(fixture,"dynfu::opencl_build_error::raise throws an appropriate exception","[dynfu][opencl_build_error]") {
+SCENARIO_METHOD(fixture,"kinfu::opencl_build_error::raise throws an appropriate exception","[kinfu][opencl_build_error]") {
 	
 	GIVEN("A boost::compute::program") {
 		
-		dynfu::filesystem::path path(dynfu::current_executable_parent_path());
+		kinfu::filesystem::path path(kinfu::current_executable_parent_path());
 		path/="..";
 		path/="data";
 		path/="test";
@@ -48,14 +48,14 @@ SCENARIO_METHOD(fixture,"dynfu::opencl_build_error::raise throws an appropriate 
 			
 			boost::compute::opencl_error err(CL_INVALID_PROGRAM);
 			
-			THEN("Invoking dynfu::opencl_build_error::raise throws a boost::compute::opencl_error which represents the same error code") {
+			THEN("Invoking kinfu::opencl_build_error::raise throws a boost::compute::opencl_error which represents the same error code") {
 				
 				bool threw=false;
 				try {
 					
-					dynfu::opencl_build_error::raise(p,err);
+					kinfu::opencl_build_error::raise(p,err);
 					
-				} catch (const dynfu::opencl_build_error &) {
+				} catch (const kinfu::opencl_build_error &) {
 					
 					//	Fail
 					
@@ -76,14 +76,14 @@ SCENARIO_METHOD(fixture,"dynfu::opencl_build_error::raise throws an appropriate 
 			
 			boost::compute::opencl_error err(CL_BUILD_PROGRAM_FAILURE);
 			
-			THEN("Invoking dynfu::opencl_build_error::raise throws a dynfu::opencl_build_error which represents CL_BUILD_PROGRAM_FAILURE and contains the appropriate boost::compute::program") {
+			THEN("Invoking kinfu::opencl_build_error::raise throws a kinfu::opencl_build_error which represents CL_BUILD_PROGRAM_FAILURE and contains the appropriate boost::compute::program") {
 				
 				bool threw=false;
 				try {
 					
-					dynfu::opencl_build_error::raise(p,err);
+					kinfu::opencl_build_error::raise(p,err);
 					
-				} catch (const dynfu::opencl_build_error & ex) {
+				} catch (const kinfu::opencl_build_error & ex) {
 					
 					threw=true;
 					CHECK(ex.error_code()==CL_BUILD_PROGRAM_FAILURE);
@@ -102,11 +102,11 @@ SCENARIO_METHOD(fixture,"dynfu::opencl_build_error::raise throws an appropriate 
 }
 
 
-SCENARIO_METHOD(fixture,"dynfu::opencl_file_build_error::raise throws an appropriate exception","[dynfu][opencl_build_error][opencl_file_build_error]") {
+SCENARIO_METHOD(fixture,"kinfu::opencl_file_build_error::raise throws an appropriate exception","[kinfu][opencl_build_error][opencl_file_build_error]") {
 	
 	GIVEN("A boost::compute::program created with source from a file") {
 		
-		dynfu::filesystem::path path(dynfu::current_executable_parent_path());
+		kinfu::filesystem::path path(kinfu::current_executable_parent_path());
 		path/="..";
 		path/="data";
 		path/="test";
@@ -118,14 +118,14 @@ SCENARIO_METHOD(fixture,"dynfu::opencl_file_build_error::raise throws an appropr
 			
 			boost::compute::opencl_error err(CL_INVALID_PROGRAM);
 			
-			THEN("Invoking dynfu::opencl_file_build_error::raise throws a boost::compute::opencl_error which represents the same error code") {
+			THEN("Invoking kinfu::opencl_file_build_error::raise throws a boost::compute::opencl_error which represents the same error code") {
 				
 				bool threw=false;
 				try {
 					
-					dynfu::opencl_file_build_error::raise(p,err,path);
+					kinfu::opencl_file_build_error::raise(p,err,path);
 					
-				} catch (const dynfu::opencl_build_error &) {
+				} catch (const kinfu::opencl_build_error &) {
 					
 					//	Fail
 					
@@ -146,14 +146,14 @@ SCENARIO_METHOD(fixture,"dynfu::opencl_file_build_error::raise throws an appropr
 			
 			boost::compute::opencl_error err(CL_BUILD_PROGRAM_FAILURE);
 			
-			THEN("Invoking dynfu::opencl_file_build_error::raise throws a dynfu::opencl_file_build_error which represents CL_BUILD_PROGRAM_FAILURE and contains the appropriate boost::compute::program and dynfu::filesystem::path") {
+			THEN("Invoking kinfu::opencl_file_build_error::raise throws a kinfu::opencl_file_build_error which represents CL_BUILD_PROGRAM_FAILURE and contains the appropriate boost::compute::program and kinfu::filesystem::path") {
 				
 				bool threw=false;
 				try {
 					
-					dynfu::opencl_file_build_error::raise(p,err,path);
+					kinfu::opencl_file_build_error::raise(p,err,path);
 					
-				} catch (const dynfu::opencl_file_build_error & ex) {
+				} catch (const kinfu::opencl_file_build_error & ex) {
 					
 					threw=true;
 					CHECK(ex.error_code()==CL_BUILD_PROGRAM_FAILURE);

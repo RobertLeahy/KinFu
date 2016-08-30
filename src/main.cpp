@@ -1,23 +1,23 @@
 #include <boost/compute.hpp>
 #include <boost/program_options.hpp>
 #include <boost/progress.hpp>
-#include <dynfu/buffered_depth_device.hpp>
-#include <dynfu/depth_device.hpp>
-#include <dynfu/file_system_depth_device.hpp>
-#include <dynfu/file_system_opencl_program_factory.hpp>
-#include <dynfu/filesystem.hpp>
-#include <dynfu/kinect_fusion.hpp>
-#include <dynfu/kinect_fusion_opencl_surface_prediction_pipeline_block.hpp>
-#include <dynfu/kinect_fusion_opencl_measurement_pipeline_block.hpp>
-#include <dynfu/kinect_fusion_opencl_pose_estimation_pipeline_block.hpp>
-#include <dynfu/kinect_fusion_opencl_update_reconstruction_pipeline_block.hpp>
-#include <dynfu/libigl.hpp>
-#include <dynfu/msrc_file_system_depth_device.hpp>
-#include <dynfu/opencl_depth_device.hpp>
-#include <dynfu/opencv_depth_device.hpp>
-#include <dynfu/optional.hpp>
-#include <dynfu/path.hpp>
-#include <dynfu/timer.hpp>
+#include <kinfu/buffered_depth_device.hpp>
+#include <kinfu/depth_device.hpp>
+#include <kinfu/file_system_depth_device.hpp>
+#include <kinfu/file_system_opencl_program_factory.hpp>
+#include <kinfu/filesystem.hpp>
+#include <kinfu/kinect_fusion.hpp>
+#include <kinfu/kinect_fusion_opencl_surface_prediction_pipeline_block.hpp>
+#include <kinfu/kinect_fusion_opencl_measurement_pipeline_block.hpp>
+#include <kinfu/kinect_fusion_opencl_pose_estimation_pipeline_block.hpp>
+#include <kinfu/kinect_fusion_opencl_update_reconstruction_pipeline_block.hpp>
+#include <kinfu/libigl.hpp>
+#include <kinfu/msrc_file_system_depth_device.hpp>
+#include <kinfu/opencl_depth_device.hpp>
+#include <kinfu/opencv_depth_device.hpp>
+#include <kinfu/optional.hpp>
+#include <kinfu/path.hpp>
+#include <kinfu/timer.hpp>
 #include <chrono>
 #include <cmath>
 #include <cstddef>
@@ -37,10 +37,10 @@ namespace {
 		public:
 
 
-			dynfu::optional<dynfu::filesystem::path> dataset;
-			dynfu::optional<std::size_t> max_frames;
-			dynfu::optional<dynfu::filesystem::path> save_off;
-			dynfu::optional<dynfu::filesystem::path> read_off;
+			kinfu::optional<kinfu::filesystem::path> dataset;
+			kinfu::optional<std::size_t> max_frames;
+			kinfu::optional<kinfu::filesystem::path> save_off;
+			kinfu::optional<kinfu::filesystem::path> read_off;
 
 
 	};
@@ -49,7 +49,7 @@ namespace {
 }
 
 
-static dynfu::optional<program_options> get_program_options (int argc, char ** argv) {
+static kinfu::optional<program_options> get_program_options (int argc, char ** argv) {
 
 	boost::program_options::options_description desc("Command line flags");
 	desc.add_options()("dataset",boost::program_options::value<std::string>(),"Path to depth frames")
@@ -65,7 +65,7 @@ static dynfu::optional<program_options> get_program_options (int argc, char ** a
 	if (vm.count("help")) {
 
 		std::cout << desc << std::endl;
-		return dynfu::nullopt;
+		return kinfu::nullopt;
 
 	}
 
@@ -81,13 +81,13 @@ static dynfu::optional<program_options> get_program_options (int argc, char ** a
 }
 
 
-static void display_off(dynfu::filesystem::path path) {
+static void display_off(kinfu::filesystem::path path) {
 
     Eigen::MatrixXi SF;
     Eigen::MatrixXd SV;
 
-    dynfu::libigl::readOFF(path.string(), SV, SF);
-    dynfu::libigl::viewer(SV,SF);
+    kinfu::libigl::readOFF(path.string(), SV, SF);
+    kinfu::libigl::viewer(SV,SF);
 
 }
 
@@ -109,11 +109,11 @@ static void main_impl (int argc, char ** argv) {
 	boost::compute::context ctx(d);
 	boost::compute::command_queue q(ctx,d);
 
-	dynfu::optional<dynfu::msrc_file_system_depth_device_frame_factory> ff;
-	dynfu::optional<dynfu::msrc_file_system_depth_device_filter> f;
-	dynfu::optional<dynfu::file_system_depth_device> ddi;
-	dynfu::optional<dynfu::opencv_depth_device> ddocv;
-	dynfu::depth_device * ddp;
+	kinfu::optional<kinfu::msrc_file_system_depth_device_frame_factory> ff;
+	kinfu::optional<kinfu::msrc_file_system_depth_device_filter> f;
+	kinfu::optional<kinfu::file_system_depth_device> ddi;
+	kinfu::optional<kinfu::opencv_depth_device> ddocv;
+	kinfu::depth_device * ddp;
 
 	if (options.dataset) {
 
@@ -129,27 +129,27 @@ static void main_impl (int argc, char ** argv) {
 
 	}
 
-	dynfu::opencl_depth_device ocldd(*ddp,q);
-	dynfu::buffered_depth_device dd(ocldd,10);
+	kinfu::opencl_depth_device ocldd(*ddp,q);
+	kinfu::buffered_depth_device dd(ocldd,10);
 
-	dynfu::filesystem::path pp(dynfu::current_executable_parent_path());
+	kinfu::filesystem::path pp(kinfu::current_executable_parent_path());
 
 	float tsdf_extent = 3.0;
 	std::size_t tsdf_size(256);
 	float mu = 0.03f;
 
-	dynfu::file_system_opencl_program_factory opf(pp/".."/"cl",ctx);
-	dynfu::kinect_fusion_opencl_measurement_pipeline_block mpb(q,opf,13,4.5f,0.03f);
+	kinfu::file_system_opencl_program_factory opf(pp/".."/"cl",ctx);
+	kinfu::kinect_fusion_opencl_measurement_pipeline_block mpb(q,opf,13,4.5f,0.03f);
 	Eigen::Matrix4f t_g_k(Eigen::Matrix4f::Identity());
 	t_g_k(0,3)=1.5f;
 	t_g_k(1,3)=1.5f;
 	t_g_k(2,3)=1.5f;
-	dynfu::kinect_fusion_opencl_pose_estimation_pipeline_block pepb(q,opf,0.1f,std::sin(20.0f*3.14159254f/180.0f),dd.width(),dd.height(),t_g_k,15,64);
-	dynfu::kinect_fusion_opencl_update_reconstruction_pipeline_block urpb(q,opf,mu,tsdf_size,tsdf_size,tsdf_size);
-	dynfu::kinect_fusion_opencl_surface_prediction_pipeline_block sppb(q,opf,mu,tsdf_size, tsdf_extent, dd.width(), dd.height());
+	kinfu::kinect_fusion_opencl_pose_estimation_pipeline_block pepb(q,opf,0.1f,std::sin(20.0f*3.14159254f/180.0f),dd.width(),dd.height(),t_g_k,15,64);
+	kinfu::kinect_fusion_opencl_update_reconstruction_pipeline_block urpb(q,opf,mu,tsdf_size,tsdf_size,tsdf_size);
+	kinfu::kinect_fusion_opencl_surface_prediction_pipeline_block sppb(q,opf,mu,tsdf_size, tsdf_extent, dd.width(), dd.height());
 
 
-	dynfu::kinect_fusion kf;
+	kinfu::kinect_fusion kf;
 	kf.depth_device(dd);
 	kf.measurement_pipeline_block(mpb);
 	kf.pose_estimation_pipeline_block(pepb);
@@ -162,7 +162,7 @@ static void main_impl (int argc, char ** argv) {
 
 		for (;;) {
 
-			dynfu::timer t;
+			kinfu::timer t;
 			kf();
 			//	We do this because we're not actually consuming
 			//	the generated values, in the future this shouldn't
@@ -189,7 +189,7 @@ static void main_impl (int argc, char ** argv) {
 
 		}
 
-	} catch (const dynfu::file_system_depth_device::end &) {	}
+	} catch (const kinfu::file_system_depth_device::end &) {	}
 	
 	std::cout << "Frames: " << frames << std::endl;
 	std::size_t avg=(frames==0) ? 0 : (total/frames);
@@ -237,14 +237,14 @@ static void main_impl (int argc, char ** argv) {
 
     std::cout << "Running Marching Cubes..." << std::endl;
 
-    dynfu::libigl::marching_cubes(S_,GV,tsdf_size,tsdf_size,tsdf_size,SV,SF);
+    kinfu::libigl::marching_cubes(S_,GV,tsdf_size,tsdf_size,tsdf_size,SV,SF);
 
 	if (options.save_off) {
 		std::cout << "Writing mesh to " << options.save_off->string() << std::endl;
-		dynfu::libigl::writeOFF(options.save_off->string(), SV, SF);
+		kinfu::libigl::writeOFF(options.save_off->string(), SV, SF);
 	}
 
-    dynfu::libigl::viewer(SV,SF);
+    kinfu::libigl::viewer(SV,SF);
 
 }
 

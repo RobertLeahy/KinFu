@@ -1,6 +1,6 @@
-#include <dynfu/kinect_fusion_eigen_pose_estimation_pipeline_block.hpp>
-#include <dynfu/cpu_pipeline_value.hpp>
-#include <dynfu/pipeline_value.hpp>
+#include <kinfu/kinect_fusion_eigen_pose_estimation_pipeline_block.hpp>
+#include <kinfu/cpu_pipeline_value.hpp>
+#include <kinfu/pipeline_value.hpp>
 #include <Eigen/Dense>
 #include <cassert>
 #include <cmath>
@@ -13,7 +13,7 @@
 
 #include <iostream>
 
-namespace dynfu {
+namespace kinfu {
 
 	static bool isfinite (const Eigen::Vector3f & v) noexcept {
 		return std::isfinite(v(0)) && std::isfinite(v(1)) && std::isfinite(v(2));

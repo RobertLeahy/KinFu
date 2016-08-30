@@ -1,12 +1,12 @@
-#include <dynfu/kinect_fusion_opencl_frame_to_frame_surface_prediction_pipeline_block.hpp>
+#include <kinfu/kinect_fusion_opencl_frame_to_frame_surface_prediction_pipeline_block.hpp>
 
 
 #include <boost/compute.hpp>
-#include <dynfu/cpu_pipeline_value.hpp>
-#include <dynfu/filesystem.hpp>
-#include <dynfu/half.hpp>
-#include <dynfu/path.hpp>
-#include <dynfu/pixel.hpp>
+#include <kinfu/cpu_pipeline_value.hpp>
+#include <kinfu/filesystem.hpp>
+#include <kinfu/half.hpp>
+#include <kinfu/path.hpp>
+#include <kinfu/pixel.hpp>
 #include <Eigen/Dense>
 #include <algorithm>
 #include <tuple>
@@ -21,9 +21,9 @@ namespace {
 
 		private:
 
-			static dynfu::filesystem::path cl_path () {
+			static kinfu::filesystem::path cl_path () {
 
-				dynfu::filesystem::path retr(dynfu::current_executable_parent_path());
+				kinfu::filesystem::path retr(kinfu::current_executable_parent_path());
 				retr/="..";
 				retr/="cl";
 
@@ -47,23 +47,23 @@ namespace {
 }
 
 
-SCENARIO_METHOD(fixture,"dynfu::kinect_fusion_opencl_frame_to_frame_surface_prediction_pipeline_block objects simply copy the provided vertex and normal map to their output","[dynfu][surface_prediction_pipeline_block][kinect_fusion_opencl_frame_to_frame_surface_prediction_pipeline_block]") {
+SCENARIO_METHOD(fixture,"kinfu::kinect_fusion_opencl_frame_to_frame_surface_prediction_pipeline_block objects simply copy the provided vertex and normal map to their output","[kinfu][surface_prediction_pipeline_block][kinect_fusion_opencl_frame_to_frame_surface_prediction_pipeline_block]") {
 
-	GIVEN("A dynfu::kinect_fusion_opencl_frame_to_frame_surface_prediction_pipeline_block object") {
+	GIVEN("A kinfu::kinect_fusion_opencl_frame_to_frame_surface_prediction_pipeline_block object") {
 
-		dynfu::kinect_fusion_opencl_frame_to_frame_surface_prediction_pipeline_block sppb(q);
+		kinfu::kinect_fusion_opencl_frame_to_frame_surface_prediction_pipeline_block sppb(q);
 
 		WHEN("It is invoked") {
 
-			dynfu::cpu_pipeline_value<std::vector<dynfu::half>> tsdf;
+			kinfu::cpu_pipeline_value<std::vector<kinfu::half>> tsdf;
 			tsdf.emplace();
-			dynfu::cpu_pipeline_value<Eigen::Matrix4f> pose;
+			kinfu::cpu_pipeline_value<Eigen::Matrix4f> pose;
 			pose.emplace(Eigen::Matrix4f::Zero());
-			dynfu::cpu_pipeline_value<std::vector<dynfu::pixel>> map_pv;
+			kinfu::cpu_pipeline_value<std::vector<kinfu::pixel>> map_pv;
 			auto && map=map_pv.emplace();
 			map.push_back({{1.0f,2.0f,3.0f},{4.0f,5.0f,6.0f}});
 
-			auto ptr=sppb(tsdf,0,0,0,pose,Eigen::Matrix3f::Zero(),map_pv,dynfu::kinect_fusion_opencl_frame_to_frame_surface_prediction_pipeline_block::value_type{});
+			auto ptr=sppb(tsdf,0,0,0,pose,Eigen::Matrix3f::Zero(),map_pv,kinfu::kinect_fusion_opencl_frame_to_frame_surface_prediction_pipeline_block::value_type{});
 
 			THEN("The vertex and normal map provided is simply copied into the result") {
 

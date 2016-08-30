@@ -1,10 +1,10 @@
-#include <dynfu/buffered_depth_device.hpp>
+#include <kinfu/buffered_depth_device.hpp>
 #include <exception>
 #include <stdexcept>
 #include <thread>
 
 
-namespace dynfu {
+namespace kinfu {
 
 
 	std::unique_lock<std::mutex> buffered_depth_device::lock () const noexcept {

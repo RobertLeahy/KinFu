@@ -1,7 +1,7 @@
-#include <dynfu/pose_estimation_pipeline_block.hpp>
+#include <kinfu/pose_estimation_pipeline_block.hpp>
 
 
-namespace dynfu {
+namespace kinfu {
 	
 	
 	pose_estimation_pipeline_block::~pose_estimation_pipeline_block () noexcept {	}

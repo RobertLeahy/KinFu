@@ -1,4 +1,4 @@
-#include <dynfu/camera.hpp>
+#include <kinfu/camera.hpp>
 
 
 #include <Eigen/Dense>
@@ -6,7 +6,7 @@
 #include <catch.hpp>
 
 
-SCENARIO("dynfu::to_pixel translates from camera to pixel coordinates and dynfu::to_camera translates from pixel to camera coordinates","[dynfu][to_pixel][to_camera]") {
+SCENARIO("kinfu::to_pixel translates from camera to pixel coordinates and kinfu::to_camera translates from pixel to camera coordinates","[kinfu][to_pixel][to_camera]") {
 
 	GIVEN("A camera calibration matrix, a pixel, and a depth") {
 
@@ -18,9 +18,9 @@ SCENARIO("dynfu::to_pixel translates from camera to pixel coordinates and dynfu:
 		Eigen::Vector2i pixel(0,0);
 		float depth(1.2f);
 
-		WHEN("dynfu::to_camera is invoked thereupon") {
+		WHEN("kinfu::to_camera is invoked thereupon") {
 
-			auto cam=dynfu::to_camera(pixel,depth,k);
+			auto cam=kinfu::to_camera(pixel,depth,k);
 
 			THEN("The result is correct") {
 
@@ -29,9 +29,9 @@ SCENARIO("dynfu::to_pixel translates from camera to pixel coordinates and dynfu:
 				CHECK(cam(1)>0.0f);
 				CHECK(std::abs(cam(0))>std::abs(cam(1)));
 
-				AND_WHEN("The result is passed to dynfu::to_pixel") {
+				AND_WHEN("The result is passed to kinfu::to_pixel") {
 
-					auto pair=dynfu::to_pixel(cam,k);
+					auto pair=kinfu::to_pixel(cam,k);
 
 					THEN("The original pixel is retrieved") {
 

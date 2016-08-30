@@ -1,7 +1,7 @@
-#include <dynfu/opencl_program_factory.hpp>
+#include <kinfu/opencl_program_factory.hpp>
 
 
-namespace dynfu {
+namespace kinfu {
 	
 	
 	opencl_program_factory::~opencl_program_factory () noexcept {	}

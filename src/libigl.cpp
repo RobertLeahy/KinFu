@@ -1,11 +1,11 @@
-#include <dynfu/libigl.hpp>
+#include <kinfu/libigl.hpp>
 #include <igl/copyleft/marching_cubes.h>
 #include <igl/readOFF.h>
 #include <igl/viewer/Viewer.h>
 #include <igl/writeOFF.h>
 
 
-namespace dynfu {
+namespace kinfu {
 
 
 	namespace libigl {

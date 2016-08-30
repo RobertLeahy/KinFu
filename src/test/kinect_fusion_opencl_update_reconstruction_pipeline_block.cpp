@@ -1,13 +1,13 @@
-#include <dynfu/kinect_fusion_opencl_update_reconstruction_pipeline_block.hpp>
-#include <dynfu/msrc_file_system_depth_device.hpp>
-#include <dynfu/file_system_depth_device.hpp>
-#include <dynfu/file_system_opencl_program_factory.hpp>
-#include <dynfu/opencl_depth_device.hpp>
+#include <kinfu/kinect_fusion_opencl_update_reconstruction_pipeline_block.hpp>
+#include <kinfu/msrc_file_system_depth_device.hpp>
+#include <kinfu/file_system_depth_device.hpp>
+#include <kinfu/file_system_opencl_program_factory.hpp>
+#include <kinfu/opencl_depth_device.hpp>
 #include <boost/compute.hpp>
-#include <dynfu/cpu_pipeline_value.hpp>
-#include <dynfu/filesystem.hpp>
-#include <dynfu/path.hpp>
-#include <dynfu/file_system_opencl_program_factory.hpp>
+#include <kinfu/cpu_pipeline_value.hpp>
+#include <kinfu/filesystem.hpp>
+#include <kinfu/path.hpp>
+#include <kinfu/file_system_opencl_program_factory.hpp>
 #include <Eigen/Dense>
 #include <algorithm>
 #include <cstddef>
@@ -27,9 +27,9 @@ namespace {
 
 		private:
 
-			static dynfu::filesystem::path cl_path () {
+			static kinfu::filesystem::path cl_path () {
 
-				dynfu::filesystem::path retr(dynfu::current_executable_parent_path());
+				kinfu::filesystem::path retr(kinfu::current_executable_parent_path());
 				retr/="..";
 				retr/="cl";
 
@@ -45,8 +45,8 @@ namespace {
 			std::size_t width;
 			std::size_t height;
 			Eigen::Matrix3f k;
-			dynfu::cpu_pipeline_value<Eigen::Matrix4f> t_g_k;
-			dynfu::file_system_opencl_program_factory fsopf;
+			kinfu::cpu_pipeline_value<Eigen::Matrix4f> t_g_k;
+			kinfu::file_system_opencl_program_factory fsopf;
 			std::size_t tsdf_width;
 			std::size_t tsdf_height;
 			std::size_t tsdf_depth;
@@ -75,24 +75,24 @@ namespace {
 }
 
 
-SCENARIO_METHOD(fixture, "A dynfu::kinect_fusion_opencl_update_reconstruction_pipeline_block implements the update_reconstruction phase of the kinect fusion pipeline on the GPU using OpenCL","[dynfu][update_reconstruction_pipeline_block][kinect_fusion_opencl_update_reconstruction_pipeline_block]") {
+SCENARIO_METHOD(fixture, "A kinfu::kinect_fusion_opencl_update_reconstruction_pipeline_block implements the update_reconstruction phase of the kinect fusion pipeline on the GPU using OpenCL","[kinfu][update_reconstruction_pipeline_block][kinect_fusion_opencl_update_reconstruction_pipeline_block]") {
 
-	GIVEN("A dynfu::kinect_fusion_opencl_update_reconstruction_pipeline_block") {
+	GIVEN("A kinfu::kinect_fusion_opencl_update_reconstruction_pipeline_block") {
 
 
-		dynfu::kinect_fusion_opencl_update_reconstruction_pipeline_block kfourpb(q, fsopf, 5.0f, tsdf_width, tsdf_height, tsdf_depth);
-		dynfu::cpu_pipeline_value<std::vector<float>> pv;
+		kinfu::kinect_fusion_opencl_update_reconstruction_pipeline_block kfourpb(q, fsopf, 5.0f, tsdf_width, tsdf_height, tsdf_depth);
+		kinfu::cpu_pipeline_value<std::vector<float>> pv;
 
-		dynfu::filesystem::path pp(dynfu::current_executable_parent_path());
+		kinfu::filesystem::path pp(kinfu::current_executable_parent_path());
 
 		auto d=boost::compute::system::default_device();
 		boost::compute::context ctx(d);
 		boost::compute::command_queue q(ctx,d);
 
-		dynfu::msrc_file_system_depth_device_frame_factory ff;
-		dynfu::msrc_file_system_depth_device_filter f;
-		dynfu::file_system_depth_device ddi(pp/".."/"data/test/msrc_file_system_depth_device",ff,&f);
-		dynfu::opencl_depth_device dd(ddi,q);
+		kinfu::msrc_file_system_depth_device_frame_factory ff;
+		kinfu::msrc_file_system_depth_device_filter f;
+		kinfu::file_system_depth_device ddi(pp/".."/"data/test/msrc_file_system_depth_device",ff,&f);
+		kinfu::opencl_depth_device dd(ddi,q);
 
 		std::vector<float> v = dd()->get();
 

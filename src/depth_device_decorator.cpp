@@ -1,8 +1,8 @@
-#include <dynfu/depth_device_decorator.hpp>
+#include <kinfu/depth_device_decorator.hpp>
 #include <utility>
 
 
-namespace dynfu {
+namespace kinfu {
 	
 	
 	depth_device_decorator::depth_device_decorator (depth_device & dev) noexcept : dev_(dev) {	}

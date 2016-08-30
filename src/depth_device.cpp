@@ -1,7 +1,7 @@
-#include <dynfu/depth_device.hpp>
+#include <kinfu/depth_device.hpp>
 
 
-namespace dynfu {
+namespace kinfu {
 	
 	
 	depth_device::~depth_device () noexcept {	}

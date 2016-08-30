@@ -1,10 +1,10 @@
 #include <boost/compute.hpp>
-#include <dynfu/boost_compute_detail_type_name_trait.hpp>
-#include <dynfu/cpu_pipeline_value.hpp>
-#include <dynfu/kinect_fusion_opencl_pose_estimation_pipeline_block.hpp>
-#include <dynfu/opencl_program_factory.hpp>
-#include <dynfu/optional.hpp>
-#include <dynfu/scope.hpp>
+#include <kinfu/boost_compute_detail_type_name_trait.hpp>
+#include <kinfu/cpu_pipeline_value.hpp>
+#include <kinfu/kinect_fusion_opencl_pose_estimation_pipeline_block.hpp>
+#include <kinfu/opencl_program_factory.hpp>
+#include <kinfu/optional.hpp>
+#include <kinfu/scope.hpp>
 #include <Eigen/Dense>
 #include <Eigen/Cholesky>
 #include <cstddef>
@@ -16,7 +16,7 @@
 #include <utility>
 
 
-namespace dynfu {
+namespace kinfu {
 
 
 	constexpr std::size_t a_floats=21U;

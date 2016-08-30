@@ -1,4 +1,4 @@
-#include <dynfu/path.hpp>
+#include <kinfu/path.hpp>
 #include <whereami.h>
 #include <cstdlib>
 #include <cstring>
@@ -7,7 +7,7 @@
 #include <stdexcept>
 
 
-namespace dynfu {
+namespace kinfu {
 	
 	
 	static std::string wai_wrapper (bool exec=true) {

@@ -1,5 +1,5 @@
-#include <dynfu/cpu_pipeline_value.hpp>
-#include <dynfu/opencv_depth_device.hpp>
+#include <kinfu/cpu_pipeline_value.hpp>
+#include <kinfu/opencv_depth_device.hpp>
 #include <opencv2/core/core.hpp>
 #include <cstddef>
 #include <cstdint>
@@ -9,7 +9,7 @@
 #include <stdexcept>
 
 
-namespace dynfu {
+namespace kinfu {
 
 
 	void opencv_depth_device::open () {

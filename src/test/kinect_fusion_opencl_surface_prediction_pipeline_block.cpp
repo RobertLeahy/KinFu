@@ -1,15 +1,15 @@
-#include <dynfu/kinect_fusion_opencl_surface_prediction_pipeline_block.hpp>
+#include <kinfu/kinect_fusion_opencl_surface_prediction_pipeline_block.hpp>
 
 
 #include <boost/compute.hpp>
-#include <dynfu/cpu_pipeline_value.hpp>
-#include <dynfu/kinect_fusion_opencl_update_reconstruction_pipeline_block.hpp>
-#include <dynfu/msrc_file_system_depth_device.hpp>
-#include <dynfu/file_system_depth_device.hpp>
-#include <dynfu/file_system_opencl_program_factory.hpp>
-#include <dynfu/opencl_depth_device.hpp>
-#include <dynfu/filesystem.hpp>
-#include <dynfu/path.hpp>
+#include <kinfu/cpu_pipeline_value.hpp>
+#include <kinfu/kinect_fusion_opencl_update_reconstruction_pipeline_block.hpp>
+#include <kinfu/msrc_file_system_depth_device.hpp>
+#include <kinfu/file_system_depth_device.hpp>
+#include <kinfu/file_system_opencl_program_factory.hpp>
+#include <kinfu/opencl_depth_device.hpp>
+#include <kinfu/filesystem.hpp>
+#include <kinfu/path.hpp>
 #include <Eigen/Dense>
 #include <algorithm>
 #include <cstddef>
@@ -27,9 +27,9 @@ namespace {
 
 		private:
 
-			static dynfu::filesystem::path cl_path () {
+			static kinfu::filesystem::path cl_path () {
 
-				dynfu::filesystem::path retr(dynfu::current_executable_parent_path());
+				kinfu::filesystem::path retr(kinfu::current_executable_parent_path());
 				retr/="..";
 				retr/="cl";
 
@@ -46,7 +46,7 @@ namespace {
 			std::size_t height;
 			Eigen::Matrix3f k;
 			Eigen::Matrix4f t_g_k;
-			dynfu::file_system_opencl_program_factory fsopf;
+			kinfu::file_system_opencl_program_factory fsopf;
 			std::size_t tsdf_width;
 			std::size_t tsdf_height;
 			std::size_t tsdf_depth;
@@ -82,34 +82,34 @@ static bool is_nan (const Eigen::Vector3f & v) noexcept {
 }
 
 
-SCENARIO_METHOD(fixture, "A dynfu::kinect_fusion_opencl_surface_prediction_pipeline_block implements the surface prediction phase of the kinect fusion pipeline on the GPU using OpenCL","[dynfu][surface_prediction_pipeline_block][kinect_fusion_opencl_surface_prediction_pipeline_block]") {
+SCENARIO_METHOD(fixture, "A kinfu::kinect_fusion_opencl_surface_prediction_pipeline_block implements the surface prediction phase of the kinect fusion pipeline on the GPU using OpenCL","[kinfu][surface_prediction_pipeline_block][kinect_fusion_opencl_surface_prediction_pipeline_block]") {
 
-	GIVEN("A dynfu::kinect_fusion_opencl_ruface_prediction_pipeline_block") {
+	GIVEN("A kinfu::kinect_fusion_opencl_ruface_prediction_pipeline_block") {
 
 		float mu = 0.1f;
 
-		dynfu::kinect_fusion_opencl_update_reconstruction_pipeline_block kfourpb(q, fsopf, mu, tsdf_width, tsdf_height, tsdf_depth);
-		dynfu::kinect_fusion_opencl_surface_prediction_pipeline_block kfosppb(q, fsopf, mu, tsdf_width);
-		dynfu::cpu_pipeline_value<std::vector<float>> pv;
+		kinfu::kinect_fusion_opencl_update_reconstruction_pipeline_block kfourpb(q, fsopf, mu, tsdf_width, tsdf_height, tsdf_depth);
+		kinfu::kinect_fusion_opencl_surface_prediction_pipeline_block kfosppb(q, fsopf, mu, tsdf_width);
+		kinfu::cpu_pipeline_value<std::vector<float>> pv;
 
-		dynfu::filesystem::path pp(dynfu::current_executable_parent_path());
+		kinfu::filesystem::path pp(kinfu::current_executable_parent_path());
 
 		auto d=boost::compute::system::default_device();
 		boost::compute::context ctx(d);
 		boost::compute::command_queue q(ctx,d);
 
-		dynfu::msrc_file_system_depth_device_frame_factory ff;
-		dynfu::msrc_file_system_depth_device_filter f;
-		dynfu::file_system_depth_device ddi(pp/".."/"data/test/tsdf_viewer/",ff,&f);
-		dynfu::opencl_depth_device dd(ddi,q);
+		kinfu::msrc_file_system_depth_device_frame_factory ff;
+		kinfu::msrc_file_system_depth_device_filter f;
+		kinfu::file_system_depth_device ddi(pp/".."/"data/test/tsdf_viewer/",ff,&f);
+		kinfu::opencl_depth_device dd(ddi,q);
 
-		dynfu::cpu_pipeline_value<Eigen::Matrix4f> t_g_k_pv;
+		kinfu::cpu_pipeline_value<Eigen::Matrix4f> t_g_k_pv;
 		t_g_k_pv.emplace(t_g_k);
 		auto && tsdf=kfourpb(*dd(), width, height, k, t_g_k_pv);
 
 		THEN("Invoking it and downloading the produced V and N maps does not fail and produces V and N maps which are remotely sane") {
 
-			dynfu::cpu_pipeline_value<std::vector<dynfu::pixel>> prev;
+			kinfu::cpu_pipeline_value<std::vector<kinfu::pixel>> prev;
 			prev.emplace();
 			auto ptr = kfosppb(*tsdf.buffer, tsdf.width, tsdf.height, tsdf.depth, t_g_k_pv, k, prev, {});
 			auto && map=ptr->get();

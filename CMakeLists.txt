@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.6)
 set(CMAKE_OSX_SYSROOT /)
 set(CMAKE_MACOSX_RPATH 1)
-project(DynFu LANGUAGES CXX)
+project(KinFu LANGUAGES CXX)
 
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
@@ -80,7 +80,7 @@ if (WIN32)
 	add_definitions(-DWIN32_LEAN_AND_MEAN)
 endif()
 
-add_library(dynfu SHARED
+add_library(kinfu SHARED
 	src/buffered_depth_device.cpp
 	src/camera.cpp
 	src/depth_device.cpp
@@ -110,25 +110,25 @@ add_library(dynfu SHARED
 	src/whereami.cpp
 )
 
-add_library(dynfu_libigl SHARED src/libigl.cpp)
+add_library(kinfu_libigl SHARED src/libigl.cpp)
 find_package(OpenGL REQUIRED)
-target_link_libraries(dynfu_libigl ${OPENGL_gl_LIBRARY} pthread)
+target_link_libraries(kinfu_libigl ${OPENGL_gl_LIBRARY} pthread)
 #	We link against GLFW using a DLL in bin on Windows so this flag
 #	isn't needed (and actually breaks everything)
 if (NOT WIN32)
-	target_link_libraries(dynfu_libigl glfw)
+	target_link_libraries(kinfu_libigl glfw)
 endif()
 if (NOT APPLE AND NOT WIN32)
 	find_package(GLEW REQUIRED)
-	target_link_libraries(dynfu_libigl ${GLEW_LIBRARIES})
+	target_link_libraries(kinfu_libigl ${GLEW_LIBRARIES})
 endif()
 #	Special GLEW/GLFW linker nonsense on Windows
 if (WIN32)
-	set_target_properties(dynfu_libigl PROPERTIES LINK_FLAGS "bin/glew32.dll bin/glfw3.dll bin/*opencv*.dll")
+	set_target_properties(kinfu_libigl PROPERTIES LINK_FLAGS "bin/glew32.dll bin/glfw3.dll bin/*opencv*.dll")
 endif()
 
 add_executable(client src/main.cpp)
-target_link_libraries(client dynfu dynfu_libigl boost_program_options)
+target_link_libraries(client kinfu kinfu_libigl boost_program_options)
 
 add_executable(tests
 	src/test/camera.cpp
@@ -151,7 +151,7 @@ add_executable(tests
 	src/test/opencl_vector_pipeline_value.cpp
 	src/test/opencv_depth_device.cpp
 )
-target_link_libraries(tests dynfu boost_random)
+target_link_libraries(tests kinfu boost_random)
 
 add_custom_target(tests_run ALL
 	COMMAND tests
@@ -162,7 +162,7 @@ add_custom_target(tests_run ALL
 
 #	Special OpenCV linker nonsense
 if(WIN32)
-	set_target_properties(dynfu tests client PROPERTIES LINK_FLAGS "bin/*opencv*.dll")
+	set_target_properties(kinfu tests client PROPERTIES LINK_FLAGS "bin/*opencv*.dll")
 else()
 	execute_process(COMMAND pkg-config --libs opencv OUTPUT_VARIABLE OPENCV_PKGCONFIG OUTPUT_STRIP_TRAILING_WHITESPACE)
 	add_linker_options(${OPENCV_PKGCONFIG})

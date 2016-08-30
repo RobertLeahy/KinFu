@@ -1,7 +1,7 @@
 #include <boost/compute/buffer.hpp>
-#include <dynfu/boost_compute_detail_type_name_trait.hpp>
-#include <dynfu/kinect_fusion_opencl_measurement_pipeline_block.hpp>
-#include <dynfu/opencl_vector_pipeline_value.hpp>
+#include <kinfu/boost_compute_detail_type_name_trait.hpp>
+#include <kinfu/kinect_fusion_opencl_measurement_pipeline_block.hpp>
+#include <kinfu/opencl_vector_pipeline_value.hpp>
 #include <Eigen/Dense>
 #include <cstddef>
 #include <cstdint>
@@ -10,7 +10,7 @@
 #include <tuple>
 
 
-namespace dynfu {
+namespace kinfu {
 	
 	
 	static boost::compute::kernel get_bilateral_kernel (opencl_program_factory & opf) {
